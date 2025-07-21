@@ -1,431 +1,1308 @@
+<template>
+    <AuthenticatedLayout>
+        <div class="py-12">
+            <div class=" sm:px-6 lg:px-8">
+                 <div class="mb-6">
+                    <ul class="flex border-b">
+                        <li class="mr-1 -mb-px" :class="{ 'border-b-2 border-indigo-500': currentStep === 1 }">
+                            <a @click="currentStep = 1" class="bg-white inline-block py-2 px-4 font-medium cursor-pointer"
+                               :class="currentStep === 1 ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'">
+                                ব্যক্তিগত তথ্য
+                            </a>
+                        </li>
+                        <li class="mr-1" :class="{ 'border-b-2 border-indigo-500': currentStep === 2 }">
+                            <a @click="currentStep = 2" class="bg-white inline-block py-2 px-4 font-medium cursor-pointer"
+                               :class="currentStep === 2 ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'">
+                                প্রয়োজনীয় তথ্য ও ঠিকানা
+                            </a>
+                        </li>
+                        <li class="mr-1" :class="{ 'border-b-2 border-indigo-500': currentStep === 3 }">
+                            <a @click="currentStep = 3" class="bg-white inline-block py-2 px-4 font-medium cursor-pointer"
+                               :class="currentStep === 3 ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-800'">
+                                সংযুক্তি
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+
+                <div class="p-6">
+                    <form @submit.prevent="submitStudentInfo" class="space-y-8">
+                        <!-- Personal Information Section -->
+                        <div class="bg-white border border-emerald-100 rounded-sm shadow">
+                            <div
+                                class="flex bg-gradient-to-r rounded-t-md from-emerald-800 gap-3 items-center px-6 py-3 to-emerald-600">
+                                <i class="text-2xl text-white fa-user-circle fas"></i>
+                                <h5 class="text-white text-xl">ব্যক্তিগত তথ্য</h5>
+                            </div>
+
+                            <div class="p-6">
+                                <!-- Name Fields -->
+                                <div class="grid grid-cols-1 gap-6 mb-6 md:grid-cols-3">
+                                    <div class="relative">
+                                        <label class="text-gray-700 text-lg block font-arabic font-medium mb-1">নাম
+                                            (বাংলা)</label>
+                                        <div class="relative">
+                                            <span
+                                                class="flex absolute inset-y-0 items-center left-0 pl-3 pointer-events-none">
+                                                <i class="text-emerald-600 fa-user fas"></i>
+                                            </span>
+                                            <input v-model="studentInfoForm.name_bn" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-gray-700 w-full cursor-not-allowed pl-10 pr-3 py-2">
+                                        </div>
+                                        <p class="text-gray-500 text-xs italic mt-1">* এই ফিল্ডটি পরিবর্তন করা যাবে না
+                                        </p>
+                                    </div>
+
+                                    <div class="relative">
+                                        <label class="text-gray-700 text-lg block font-arabic font-medium mb-1">নাম
+                                            (ইংরেজি)</label>
+                                        <div class="relative">
+                                            <span
+                                                class="flex absolute inset-y-0 items-center left-0 pl-3 pointer-events-none">
+                                                <i class="text-emerald-600 fa-user fas"></i>
+                                            </span>
+                                            <input v-model="studentInfoForm.name_en" type="text"
+                                                class="border border-emerald-200 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-emerald-500 pl-10 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <div class="relative">
+                                        <label class="text-gray-700 text-lg block font-arabic font-medium mb-1">নাম
+                                            (আরবি)</label>
+                                        <div class="relative">
+                                            <span
+                                                class="flex absolute inset-y-0 items-center left-0 pl-3 pointer-events-none">
+                                                <i class="text-emerald-600 fa-user fas"></i>
+                                            </span>
+                                            <input v-model="studentInfoForm.name_ar" type="text"
+                                                class="border border-emerald-200 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-emerald-500 pl-10 pr-3 py-2"
+                                                dir="rtl">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Father's Name Fields -->
+                                <div class="grid grid-cols-1 gap-6 mb-6 md:grid-cols-3">
+                                    <div class="relative">
+                                        <label class="text-gray-700 text-lg block font-arabic font-medium mb-1">পিতার
+                                            নাম (বাংলা)</label>
+                                        <div class="relative">
+                                            <span
+                                                class="flex absolute inset-y-0 items-center left-0 pl-3 pointer-events-none">
+                                                <i class="text-emerald-600 fa-male fas"></i>
+                                            </span>
+                                            <input v-model="studentInfoForm.father_name_bn" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-gray-700 w-full cursor-not-allowed pl-10 pr-3 py-2">
+                                        </div>
+                                        <p class="text-gray-500 text-xs italic mt-1">* এই ফিল্ডটি পরিবর্তন করা যাবে না
+                                        </p>
+                                    </div>
+
+                                    <div class="relative">
+                                        <label class="text-gray-700 text-lg block font-arabic font-medium mb-1">পিতার
+                                            নাম (ইংরেজি)</label>
+                                        <div class="relative">
+                                            <span
+                                                class="flex absolute inset-y-0 items-center left-0 pl-3 pointer-events-none">
+                                                <i class="text-emerald-600 fa-male fas"></i>
+                                            </span>
+                                            <input v-model="studentInfoForm.father_name_en" type="text"
+                                                class="border border-emerald-200 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-emerald-500 pl-10 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <div class="relative">
+                                        <label class="text-gray-700 text-lg block font-arabic font-medium mb-1">পিতার
+                                            নাম (আরবি)</label>
+                                        <div class="relative">
+                                            <span
+                                                class="flex absolute inset-y-0 items-center left-0 pl-3 pointer-events-none">
+                                                <i class="text-emerald-600 fa-male fas"></i>
+                                            </span>
+                                            <input v-model="studentInfoForm.father_name_ar" type="text" required
+                                                class="border border-emerald-200 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-emerald-500 pl-10 pr-3 py-2"
+                                                dir="rtl">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Mother's Name Fields -->
+                                <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                    <div class="relative">
+                                        <label class="text-gray-700 text-lg block font-arabic font-medium mb-1">মাতার
+                                            নাম (বাংলা)</label>
+                                        <div class="relative">
+                                            <span
+                                                class="flex absolute inset-y-0 items-center left-0 pl-3 pointer-events-none">
+                                                <i class="text-emerald-600 fa-female fas"></i>
+                                            </span>
+                                            <input v-model="studentInfoForm.mother_name_bn" type="text"
+                                                class="border border-emerald-200 rounded-md text-gray-700 w-full pl-10 pr-3 py-2">
+                                        </div>
+
+
+                                    </div>
+
+                                    <div class="relative">
+                                        <label class="text-gray-700 text-lg block font-arabic font-medium mb-1">মাতার
+                                            নাম (ইংরেজি)</label>
+                                        <div class="relative">
+                                            <span
+                                                class="flex absolute inset-y-0 items-center left-0 pl-3 pointer-events-none">
+                                                <i class="text-emerald-600 fa-female fas"></i>
+                                            </span>
+                                            <input v-model="studentInfoForm.mother_name_en" type="text"
+                                                class="border border-emerald-200 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-emerald-500 pl-10 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <div class="relative">
+                                        <label class="text-gray-700 text-lg block font-arabic font-medium mb-1">মাতার
+                                            নাম (আরবি)</label>
+                                        <div class="relative">
+                                            <span
+                                                class="flex absolute inset-y-0 items-center left-0 pl-3 pointer-events-none">
+                                                <i class="text-emerald-600 fa-female fas"></i>
+                                            </span>
+                                            <input v-model="studentInfoForm.mother_name_ar" type="text"
+                                                class="border border-emerald-200 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-emerald-500 pl-10 pr-3 py-2"
+                                                dir="rtl">
+                                        </div>
+                                    </div>
+
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-id-card fas"></i>
+                                            জন্ম-নিবন্ধন নম্বর
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="studentInfoForm.BRN_no" type="text"
+                                                class="border border-emerald-200 rounded-md text-emerald-800 w-full pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-id-card fas"></i>
+                                            জাতীয় পরীচয়পত্র
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="studentInfoForm.NID_no" type="text"
+                                                class="border border-emerald-200 rounded-md text-emerald-800 w-full pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-id-card fas"></i>
+                                            অভিবাকের ফোন নম্বর
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="studentInfoForm.mobile_no" type="text"
+                                                class="border border-emerald-200 rounded-md text-emerald-800 w-full pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Student Information Section -->
+                        <div class="bg-white border border-emerald-100 rounded-lg shadow">
+                            <div
+                                class="bg-gradient-to-r rounded-t-md from-emerald-800 overflow-hidden px-6 py-3 relative to-emerald-600">
+                                <div class="bg-pattern absolute inset-0 opacity-10"></div>
+                                <div class="flex gap-3 items-center relative z-10">
+                                    <i class="text-2xl text-white fa-graduation-cap fas"></i>
+                                    <h5 class="text-white text-xl font-arabic">বিগত পরীক্ষার তথ্য</h5>
+                                </div>
+                            </div>
+
+                            <div class="bg-opacity-5 bg-white p-6">
+                                <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                    <!-- Madrasha -->
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-school fas"></i>
+                                            মাদরাসা
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="pastExamForm.Madrasha" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <!-- Markaj -->
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-school fas"></i>
+                                            মারকায
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="pastExamForm.Markaj" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <!-- Class -->
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-layer-group fas"></i>
+                                            শ্রেণী
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="pastExamForm.Class" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <!-- Roll Number -->
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-id-card fas"></i>
+                                            রোল নম্বর
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="pastExamForm.Roll" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <!-- Registration ID -->
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-id-card fas"></i>
+                                            রেজিস্ট্রেশন আইডি
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="pastExamForm.reg_id" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <!-- Date of Birth -->
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-calendar-alt fas"></i>
+                                            জন্ম-তারিখ
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="pastExamForm.DateofBirth" type="date" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <!-- Result -->
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-calendar-alt fas"></i>
+                                            ফলাফল
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="pastExamForm.Division" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+
+                                            পরীক্ষার্থীর ধরন
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="currentExamForm.student_type" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <div class="relative"
+                                        v-if="currentExamForm.student_type === 'অনিয়মিত যেমনী' || currentExamForm.student_type === 'অনিয়মিত অন্যান্য'">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            অনিয়মিত হলে পরীক্ষা দিতে হবে এমন কিতাবের নাম
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="currentExamForm.irregular_subjects" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+                        <!-- <div class="bg-white border border-emerald-100 rounded-lg shadow">
+                            <div
+                                class="bg-gradient-to-r rounded-t-md from-emerald-800 overflow-hidden px-6 py-3 relative to-emerald-600">
+                                <div class="bg-[url( absolute inset-0 opacity-10"></div>
+                                <div class="flex gap-3 items-center relative z-10">
+                                    <i class="text-2xl text-white fa-graduation-cap fas"></i>
+                                    <h5 class="text-white text-xl font-arabic">বর্তমান পরীক্ষার তথ্য</h5>
+                                </div>
+                            </div>
+
+                            <div class="bg-opacity-5 p-6">
+                                <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-school fas"></i>
+                                            মাদরাসা
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="currentExamForm.Madrasha" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-school fas"></i>
+                                            মারকায
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="currentExamForm.Markaj" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            <i class="text-emerald-600 fa-layer-group fas"></i>
+                                            শ্রেণী
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="currentExamForm.Class" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+                                    <div class="relative">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+
+                                            পরীক্ষার্থীর ধরন
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="currentExamForm.student_type" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+
+
+
+                                    <div class="relative"
+                                        v-if="currentExamForm.student_type === 'অনিয়মিত যেমনী' || currentExamForm.student_type === 'অনিয়মিত অন্যান্য'">
+                                        <label
+                                            class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                            অনিয়মিত হলে পরীক্ষা দিতে হবে এমন কিতাবের নাম
+                                        </label>
+                                        <div class="relative">
+                                            <input v-model="currentExamForm.irregular_subjects" type="text" disabled
+                                                class="bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 w-full cursor-not-allowed pl-4 pr-3 py-2">
+                                        </div>
+                                    </div>
+
+
+                                </div>
+
+
+                            </div>
+                        </div> -->
+
+
+                        <!-- Address Section -->
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <!-- Present Address -->
+                            <div class="bg-white border border-emerald-100 rounded-md shadow">
+                                <div
+                                    class="bg-gradient-to-r rounded-t-md from-emerald-800 overflow-hidden px-6 py-3 relative to-emerald-600">
+                                    <div class="bg-pattern absolute inset-0 opacity-10"></div>
+                                    <div class="flex gap-3 items-center relative z-10">
+                                        <i class="text-2xl text-white fa-map-marker-alt fas"></i>
+                                        <h5 class="text-white text-xl font-arabic">বর্তমান ঠিকানা</h5>
+                                    </div>
+                                </div>
+
+                                <div class="bg-opacity-5 bg-white p-6">
+                                    <div class="grid grid-cols-1 gap-4">
+                                        <div class="relative">
+                                            <label
+                                                class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                                বিভাগ
+                                            </label>
+                                            <div class="relative">
+                                                <select v-model="presentFilters.division"
+                                                    @change="presentHandleDivisionChange"
+                                                    class="bg-white border border-gray-200 rounded-sm w-full block focus:ring-[#2d6a4f] focus:ring-2 px-4 py-2">
+                                                    <option value="">সকল</option>
+                                                    <option v-for="division in divisions" :key="division.id"
+                                                        :value="division.id">
+                                                        {{ division.Division }}
+                                                    </option>
+                                                </select>
+                                                <div
+                                                    class="flex absolute inset-y-0 items-center pointer-events-none px-2 right-0">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="relative">
+                                            <label
+                                                class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                                জেলা
+                                            </label>
+                                            <div class="relative">
+                                                <select v-model="presentFilters.district"
+                                                    @change="presentHandleDistrictChange"
+                                                    class="bg-white border border-gray-200 rounded-sm w-full block focus:ring-[#2d6a4f] focus:ring-2 px-4 py-2">
+                                                    <option value="">সকল</option>
+                                                    <option v-for="district in presentDistricts" :key="district.DesID"
+                                                        :value="district.DesID">
+                                                        {{ district.District }}
+                                                    </option>
+                                                </select>
+                                                <div
+                                                    class="flex absolute inset-y-0 items-center pointer-events-none px-2 right-0">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="relative">
+                                            <label
+                                                class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                                থানা/উপজেলা
+                                            </label>
+                                            <div class="relative">
+                                                <select v-model="presentFilters.Thana"
+                                                    class="block w-full px-4 py-2 bg-white border border-gray-200 rounded-sm focus:ring-2 focus:ring-[#2d6a4f]">
+                                                    <option value="">সকল</option>
+                                                    <option v-for="Thana in presentThanas" :key="Thana.Thana_ID"
+                                                        :value="Thana.Thana_ID">
+                                                        {{ Thana.Thana }}
+                                                    </option>
+                                                </select>
+
+
+                                                <div
+                                                    class="flex absolute inset-y-0 items-center pointer-events-none px-2 right-0">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Permanent Address -->
+                            <div class="bg-white border border-emerald-100 rounded-md shadow">
+                                <div
+                                    class="bg-gradient-to-r rounded-t-md from-emerald-800 overflow-hidden px-6 py-3 relative to-emerald-600">
+                                    <div class="bg-pattern absolute inset-0 opacity-10"></div>
+                                    <div class="flex gap-3 items-center relative z-10">
+                                        <i class="text-2xl text-white fa-home fas"></i>
+                                        <h5 class="text-white text-xl font-arabic">স্থায়ী ঠিকানা</h5>
+                                    </div>
+                                </div>
+
+                                <div class="bg-opacity-5 bg-white p-6">
+                                    <div class="grid grid-cols-1 gap-4">
+                                        <div class="relative">
+                                            <label
+                                                class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                                বিভাগ
+                                            </label>
+                                            <div class="relative">
+                                                <select v-model="permanentFilters.division"
+                                                    @change="handleDivisionChange"
+                                                    class="bg-white border border-gray-200 rounded-sm w-full block focus:ring-[#2d6a4f] focus:ring-2 px-4 py-2">
+                                                    <option value="">সকল</option>
+                                                    <option v-for="division in divisions" :key="division.id"
+                                                        :value="division.id">
+                                                        {{ division.Division }}
+                                                    </option>
+                                                </select>
+                                                <div
+                                                    class="flex absolute inset-y-0 items-center pointer-events-none px-2 right-0">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="relative">
+                                            <label
+                                                class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                                জেলা
+                                            </label>
+                                            <div class="relative">
+                                                <select v-model="permanentFilters.district"
+                                                    @change="handleDistrictChange"
+                                                    class="bg-white border border-gray-200 rounded-sm w-full block focus:ring-[#2d6a4f] focus:ring-2 px-4 py-2">
+                                                    <option value="">সকল</option>
+                                                    <option v-for="district in districts" :key="district.DesID"
+                                                        :value="district.DesID">
+                                                        {{ district.District }}
+                                                    </option>
+                                                </select>
+                                                <div
+                                                    class="flex absolute inset-y-0 items-center pointer-events-none px-2 right-0">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="relative">
+                                            <label
+                                                class="flex text-emerald-700 text-lg font-arabic font-medium gap-2 items-center mb-1">
+                                                থানা/উপজেলা
+                                            </label>
+
+
+                                            <select v-model="permanentFilters.Thana"
+                                                class="block w-full px-4 py-2 bg-white border border-gray-200 rounded-sm focus:ring-2 focus:ring-[#2d6a4f]">
+                                                <option value="">সকল</option>
+                                                <option v-for="Thana in thanas" :key="Thana.Thana_ID"
+                                                    :value="Thana.Thana_ID">
+                                                    {{ Thana.Thana }}
+                                                </option>
+                                            </select>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Attachment Section -->
+                        <div class="bg-white border border-emerald-100 rounded-md shadow">
+                            <div class="bg-white border border-emerald-200 p-6 rounded-md shadow-md">
+                                <h3 class="text-emerald-800 text-xl arabic-font font-bold mb-6">সংযুক্তি</h3>
+
+                                <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                    <!-- Student Photo -->
+                                    <div class="space-y-3">
+                                        <label class="text-emerald-700 text-lg arabic-font block font-medium">
+                                            ছাত্রের ছবি (পাসপোর্ট সাইজ এবং নীল ব্যাকগ্রাইন্ড হতে হবে)
+                                        </label>
+                                        <div class="relative">
+                                            <div
+                                                class="flex bg-emerald-50 border-2 border-dashed border-emerald-300 justify-between p-4 rounded-md duration-200 hover:border-emerald-500 items-center transition-colors">
+                                                <span class="text-emerald-600 arabic-font">
+                                                    {{ studentPhoto ? studentPhoto.name : 'ফাইল আপলোড করুন' }}
+                                                </span>
+                                                <div v-if="studentPhotoPreview"
+                                                    class="flex items-center pointer-events-auto relative space-x-2 z-10">
+                                                    <a :href="studentPhotoPreview" target="_blank"
+                                                        class="text-emerald-600 hover:text-emerald-800">প্রিভিউ</a>
+                                                    <button @click.stop="removeFile('studentPhoto')"
+                                                        class="text-red-600 hover:text-red-800">মুছুন</button>
+                                                </div>
+                                            </div>
+                                            <input type="file" @change="handleFileUpload($event, 'studentPhoto')"
+                                                class="h-full w-full absolute cursor-pointer inset-0 opacity-0 z-0"
+                                                accept="image/*,.pdf,.doc,.docx">
+                                        </div>
+                                    </div>
+
+                                    <!-- Birth Certificate/NID -->
+                                    <div class="space-y-3">
+                                        <label class="text-emerald-700 text-lg arabic-font block font-medium">
+                                            জন্ম নিবন্ধন/এন আইডি সংযুক্তি করুন
+                                        </label>
+                                        <div class="relative">
+                                            <div
+                                                class="flex bg-emerald-50 border-2 border-dashed border-emerald-300 justify-between p-4 rounded-md duration-200 hover:border-emerald-500 items-center transition-colors">
+                                                <span class="text-emerald-600 arabic-font">
+                                                    {{ nidAttachment ? nidAttachment.name : 'ফাইল আপলোড করুন' }}
+                                                </span>
+                                                <div v-if="nidAttachmentPreview"
+                                                    class="flex items-center pointer-events-auto relative space-x-2 z-10">
+                                                    <a :href="nidAttachmentPreview" target="_blank"
+                                                        class="text-emerald-600 hover:text-emerald-800">প্রিভিউ</a>
+                                                    <button @click.stop="removeFile('nidAttachment')"
+                                                        class="text-red-600 hover:text-red-800">মুছুন</button>
+                                                </div>
+                                            </div>
+                                            <input type="file" @change="handleFileUpload($event, 'nidAttachment')"
+                                                class="h-full w-full absolute cursor-pointer inset-0 opacity-0 z-0"
+                                                accept="image/*,.pdf,.doc,.docx">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex justify-end space-x-4">
+                            <button type="button" @click="goBack"
+                                class="flex bg-gray-200 rounded-md text-gray-700 font-arabic gap-2 hover:bg-gray-300 items-center px-6 py-1.5 transition-colors">
+                                <i class="fa-times fas"></i> বাতিল করুন
+                            </button>
+
+                            <!-- <button type="submit"
+                                class="flex bg-emerald-600 rounded-md text-white gap-2 hover:bg-emerald-700 items-center px-6 py-1.5 transition-colors"
+                                :disabled="pastExamForm.processing">
+                                <i class="fa-save fas"></i>
+                                <span v-if="pastExamForm.processing">সংরক্ষণ হচ্ছে...</span>
+                                <span v-else>সংরক্ষণ করুন</span>
+                            </button> -->
+
+                            <div class="mt-6">
+                                <button @click.prevent="submitStudentInfo"
+                                    class="bg-emerald-600 rounded-md shadow-md text-white font-bold hover:bg-emerald-700 px-6 py-2">
+                                    <i class="fa-save fas mr-2"></i> সংরক্ষণ করুন
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </AuthenticatedLayout>
+
+</template>
+
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Link, router } from '@inertiajs/vue3'
-import { ref, onMounted, onUnmounted } from 'vue';
-import axios from 'axios';
-import { useConfirm } from 'primevue/useconfirm';
-import ConfirmPopup from 'primevue/confirmpopup';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { ref, onMounted, reactive, watch } from 'vue';
+import { Link, useForm } from '@inertiajs/vue3';
+import { createToaster } from "@meforma/vue-toaster";
+// Student data with initial values
+const props = defineProps({
+    roll: String,
+    reg_id: String,
+    CID: String,
+    modelValue: Object
+});
 
-// Then add this line in your setup script
-const confirm = useConfirm();
-
-
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
-import Dropdown from 'primevue/dropdown';
-import Calendar from 'primevue/calendar';
-import Tag from 'primevue/tag';
-import Menu from 'primevue/menu';
-import Dialog from 'primevue/dialog';
-import Toast from 'primevue/toast';
-import { useToast } from 'primevue/usetoast';
+const toaster = createToaster({
+  position: "top-right",
+  duration: 3000 // 3 সেকেন্ড দেখাবে
+});
 
 
+const examName = ref('');
+const marhalaName = ref('');
+const currentMarhalaId = ref(null);
 
-
-const students = ref([]);
+const student = ref(null);
 const loading = ref(true);
 const error = ref(null);
-const showModal = ref(false);
-const showToast = ref(false);
-// let submitId = null;
+
+// Past exam form
+const pastExamForm = useForm({
+    Name: '',
+    Father: '',
+    Mother: '',
+    DateofBirth: '',
+    Roll: '',
+    reg_id: '',
+    CID: '',
+    Madrasha: '',
+    Markaj: '',
+    Class: '',
+    Division: ''
+
+
+});
+
+// Current exam form
+const currentExamForm = useForm({
+    Madrasha: '',
+    Markaj: '',
+    Class: '',
+    student_type: '',
+    marhalaId: '',
+    irregular_subjects: ''
+});
+
+
+
+
+const studentInfoForm = useForm({
+    // student_id: '',      // Will be populated from pastExamForm.id
+    name_bn: '',         // Will be populated from pastExamForm.Name
+    name_en: '',         // New field for English name
+    name_ar: '',         // New field for Arabic name
+    father_name_bn: '',  // Will be populated from pastExamForm.Father
+    father_name_en: '',  // New field for father's English name
+    father_name_ar: '',  // New field for father's Arabic name
+    mother_name_bn: '',  // Will be populated from pastExamForm.Mother
+    mother_name_en: '',  // New field for mother's English name
+    mother_name_ar: '',  // New field for mother's Arabic name
+    BRN_no: '', // New field for birth certificate
+    NID_no: '',
+    past_Roll: '',            // New field for national ID
+    past_reg_id: '',
+    madrasha_name: '',
+    markaz_name: '',
+    passing_year: '',
+    class: '',
+    Division: '',
+    Date_of_birth: '',
+    current_madrasha: '',
+    current_markaz: '',
+    student_type: '',
+    current_class: '',
+    exam_books_name: '',
+    mobile_no: '',
+    user_name: '',
+    user_id: '',
+    markaz_id: '',
+    NID_attach: '',
+    marhala_id: '',
+
+
+    present_division_name: '',
+    presernt_DID: '',
+    present_district_name: '',
+    present_desId: '',
+    present_thana_name: '',
+    present_TID: '',
+
+    // New fields for permanent address
+    parmanent_division_name: '',
+    parmanent_DID: '',
+    parmanent_district_name: '',
+    parmanent_desId: '',
+    parmanent_thana_name: '',
+    parmanent_TID: '',
+    student_image: '',
+});
+
+
+
+
+
+
 
 onMounted(async () => {
-  try {
-    loading.value = true;
-    const response = await axios.get('/api/students-registration');
-    // Add showMenu property to each student
-    students.value = response.data.map(student => ({
-      ...student,
-      showMenu: false
-    }));
-  } catch (err) {
-    error.value = 'ডাটা লোড করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।';
-    console.error(err);
-  } finally {
-    loading.value = false;
-  }
+    try {
+        // Get marhalaId from localStorage or another source
 
-  // Add click outside listener to close menus
-  document.addEventListener('click', closeAllMenus);
-});
 
-onUnmounted(() => {
-  // Remove click outside listener
-  document.removeEventListener('click', closeAllMenus);
-});
+        const response = await axios.get('/api/get-student-for-edit', {
+            params: {
+                roll: props.roll,
+                reg_id: props.reg_id,
+                CID: props.CID,
+                 marhalaId: localStorage.getItem('marhalaId') || ''
+            }
+        });
 
-const handleSearch = () => {
-  // Implement search logic
+        student.value = response.data;
+
+        // Populate the past exam form
+        if (response.data.pastExam) {
+            pastExamForm.Name = response.data.pastExam.Name || '';
+            pastExamForm.Father = response.data.pastExam.Father || '';
+            pastExamForm.Mother = response.data.pastExam.Mother || '';
+            pastExamForm.DateofBirth = response.data.pastExam.DateofBirth || '';
+            pastExamForm.Roll = response.data.pastExam.Roll || '';
+            pastExamForm.reg_id = response.data.pastExam.reg_id || '';
+            pastExamForm.Madrasha = response.data.pastExam.Madrasha || '';
+            pastExamForm.Markaj = response.data.pastExam.Markaj || '';
+            pastExamForm.Class = response.data.pastExam.Class || '';
+            pastExamForm.Division = response.data.pastExam.Division || '';
+            // studentInfoForm.student_id = response.data.pastExam.id;
+            studentInfoForm.name_bn = response.data.pastExam.Name;
+            studentInfoForm.father_name_bn = response.data.pastExam.Father;
+            studentInfoForm.mother_name_bn = response.data.pastExam.Mother;
+            studentInfoForm.past_Roll = response.data.pastExam.Roll;
+            studentInfoForm.past_reg_id = response.data.pastExam.reg_id;
+            studentInfoForm.madrasha_name = response.data.pastExam.Madrasha;
+            studentInfoForm.markaz_name = response.data.pastExam.Markaj;
+               studentInfoForm.passing_year = response.data.pastExam.years;
+            studentInfoForm.class = response.data.pastExam.Class;
+            studentInfoForm.Division = response.data.pastExam.Division;
+            studentInfoForm.Date_of_birth = response.data.pastExam.DateofBirth;
+
+        }
+
+        // Populate the current exam form
+   // Populate the current exam form
+if (response.data.currentExam) {
+    currentExamForm.Madrasha = response.data.currentExam.Madrasha || '';
+    currentExamForm.Markaj = response.data.currentExam.Markaj || '';
+    currentExamForm.Class = response.data.currentExam.Class || '';
+
+    // এখানে student_type সেট করা হচ্ছে
+    currentExamForm.student_type = response.data.currentExam.student_type || '';
+
+    currentExamForm.marhalaId = response.data.currentExam.marhalaId || '';
+    currentExamForm.irregular_subjects = response.data.currentExam.irregular_subjects || '';
+    studentInfoForm.current_madrasha = response.data.currentExam.Madrasha
+    studentInfoForm.current_markaz = response.data.currentExam.Markaj
+    studentInfoForm.student_type = response.data.currentExam.student_type
+    // studentInfoForm.current_class = response.data.currentExam.Class
+    studentInfoForm.exam_books_name = response.data.currentExam.irregular_subjects
 }
 
-const resetSearch = () => {
-  search.value = ''
-  searchMobile.value = ''
-}
 
-// Close all menus when clicking outside
-function closeAllMenus(event) {
-  if (!event.target.closest('.relative')) {
-    students.value.forEach(student => {
-      student.showMenu = false;
+
+
+        // Populate address fields if they exist in the response
+        if (response.data.studentInfo) {
+            studentInfoForm.present_division_name = response.data.studentInfo.present_division_name || '';
+            studentInfoForm.presernt_DID = response.data.studentInfo.presernt_DID || '';
+            studentInfoForm.present_district_name = response.data.studentInfo.present_district_name || '';
+            studentInfoForm.present_desId = response.data.studentInfo.present_des_id || '';
+            studentInfoForm.present_thana_name = response.data.studentInfo.present_thana_name || '';
+            studentInfoForm.present_TID = response.data.studentInfo.present_TID || '';
+
+            studentInfoForm.parmanent_division_name = response.data.studentInfo.parmanent_division_name || '';
+            studentInfoForm.parmanent_DID = response.data.studentInfo.parmanent_DID || '';
+            studentInfoForm.parmanent_district_name = response.data.studentInfo.parmanent_district_name || '';
+            studentInfoForm.parmanent_desId = response.data.studentInfo.parmanent_desId || '';
+            studentInfoForm.parmanent_thana_name = response.data.studentInfo.parmanent_thana_name || '';
+            studentInfoForm.parmanent_TID = response.data.studentInfo.parmanent_TID || '';
+        }
+
+
+
+
+        loading.value = false;
+    } catch (err) {
+        error.value = 'ছাত্রের তথ্য লোড করতে সমস্যা হয়েছে';
+        loading.value = false;
+        console.error('Error fetching student data:', err);
+    }
+
+
+
+});
+
+
+
+// In the submitStudentInfo function, the marhalaId is not being properly set
+const submitStudentInfo = () => {
+    // আগে ঠিকানার ডাটা আপডেট করুন
+    updateFormData();
+
+    // মারহালা আইডি সেট করুন
+    const marhalaId = props.CID || localStorage.getItem('marhalaId');
+    studentInfoForm.marhala_id = marhalaId;
+
+    // ফাইল যোগ করুন
+    if (studentPhoto.value) {
+        studentInfoForm.student_image = studentPhoto.value;
+    }
+    if (nidAttachment.value) {
+        studentInfoForm.NID_attach = nidAttachment.value;
+    }
+
+    // ফর্ম সাবমিট করুন
+    studentInfoForm.post(`/api/save-student-info/${marhalaId}`, {
+        forceFormData: true,
+        onSuccess: (page) => {
+        // page.props.flash.success থেকে মেসেজ নিন
+        toaster.success(page.props.flash?.success || 'ছাত্রের তথ্য সফলভাবে সংরক্ষণ করা হয়েছে');
+    },
+    onError: (errors) => {
+        toaster.error('ছাত্রের তথ্য সংরক্ষণ করতে সমস্যা হয়েছে');
+        console.error('Error saving student information:', errors);
+    },
+    preserveScroll: true
     });
-  }
-}
-
-const openModal = (id) => {
-  submitId = id;
-  showModal.value = true;
-};
-
-// const submitApplication = () => {
-//   router.post(route('student_reg.submit', submitId), {}, {
-//     preserveScroll: true,
-//     onSuccess: () => {
-//       showModal.value = false;
-//       showToast.value = true;
-//       setTimeout(() => window.location.reload(), 2000);
-//     },
-//     onError: (errors) => {
-//       if (errors.error) {
-//         alert(errors.error);
-//       }
-//     }
-//   });
-// };
-
-// মেনু টগল করার ফাংশন
-// const toggleMenu = (student) => {
-//   // অন্য সব মেনু বন্ধ করা
-//   students.value.forEach(s => {
-//     if (s.id !== student.id) {
-//       s.showMenu = false;
-//     }
-//   });
-
-//   // বর্তমান মেনু টগল করা
-//   student.showMenu = !student.showMenu;
-// };
-
-// মেনুর পজিশন নির্ধারণ করার ফাংশন
-const getMenuPosition = (studentId) => {
-  // DOM এলিমেন্টের পজিশন চেক করা
-  const buttonElement = document.querySelector(`[data-student-id="${studentId}"]`);
-
-  if (!buttonElement) return 'right-0';
-
-  const rect = buttonElement.getBoundingClientRect();
-  const spaceBelow = window.innerHeight - rect.bottom;
-  const spaceRight = window.innerWidth - rect.right;
-
-  // নিচে যথেষ্ট জায়গা না থাকলে উপরে দেখানো
-  const verticalClass = spaceBelow < 200 ? 'bottom-full mb-2' : 'top-full mt-2';
-
-  // ডানে যথেষ্ট জায়গা না থাকলে বামে দেখানো
-  const horizontalClass = spaceRight < 200 ? 'right-full mr-2' : 'left-0';
-
-  return `${verticalClass} ${horizontalClass}`;
 };
 
 
 
-// delete student funtion
-
-const emit = defineEmits(['deleted'])
-
-const closeDeleteModal = () => {
-  showDeleteModal.value = false
-}
 
 
 
 
-const showDeleteModal = ref(false)
-const showDeleteToast = ref(false)
 
-const closeMenu = () => {
-  showMenu.value = false
-}
+// Attachment files
+const studentPhoto = ref(null);
+const studentPhotoPreview = ref(null);
+const nidAttachment = ref(null);
+const nidAttachmentPreview = ref(null);
 
-// const deleteId = ref(null)
+// ফাইল আপলোড হ্যান্ডলার
+const handleFileUpload = (event, type) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-const openDeleteModal = (id) => {
-  deleteId.value = id
-  showDeleteModal.value = true
-  closeMenu()
-}
-
-// const deleteStudent = () => {
-//     router.delete(route('students.delete', { id: deleteId.value }), {
-//         onSuccess: () => {
-//             showDeleteModal.value = false
-//             showDeleteToast.value = true
-//             setTimeout(() => {
-//                 showDeleteToast.value = false
-//                 window.location.reload()
-//             }, 3000)
-//         },
-//     })
-// }
-
-const closeDeleteToast = () => {
-  showDeleteToast.value = false
-}
-
-
-
-
-const FilterMatchMode = {
-  STARTS_WITH: 'startsWith',
-  CONTAINS: 'contains',
-  EQUALS: 'equals',
-  DATE_IS: 'dateIs'
+    // ফাইল টাইপ অনুযায়ী সেট করুন
+    if (type === 'studentPhoto') {
+        studentPhoto.value = file;
+        createFilePreview(file, 'studentPhoto');
+    } else if (type === 'nidAttachment') {
+        nidAttachment.value = file;
+        createFilePreview(file, 'nidAttachment');
+    }
 };
 
-// Component state
-// const students = ref([]);
-// const loading = ref(true);
-const selectedStudentId = ref(null);
-// const showModal = ref(false);
-// const showDeleteModal = ref(false);
-
-
-// Filter options
-const marhalOptions = ref([
-  { name: 'সানাবিয়া উলিয়া', value: 'সানাবিয়া উলিয়া' },
-  { name: 'সানাবিয়া', value: 'সানাবিয়া' },
-  { name: 'ফযীলত', value: 'ফযীলত' }
-]);
-
-const studentTypeOptions = ref([
-  { name: 'নিয়মিত', value: 'নিয়মিত' },
-  { name: 'অনিয়মিত', value: 'অনিয়মিত' },
-  { name: 'অন্যান্য', value: 'অন্যান্য' },
-  { name: 'মানউন্নয়ন', value: 'মানউন্নয়ন' }
-]);
-
-const paymentStatusOptions = ref([
-  { name: 'পরিশোধিত', value: 'পরিশোধিত' },
-  { name: 'অপরিশোধিত', value: 'অপরিশোধিত' }
-]);
-
-const applicationStatusOptions = ref([
-  { name: 'বোর্ড দাখিল', value: 'বোর্ড দাখিল' },
-  { name: 'বোর্ড ফেরত', value: 'বোর্ড ফেরত' },
-  { name: 'অনুমোদন', value: 'অনুমোদন' }
-]);
-
-// Initialize filters
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  id: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  name_bn: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  father_name_bn: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  current_madrasha: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  exam_name_Bn: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  current_class: { value: null, matchMode: FilterMatchMode.EQUALS },
-  Date_of_birth: { value: null, matchMode: FilterMatchMode.DATE_IS },
-  student_type: { value: null, matchMode: FilterMatchMode.EQUALS },
-  payment_status: { value: null, matchMode: FilterMatchMode.EQUALS },
-  status: { value: null, matchMode: FilterMatchMode.EQUALS }
-});
-
-// Menu references
-
-
-// Functions
-const getStatusSeverity = (status) => {
-  switch (status) {
-    case 'বোর্ড দাখিল':
-      return 'warning';
-    case 'বোর্ড ফেরত':
-      return 'danger';
-    case 'অনুমোদন':
-      return 'success';
-    default:
-      return null;
-  }
+// ফাইল প্রিভিউ তৈরি করুন
+const createFilePreview = (file, type) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        if (type === 'studentPhoto') {
+            studentPhotoPreview.value = e.target.result;
+        } else if (type === 'nidAttachment') {
+            nidAttachmentPreview.value = e.target.result;
+        }
+    };
+    reader.readAsDataURL(file);
 };
 
-// const toggleMenu = (event, data) => {
-//   menu.value.toggle(event);
-//   selectedStudentId.value = data.id;
-// };
+// ফাইল রিমুভ করুন
+const removeFile = (type) => {
+    if (type === 'studentPhoto') {
+        studentPhoto.value = null;
+        studentPhotoPreview.value = null;
+    } else if (type === 'nidAttachment') {
+        nidAttachment.value = null;
+        nidAttachmentPreview.value = null;
+    }
+};
+
+// Go back to previous page without using router
+const goBack = () => {
+    window.history.back();
+};
 
 
 
-// const openModal = (id) => {
-//   selectedStudentId.value = id;
-//   showModal.value = true;
-// };
 
-// const openDeleteModal = (id) => {
-//   selectedStudentId.value = id;
-//   showDeleteModal.value = true;
-// };
 
-// const submitApplication = () => {
-//   // Implement your submit logic here
-//   router.post(route('students_registration.submit_to_board', selectedStudentId.value), {}, {
-//     onSuccess: () => {
-//       showModal.value = false;
-//       toast.add({ severity: 'success', summary: 'সফল', detail: 'আবেদন সফলভাবে সাবমিট হয়েছে!', life: 3000 });
-//     }
-//   });
-// };
 
-// const deleteStudent = () => {
-//   // Implement your delete logic here
-//   router.delete(route('students_registration.delete', selectedStudentId.value), {
-//     onSuccess: () => {
-//       showDeleteModal.value = false;
-//       toast.add({ severity: 'success', summary: 'সফল', detail: 'আবেদন সফলভাবে মুছে ফেলা হয়েছে!', life: 3000 });
-//     }
-//   });
-// };
 
-// Load data
-// onMounted(() => {
-//   // Replace with your actual data fetching logic
-//   router.get(route('students_registration.get_students'), {}, {
-//     onSuccess: (page) => {
-//       students.value = page.props.students;
-//       loading.value = false;
-//     }
-//   });
+
+
+
+// বিভাগ/ থানা/ জেলা
+
+// const props = defineProps({
+//   modelValue: Object
 // });
 
+const emit = defineEmits(['update:modelValue']);
 
+const divisions = ref([]);
+const presentDistricts = ref([]);
+const presentThanas = ref([]);
+const districts = ref([]);
+const thanas = ref([]);
 
+// Separate refs for present and permanent address data
+const presentFilters = ref({
+    division: '',
+    district: '',
+    Thana: '' // 'T' uppercase করে দিন
+});
 
+const permanentFilters = ref({
+    division: '',
+    district: '',
+    Thana: '' // 'T' uppercase করে দিন
+});
 
-
-
-
-// const router = useRouter();
-// const confirm = useConfirm();
-const toast = useToast();
-const menu = ref();
-const submitId = ref(null);
-const deleteId = ref(null);
-
-const toggleMenu = (event, data) => {
-  menu.value.toggle(event);
-};
-
-const getActionItems = (data) => {
-  return [
-    {
-      label: 'বোর্ড দাখিল করুন',
-      icon: 'pi pi-upload',
-      command: () => openSubmitConfirm(event, data.id)
-    },
-    {
-      label: 'এডিট',
-      icon: 'pi pi-pencil',
-      command: () => router.visit(route('students_registration.student_registration_edit', data.id))
-    },
-    {
-      label: 'বিস্তারিত দেখুন',
-      icon: 'pi pi-info-circle',
-      command: () => router.visit(route('students_registration.student_registraion_view', data.id))
-    },
-    {
-      label: 'মুছে ফেলুন',
-      icon: 'pi pi-trash',
-      command: (event) => openDeleteConfirm(event, data.id)
+// Initialize filters from props if they exist
+const initializeFilters = () => {
+    if (props.modelValue && props.modelValue.presernt_DID) {
+        presentFilters.value.division = props.modelValue.presernt_DID;
     }
-  ];
-};
-
-const openSubmitConfirm = (event, id) => {
-  submitId.value = id;
-  confirm.require({
-    target: event.originalEvent.target,
-    group: 'submitConfirm',
-    message: 'আপনি কি নিশ্চিত যে এই আবেদনটি সাবমিট করতে চান?',
-    icon: 'pi pi-paper-plane',
-    acceptProps: {
-      icon: 'pi pi-check',
-      label: 'সাবমিট করুন',
-      class: 'p-button-success'
-    },
-    rejectProps: {
-      icon: 'pi pi-times',
-      label: 'বাতিল করুন',
-      outlined: true
-    },
-    accept: () => {
-      submitApplication();
-    },
-    reject: () => {
-      toast.add({ severity: 'info', summary: 'বাতিল করা হয়েছে', detail: 'আপনি সাবমিট বাতিল করেছেন', life: 3000 });
+    if (props.modelValue && props.modelValue.present_des_id) {
+        presentFilters.value.district = props.modelValue.present_des_id;
     }
-  });
-};
-
-const openDeleteConfirm = (event, id) => {
-  deleteId.value = id;
-  confirm.require({
-    target: event.originalEvent.target,
-    group: 'deleteConfirm',
-    message: 'আপনি কি নিশ্চিত যে এই আবেদনটি মুছে ফেলতে চান?',
-    icon: 'pi pi-exclamation-triangle',
-    acceptProps: {
-      icon: 'pi pi-trash',
-      label: 'মুছে ফেলুন',
-      class: 'p-button-danger'
-    },
-    rejectProps: {
-      icon: 'pi pi-times',
-      label: 'বাতিল করুন',
-      outlined: true
-    },
-    accept: () => {
-      deleteStudent();
-    },
-    reject: () => {
-      toast.add({ severity: 'info', summary: 'বাতিল করা হয়েছে', detail: 'আপনি মুছে ফেলা বাতিল করেছেন', life: 3000 });
+    if (props.modelValue && props.modelValue.present_TID) {
+        presentFilters.value.Thana = props.modelValue.present_TID;
     }
-  });
-};
 
-const submitApplication = () => {
-  router.post(route('student_reg.submit', submitId.value), {}, {
-    preserveScroll: true,
-    onSuccess: () => {
-      toast.add({ severity: 'success', summary: 'সফল', detail: 'আবেদন সফলভাবে সাবমিট করা হয়েছে', life: 3000 });
-      setTimeout(() => window.location.reload(), 2000);
-    },
-    onError: (errors) => {
-      if (errors.error) {
-        toast.add({ severity: 'error', summary: 'ত্রুটি', detail: errors.error, life: 3000 });
-      }
+    if (props.modelValue && props.modelValue.parmanent_DID) {
+        permanentFilters.value.division = props.modelValue.parmanent_DID;
     }
-  });
-};
-
-const deleteStudent = () => {
-  router.delete(route('students_registration.delete', deleteId.value), {
-    preserveScroll: true,
-    onSuccess: () => {
-      toast.add({ severity: 'success', summary: 'সফল', detail: 'আবেদন সফলভাবে মুছে ফেলা হয়েছে', life: 3000 });
-      setTimeout(() => window.location.reload(), 2000);
-    },
-    onError: (errors) => {
-      if (errors.error) {
-        toast.add({ severity: 'error', summary: 'ত্রুটি', detail: errors.error, life: 3000 });
-      }
+    if (props.modelValue && props.modelValue.parmanent_desId) {
+        permanentFilters.value.district = props.modelValue.parmanent_desId;
     }
-  });
+    if (props.modelValue && props.modelValue.parmanent_TID) {
+        permanentFilters.value.Thana = props.modelValue.parmanent_TID;
+    }
+};
+
+// Watch for changes in props.modelValue to initialize filters
+watch(() => props.modelValue, (newValue) => {
+    if (newValue) {
+        initializeFilters();
+    }
+}, { immediate: true });
+
+// Watch for changes in presentFilters and update the form
+watch(presentFilters, async (newValues) => {
+    if (!props.modelValue) return;
+
+    const updatedValue = { ...props.modelValue };
+
+    // Update division
+    if (newValues.division) {
+        const selectedDivision = divisions.value.find(d => d.id == newValues.division);
+        if (selectedDivision) {
+            updatedValue.present_division_name = selectedDivision.Division_U;
+            updatedValue.presernt_DID = selectedDivision.id;
+        }
+    }
+
+    // Update district
+    if (newValues.district) {
+        const selectedDistrict = presentDistricts.value.find(d => d.DesID == newValues.district);
+        if (selectedDistrict) {
+            updatedValue.present_district_name = selectedDistrict.District_U;
+            updatedValue.present_des_id = selectedDistrict.DesID;
+        }
+    }
+
+    // Update thana
+    if (newValues.Thana) {
+        const selectedThana = presentThanas.value.find(t => t.Thana_ID == newValues.Thana);
+        if (selectedThana) {
+            updatedValue.present_thana_name = selectedThana.Thana_U;
+            updatedValue.present_TID = selectedThana.Thana_ID;
+        }
+    }
+
+    emit('update:modelValue', updatedValue);
+}, { deep: true });
+
+// Watch for changes in permanentFilters and update the form
+watch(permanentFilters, async (newValues) => {
+    if (!props.modelValue) return;
+
+    const updatedValue = { ...props.modelValue };
+
+    // Update division
+    if (newValues.division) {
+        const selectedDivision = divisions.value.find(d => d.id == newValues.division);
+        if (selectedDivision) {
+            updatedValue.parmanent_division_name = selectedDivision.Division_U;
+            updatedValue.parmanent_DID = selectedDivision.id;
+        }
+    }
+
+    // Update district
+    if (newValues.district) {
+        const selectedDistrict = districts.value.find(d => d.DesID == newValues.district);
+        if (selectedDistrict) {
+            updatedValue.parmanent_district_name = selectedDistrict.District_U;
+            updatedValue.parmanent_desId = selectedDistrict.DesID;
+        }
+    }
+
+    // Update thana
+    if (newValues.Thana) {
+        const selectedThana = thanas.value.find(t => t.Thana_ID == newValues.Thana);
+        if (selectedThana) {
+            updatedValue.parmanent_thana_name = selectedThana.Thana_U;
+            updatedValue.parmanent_TID = selectedThana.Thana_ID;
+        }
+    }
+
+    emit('update:modelValue', updatedValue);
+}, { deep: true });
+
+onMounted(async () => {
+    await loadDivisions();
+    initializeFilters();
+
+    // If we have saved values, load the related districts and thanas
+    if (presentFilters.value.division) {
+        await presentHandleDivisionChange();
+
+        if (presentFilters.value.district) {
+            await presentHandleDistrictChange();
+        }
+    }
+
+    if (permanentFilters.value.division) {
+        await handleDivisionChange();
+
+        if (permanentFilters.value.district) {
+            await handleDistrictChange();
+        }
+    }
+
+
+    const marhalaId = route().params.marhalaId;
+    currentMarhalaId.value = marhalaId;
+
+    try {
+        const response = await axios.get(`/api/student-registration_old/${marhalaId}`);
+        examName.value = response.data.examName;
+        marhalaName.value = response.data.marhalaName;
+
+        // এই লাইন যোগ করুন - studentInfoForm এ মারহালার নাম সেট করুন
+        studentInfoForm.current_class = response.data.marhalaName;
+        studentInfoForm.marhala_id = marhalaId;
+
+    } catch (error) {
+        console.error("Error fetching marhala info:", error);
+    }
+
+
+});
+
+
+
+
+
+
+
+const loadDivisions = async () => {
+    try {
+        const response = await axios.get('/api/divisions');
+        divisions.value = response.data;
+        return true;
+    } catch (error) {
+        console.error('Error loading divisions:', error);
+        return false;
+    }
+};
+
+// Present address handlers
+const presentHandleDivisionChange = async () => {
+    presentFilters.value.district = '';
+    presentFilters.value.Thana = '';
+    presentDistricts.value = [];
+    presentThanas.value = [];
+
+    if (!presentFilters.value.division) {
+        return;
+    }
+
+    try {
+        const response = await axios.get(`/api/districts/${presentFilters.value.division}`);
+        presentDistricts.value = response.data;
+    } catch (error) {
+        console.error('Error loading districts:', error);
+    }
+};
+
+const presentHandleDistrictChange = async () => {
+    presentFilters.value.Thana = '';
+    presentThanas.value = [];
+
+    if (!presentFilters.value.district) {
+        return;
+    }
+
+    try {
+        const response = await axios.get(`/api/thanas/${presentFilters.value.district}`);
+        presentThanas.value = response.data;
+    } catch (error) {
+        console.error('Error loading thanas:', error);
+    }
+};
+
+// Permanent address handlers
+const handleDivisionChange = async () => {
+    permanentFilters.value.district = '';
+    permanentFilters.value.Thana = '';
+    districts.value = [];
+    thanas.value = [];
+
+    if (!permanentFilters.value.division) {
+        return;
+    }
+
+    try {
+        const response = await axios.get(`/api/districts/${permanentFilters.value.division}`);
+        districts.value = response.data;
+    } catch (error) {
+        console.error('Error loading districts:', error);
+    }
+};
+
+const handleDistrictChange = async () => {
+    permanentFilters.value.Thana = '';
+    thanas.value = [];
+
+    if (!permanentFilters.value.district) {
+        return;
+    }
+
+    try {
+        const response = await axios.get(`/api/thanas/${permanentFilters.value.district}`);
+        thanas.value = response.data;
+    } catch (error) {
+        console.error('Error loading thanas:', error);
+    }
 };
 
 
 
 
 
+
+
+const updateFormData = () => {
+    // বর্তমান ঠিকানার ডাটা আপডেট
+    if (presentFilters.value.division) {
+        const selectedDivision = divisions.value.find(d => d.id == presentFilters.value.division);
+        if (selectedDivision) {
+            studentInfoForm.present_division_name = selectedDivision.Division;
+            studentInfoForm.presernt_DID = selectedDivision.id;
+        }
+    }
+
+    if (presentFilters.value.district) {
+        const selectedDistrict = presentDistricts.value.find(d => d.DesID == presentFilters.value.district);
+        if (selectedDistrict) {
+            studentInfoForm.present_district_name = selectedDistrict.District;
+            studentInfoForm.present_desId = selectedDistrict.DesID;
+        }
+    }
+
+    if (presentFilters.value.Thana) {
+        const selectedThana = presentThanas.value.find(t => t.Thana_ID == presentFilters.value.Thana);
+        if (selectedThana) {
+            studentInfoForm.present_thana_name = selectedThana.Thana;
+            studentInfoForm.present_TID = selectedThana.Thana_ID;
+        }
+    }
+
+    // স্থায়ী ঠিকানার ডাটা আপডেট
+    if (permanentFilters.value.division) {
+        const selectedDivision = divisions.value.find(d => d.id == permanentFilters.value.division);
+        if (selectedDivision) {
+            studentInfoForm.parmanent_division_name = selectedDivision.Division;
+            studentInfoForm.parmanent_DID = selectedDivision.id;
+        }
+    }
+
+    if (permanentFilters.value.district) {
+        const selectedDistrict = districts.value.find(d => d.DesID == permanentFilters.value.district);
+        if (selectedDistrict) {
+            studentInfoForm.parmanent_district_name = selectedDistrict.District;
+            studentInfoForm.parmanent_desId = selectedDistrict.DesID;
+        }
+    }
+
+    if (permanentFilters.value.Thana) {
+        const selectedThana = thanas.value.find(t => t.Thana_ID == permanentFilters.value.Thana);
+        if (selectedThana) {
+            studentInfoForm.parmanent_thana_name = selectedThana.Thana;
+            studentInfoForm.parmanent_TID = selectedThana.Thana_ID;
+        }
+    }
+}
 
 
 
@@ -433,415 +1310,6 @@ const deleteStudent = () => {
 </script>
 
 
-<template>
-<AuthenticatedLayout>
-    <div class="p-4 mt-5 mx-auto">
-
-
-      <div style="font-family: 'Merriweather','SolaimanLipi',sans-serif"
-     class="grid grid-cols-1 gap-6 lg:grid-cols-4 mb-5 sm:grid-cols-2">
-
-    <!-- Total Students Card -->
-    <div class="bg-gradient-to-br border border-emerald-100 p-6 rounded-md duration-300 from-emerald-50 hover:shadow-lg islamic-pattern to-white transition-all">
-        <div class="flex justify-between items-start">
-            <div class="space-y-4">
-                <div class="flex items-baseline space-x-2">
-                    <span class="text-emerald-600 text-sm font-semibold">মোট</span>
-                </div>
-                <p class="text-emerald-900 font-medium">মোট নিবন্ধিত শিক্ষার্থী সংখ্যা</p>
-            </div>
-            <div class="bg-emerald-100 p-3 rounded-xl">
-                <i class="text-2xl text-amber-600 fa-female fas"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Board Return Students Card -->
-    <div class="bg-gradient-to-br border border-teal-100 p-6 rounded-md duration-300 from-teal-50 hover:shadow-lg islamic-pattern to-white transition-all">
-        <div class="flex justify-between items-start">
-            <div class="space-y-4">
-                <div class="flex items-baseline space-x-2">
-                    <span class="text-sm text-teal-600 font-semibold">জন</span>
-                </div>
-                <p class="text-teal-900 font-medium">বোর্ড ফেরত শিক্ষার্থী সংখ্যা</p>
-            </div>
-            <div class="bg-teal-100 p-3 rounded-xl">
-                <i class="text-2xl text-amber-600 fa-female fas"></i>
-            </div>
-        </div>
-        <div class="border-t border-teal-100 mt-4 pt-4"></div>
-    </div>
-
-    <!-- Female Students Card -->
-    <div class="bg-gradient-to-br border border-amber-100 p-6 rounded-md duration-300 from-amber-50 hover:shadow-lg islamic-pattern to-white transition-all">
-        <div class="flex justify-between items-start">
-            <div class="space-y-4">
-                <div class="flex items-baseline space-x-2">
-                    <span class="text-amber-600 text-sm font-semibold">জন</span>
-                </div>
-                <p class="text-amber-900 font-medium">নিয়মিত ছাত্র সংখ্যা</p>
-            </div>
-            <div class="bg-amber-100 p-3 rounded-xl">
-                <i class="text-2xl text-amber-600 fa-female fas"></i>
-            </div>
-        </div>
-        <div class="border-amber-100 border-t mt-4 pt-4"></div>
-    </div>
-
-    <!-- Year Total Card -->
-    <div class="bg-gradient-to-br border border-emerald-100 p-6 rounded-md duration-300 from-emerald-50 hover:shadow-lg islamic-pattern to-white transition-all">
-        <div class="flex justify-between items-start">
-            <div class="space-y-4">
-                <div class="flex items-baseline space-x-2">
-                    <span class="text-emerald-600 text-sm font-semibold">জন</span>
-                </div>
-                <p class="text-emerald-900 font-medium">{{ selectedYear }} অনিয়মিত ছাত্র সংখ্যা</p>
-            </div>
-            <div class="bg-emerald-100 p-3 rounded-xl">
-                <i class="text-2xl text-amber-600 fa-female fas"></i>
-            </div>
-        </div>
-        <div class="border-emerald-100 border-t mt-4 pt-4"></div>
-    </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="bg-white rounded-sm shadow-lg mb-6">
-    <!-- Header with Islamic pattern -->
-    <div class="bg-emerald-900 p-3 rounded-t-sm islamic-pattern">
-      <div class="grid grid-cols-1 gap-4 items-center md:grid-cols-3">
-        <h3 class="text-amber-400 text-lg font-bold">
-          <i class="fa-search-plus fas ml-2"></i> সার্চ উইযার্ড
-        </h3>
-        <h3 class="text-center text-lg text-white">
-          <!-- ৪৮তম কেন্দ্রীয় পরীক্ষা: নেগরান মুমতাহিন -->
-        </h3>
-        <div class="flex justify-end gap-3">
-          <Link
-            :href="route('students_registration.student_registration')"
-            class="flex bg-emerald-600 rounded-sm text-white duration-200 gap-2 hover:bg-emerald-700 items-center px-4 py-2 transition-colors"
-          >
-            <i class="fa-user-plus fas"></i>
-            <span>নিবন্ধন করুন</span>
-          </Link>
-          <Button
-            icon="pi pi-file-import"
-            label="ইম্পোর্ট করুন"
-            class="p-button-teal"
-          />
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Data Table -->
-  <div class="bg-white rounded-sm shadow-lg">
-    <!-- Header with Islamic pattern -->
-    <div class="bg-emerald-900 p-3 rounded-t-sm islamic-pattern">
-      <div class="grid grid-cols-1 gap-4 items-center md:grid-cols-3">
-        <h3 class="text-amber-300 text-lg font-bold">
-          <i class="fa-users-class fas ml-2"></i> মোট নিবন্ধিত ছাত্র সংখ্যা
-        </h3>
-        <h3 class="text-amber-300 text-center text-lg">
-          <!-- ৪৮তম কেন্দ্রীয় পরীক্ষা: মুতাওয়াসসিতা -->
-        </h3>
-        <div class="flex justify-end gap-3">
-          <Button
-            icon="pi pi-file-pdf"
-            label="PDF ডাউনলোড"
-            class="p-button-warning"
-          />
-          <Button
-            icon="pi pi-paper-plane"
-            label="বোর্ড দাখিল"
-            class="p-button-success"
-          />
-        </div>
-      </div>
-    </div>
-
-    <div class="p-4">
-      <DataTable
-        :value="students"
-        v-model:filters="filters"
-        filterDisplay="menu"
-        :loading="loading"
-        dataKey="id"
-        paginator
-        :rows="10"
-        :rowsPerPageOptions="[5, 10, 25, 50]"
-        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-        currentPageReportTemplate="দেখানো হচ্ছে {first} থেকে {last} মোট {totalRecords} এর মধ্যে"
-        responsiveLayout="scroll"
-        :globalFilterFields="['id', 'name_bn', 'father_name_bn', 'current_madrasha', 'exam_name_Bn', 'current_class', 'Date_of_birth', 'student_type', 'payment_status', 'status']"
-      >
-        <template #header>
-          <div class="flex justify-between items-center">
-            <div>
-              <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText v-model="filters['global'].value" placeholder="সার্চ করুন..." />
-              </span>
-            </div>
-          </div>
-        </template>
-
-        <Column field="id" header="রেজিস্ট্রেশন নং" sortable style="min-width: 12rem">
-          <template #filter="{ filterModel, filterCallback }">
-            <InputText v-model="filterModel.value" @input="filterCallback()" placeholder="সার্চ করুন..." />
-          </template>
-        </Column>
-
-        <Column header="ছবি" style="min-width: 12rem">
-          <template #body="{ data }">
-            <div class="relative mx-auto w-24 h-24 overflow-hidden border-2 border-gray-200 rounded-lg shadow-md bg-white">
-              <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-yellow-500"></div>
-              <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-yellow-500"></div>
-              <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-yellow-500"></div>
-              <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-yellow-500"></div>
-              <div class="w-full h-full flex items-center justify-center p-1">
-                <img
-                  v-if="data.student_image"
-                  :src="'/storage/' + data.student_image"
-                  alt="Student"
-                  class="w-full h-full object-cover rounded"
-                />
-                <div
-                  v-else
-                  class="w-full h-full rounded bg-gradient-to-r from-gray-100 to-gray-200 flex flex-col items-center justify-center"
-                >
-                  <i class="pi pi-user text-4xl text-gray-400"></i>
-                  <span class="text-gray-500 text-xs mt-1">No Image</span>
-                </div>
-              </div>
-              <div class="absolute inset-0 shadow-inner rounded-lg pointer-events-none"></div>
-            </div>
-          </template>
-        </Column>
-
-        <Column field="name_bn" header="নাম" sortable style="min-width: 12rem">
-          <template #filter="{ filterModel, filterCallback }">
-            <InputText v-model="filterModel.value" @input="filterCallback()" placeholder="সার্চ করুন..." />
-          </template>
-        </Column>
-
-        <Column field="father_name_bn" header="পিতার নাম" sortable style="min-width: 12rem">
-          <template #filter="{ filterModel, filterCallback }">
-            <InputText v-model="filterModel.value" @input="filterCallback()" placeholder="সার্চ করুন..." />
-          </template>
-        </Column>
-
-        <Column field="current_madrasha" header="মাদরাসার নাম" sortable style="min-width: 12rem">
-          <template #filter="{ filterModel, filterCallback }">
-            <InputText v-model="filterModel.value" @input="filterCallback()" placeholder="সার্চ করুন..." />
-          </template>
-        </Column>
-
-        <Column field="exam_name_Bn" header="পরীক্ষার নাম" sortable style="min-width: 12rem">
-          <template #filter="{ filterModel, filterCallback }">
-            <InputText v-model="filterModel.value" @input="filterCallback()" placeholder="সার্চ করুন..." />
-          </template>
-        </Column>
-
-        <Column field="current_class" header="মারহালা" sortable style="min-width: 12rem">
-          <template #filter="{ filterModel, filterCallback }">
-            <Dropdown
-              v-model="filterModel.value"
-              @change="filterCallback()"
-              :options="marhalOptions"
-              placeholder="সিলেক্ট করুন"
-              optionLabel="name"
-              optionValue="value"
-              class="p-column-filter"
-            />
-          </template>
-        </Column>
-
-        <Column field="Date_of_birth" header="জন্ম-তারিখ" sortable style="min-width: 12rem">
-          <template #filter="{ filterModel, filterCallback }">
-            <Calendar v-model="filterModel.value" @date-select="filterCallback()" dateFormat="dd/mm/yy" placeholder="তারিখ সিলেক্ট করুন" />
-          </template>
-        </Column>
-
-        <Column field="student_type" header="পরীক্ষার্থীর ধরন" sortable style="min-width: 12rem">
-          <template #filter="{ filterModel, filterCallback }">
-            <Dropdown
-              v-model="filterModel.value"
-              @change="filterCallback()"
-              :options="studentTypeOptions"
-              placeholder="সিলেক্ট করুন"
-              optionLabel="name"
-              optionValue="value"
-              class="p-column-filter"
-            />
-          </template>
-          <template #body="{ data }">
-            {{ data.student_type }}
-          </template>
-        </Column>
-
-        <Column field="payment_status" header="পেমেন্ট স্ট্যাটাস" sortable style="min-width: 12rem">
-          <template #filter="{ filterModel, filterCallback }">
-            <Dropdown
-              v-model="filterModel.value"
-              @change="filterCallback()"
-              :options="paymentStatusOptions"
-              placeholder="সিলেক্ট করুন"
-              optionLabel="name"
-              optionValue="value"
-              class="p-column-filter"
-            />
-          </template>
-          <template #body="{ data }">
-            <Tag
-              :value="data.payment_status"
-              :severity="data.is_paid ? 'success' : 'danger'"
-              class="text-sm"
-            />
-          </template>
-        </Column>
-
-        <Column field="status" header="আবেদন অবস্থা" sortable style="min-width: 12rem">
-          <template #filter="{ filterModel, filterCallback }">
-            <Dropdown
-              v-model="filterModel.value"
-              @change="filterCallback()"
-              :options="applicationStatusOptions"
-              placeholder="সিলেক্ট করুন"
-              optionLabel="name"
-              optionValue="value"
-              class="p-column-filter"
-            />
-          </template>
-          <template #body="{ data }">
-            <Tag
-              :value="data.status"
-              :severity="getStatusSeverity(data.status)"
-              class="text-sm"
-            />
-          </template>
-        </Column>
-
-        <Column header="করনীয়" style="min-width: 10rem">
-      <template #body="{ data }">
-        <div class="flex justify-center">
-          <Menu :model="getActionItems(data)" :popup="true" ref="menu" />
-          <Button
-            icon="pi pi-ellipsis-v"
-            class="p-button-rounded p-button-text p-button-plain"
-            @click="(event) => toggleMenu($event, data)"
-          />
-        </div>
-      </template>
-    </Column>
-      </DataTable>
-    </div>
-  </div>
-
-  <!-- Submit Modal -->
-  <Dialog v-model:visible="showModal" modal header="বোর্ড দাখিল করুন" :style="{width: '450px'}" :closable="false">
-    <div class="flex flex-column align-items-center p-4">
-      <i class="pi pi-paper-plane text-4xl text-emerald-600 mb-3"></i>
-      <p class="text-center">আপনি কি নিশ্চিত যে এই আবেদনটি সাবমিট করতে চান?</p>
-    </div>
-    <template #footer>
-      <Button label="বাতিল করুন" icon="pi pi-times" class="p-button-text" @click="showModal = false" />
-      <Button label="সাবমিট করুন" icon="pi pi-check" class="p-button-success" @click="submitApplication" />
-    </template>
-  </Dialog>
-
-  <!-- Delete Modal -->
-  <Dialog v-model:visible="showDeleteModal" modal header="সতর্কীকরণ!" :style="{width: '450px'}" :closable="false">
-    <div class="flex flex-column align-items-center p-4">
-      <i class="pi pi-exclamation-triangle text-4xl text-red-600 mb-3"></i>
-      <p class="text-center">আপনি কি নিশ্চিত যে এই আবেদনটি মুছে ফেলতে চান?</p>
-      <p class="text-red-600 text-center text-sm mt-2">এই কাজটি অপরিবর্তনীয়!</p>
-    </div>
-    <template #footer>
-      <Button label="বাতিল করুন" icon="pi pi-times" class="p-button-text" @click="showDeleteModal = false" />
-      <Button label="মুছে ফেলুন" icon="pi pi-trash" class="p-button-danger" @click="deleteStudent" />
-    </template>
-  </Dialog>
-
-  <!-- Toast for success messages -->
-  <Toast />
-    <ConfirmPopup group="submitConfirm">
-      <template #message="slotProps">
-        <div class="flex flex-col items-center w-full gap-4 border-b border-surface-200 dark:border-surface-700 p-4 mb-4 pb-0">
-          <i class="pi pi-paper-plane text-4xl text-emerald-600"></i>
-          <p>আপনি কি নিশ্চিত যে এই আবেদনটি সাবমিট করতে চান?</p>
-        </div>
-      </template>
-    </ConfirmPopup>
-
-    <ConfirmPopup group="deleteConfirm">
-      <template #message="slotProps">
-        <div class="flex flex-col items-center w-full gap-4 border-b border-surface-200 dark:border-surface-700 p-4 mb-4 pb-0">
-          <i class="pi pi-exclamation-triangle text-4xl text-red-600"></i>
-          <p>আপনি কি নিশ্চিত যে এই আবেদনটি মুছে ফেলতে চান?</p>
-          <p class="text-red-600 text-center text-sm mt-2">এই কাজটি অপরিবর্তনীয়!</p>
-        </div>
-      </template>
-    </ConfirmPopup>
-
-  </div>
-</AuthenticatedLayout>
-</template>
 <style scoped>
-/* You can add any custom styles here */
 
-/* PrimeVue customizations */
-:deep(.p-datatable .p-datatable-header) {
-  background-color: #f0fdf4;
-  border-top-left-radius: 0.25rem;
-  border-top-right-radius: 0.25rem;
-}
-
-:deep(.p-datatable .p-datatable-thead > tr > th) {
-  background-color: #f0fdf4;
-  color: #065f46;
-  font-weight: 600;
-}
-
-:deep(.p-button-success) {
-  background-color: #059669;
-  border-color: #059669;
-}
-
-:deep(.p-button-success:hover) {
-  background-color: #047857;
-  border-color: #047857;
-}
-
-:deep(.p-button-warning) {
-  background-color: #f59e0b;
-  border-color: #f59e0b;
-}
-
-:deep(.p-button-warning:hover) {
-  background-color: #d97706;
-  border-color: #d97706;
-}
-
-:deep(.p-button-teal) {
-  background-color: #0d9488;
-  border-color: #0d9488;
-}
-
-:deep(.p-button-teal:hover) {
-  background-color: #0f766e;
-  border-color: #0f766e;
-}
 </style>

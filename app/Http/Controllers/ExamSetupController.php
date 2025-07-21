@@ -73,15 +73,17 @@ class ExamSetupController extends Controller
 
 
 
-    public function getExamSetup($id)
-    {
-        $examSetup = ExamSetup::findOrFail($id);
+    // public function getExamSetup($id)
+    // {
+    //     $examSetup = ExamSetup::findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'examSetup' => $examSetup
-        ]);
-    }
+    //     return response()->json([
+    //         'success' => true,
+    //         'examSetup' => $examSetup
+    //     ]);
+    // }
+
+
 
     public function updateExamSetup(Request $request, $id)
     {

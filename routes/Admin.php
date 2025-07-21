@@ -11,7 +11,7 @@ use App\Http\Controllers\StudentRegistrationController;
 use App\Http\Controllers\Admin\auth\AdminRegisteredUserController;
 use App\Http\Controllers\ExamSetupController;
 use App\Http\Controllers\MarkazAgreementController;
-
+use App\Http\Controllers\BoardApplicationController;
 // ============= মারহালা সেটাপ =============
 Route::get('/marhala-details-list', function () {
     return Inertia::render('Mrahala_for_Admin/marhala_details_list');
@@ -135,12 +135,28 @@ Route::get('user_create_for_admin/user_create_for_admin', function () {
 })->name('user_create_for_admin.user_create_for_admin');
 
 Route::get('/new-user-for-admin', function () {
-    return Inertia::render('user_create_for_admin/new_user_for_admin');
-})->name('user_create_for_admin.new_user_for_admin');
+    return Inertia::render('admin/UserManagement/Create');
+})->name('admin.UserManagement.Create');
 
 Route::get('user_create_for_admin/admin_user_edit', function () {
     return Inertia::render('user_create_for_admin/admin_user_edit');
 })->name('user_create_for_admin.admin_user_edit');
+
+
+
+// ============= নেগরান মুমতাহিন =============
+Route::get('/negran-mumtahin/list', function () {
+    return Inertia::render('negran-mumtahin-for-admin/negranMumtahinApply-list');
+})->name('negran-mumtahin-for-admin.negranMumtahinApply-list');
+
+Route::get('/negranMumtahinDetailes', function () {
+    return Inertia::render('negran-mumtahin-for-admin/negran_mumtahin-detailes');
+})->name('negran-mumtahin-for-admin.negran_mumtahin-detailes');
+
+
+
+
+
 
 // ============= কন্ট্রোলার বেইজড রাউট =============
 
@@ -187,10 +203,82 @@ Route::get('/students/registration-forAdmin/{id}', [StudentRegistrationControlle
     ->name('nibondon_for_admin.student_detiles_For_nibondon');
 Route::post('/student/approve/{id}', [StudentRegistrationController::class, 'StuApproveApplication'])->name('student.approve');
 Route::post('/student/reject/{id}', [StudentRegistrationController::class, 'studentReturn'])->name('student.return');
+// Route::post('/student/reject/{id}', [StudentRegistrationController::class, 'studentRejected'])->name('student.rejected');
 
-// AdminRegisteredUserController
-Route::get('/user-create-for-admin', [AdminRegisteredUserController::class, 'create'])->name('user_create_for_admin.user_create_for_admin');
-Route::post('/user-create-for-admin', [AdminRegisteredUserController::class, 'store'])->name('user_create_for_admin.store');
-Route::get('/admin/users/{id}/edit', [AdminRegisteredUserController::class, 'adminEdit'])->name('user_create_for_admin.admin_user_edit');
-Route::put('/admin/users/{id}', [AdminRegisteredUserController::class, 'adminUpdate'])->name('user_create_for_admin.update');
-Route::delete('/admin/users/{id}', [AdminRegisteredUserController::class, 'adminDestroy'])->name('user_create_for_admin.destroy');
+// AdminRegisteredUserController - OLD ROUTES (COMMENTED DUE TO CONFLICT)
+// Route::get('/user-create-for-admin', [AdminRegisteredUserController::class, 'create'])->name('user_create_for_admin.user_create_for_admin');
+// Route::post('/user-create-for-admin', [AdminRegisteredUserController::class, 'store'])->name('user_create_for_admin.store');
+// Route::get('/admin/users/{id}/edit', [AdminRegisteredUserController::class, 'adminEdit'])->name('user_create_for_admin.admin_user_edit');
+// Route::put('/admin/users/{id}', [AdminRegisteredUserController::class, 'adminUpdate'])->name('user_create_for_admin.update');
+// Route::delete('/admin/users/{id}', [AdminRegisteredUserController::class, 'adminDestroy'])->name('user_create_for_admin.destroy');
+
+
+Route::get('/board-applications', [BoardApplicationController::class, 'getNegranData'])->name('board.applications');
+
+// ============= নতুন রোল-পারমিশন সিস্টেম =============
+use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\madrasha\OldStudent\studentLogicController;
+
+// Debug route (without middleware)
+// Route::get('/admin/debug-auth', function () {
+//     $user = auth()->user();
+//     return response()->json([
+//         'user' => $user ? $user->email : 'not logged in',
+//         'isAdmin' => $user ? $user->isAdmin() : false,
+//         'userType' => $user ? $user->user_type : 'not logged in',
+//         'session_id' => session()->getId(),
+//         'guard' => auth()->getDefaultDriver()
+//     ]);
+// });
+
+// Direct test edit route
+Route::get('/admin/test-edit/{id}', function ($id) {
+    $user = \App\Models\User::findOrFail($id);
+    $controller = new \App\Http\Controllers\Admin\UserManagementController();
+
+    try {
+        $response = $controller->edit($user);
+        return response()->json(['success' => true, 'message' => 'Edit method works']);
+    } catch (Exception $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()]);
+    }
+})->middleware(['auth', 'admin']);
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    // Admin Dashboard
+    Route::get('/dashboard', function () {
+        return Inertia::render('admin/admin_Dashboard');
+    })->name('dashboard');
+
+    // // Debug route
+    // Route::get('/debug-permissions', function () {
+    //     return response()->json([
+    //         'roles' => \Spatie\Permission\Models\Role::all(),
+    //         'permissions' => \Spatie\Permission\Models\Permission::all()
+    //     ]);
+    // });
+
+    // Debug user route (without middleware)
+    // Route::get('/debug-user', function () {
+    //     $user = auth()->user();
+    //     return response()->json([
+    //         'user' => $user,
+    //         'isAdmin' => $user ? $user->isAdmin() : false,
+    //         'userType' => $user ? $user->user_type : 'not logged in',
+    //         'session_id' => session()->getId()
+    //     ]);
+    // });
+
+Route::get('/students/registration/edit', [studentLogicController::class, 'editStudentRegistration'])->name('students_registration.old_stu_reg_edit');
+
+    // User Management
+    Route::resource('users', UserManagementController::class);
+    Route::patch('users/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('users.toggle-status');
+
+    // Role Management
+    Route::resource('roles', RoleController::class);
+
+    // Admin Logout
+    Route::post('/logout', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'adminDestroy'])->name('logout');
+});

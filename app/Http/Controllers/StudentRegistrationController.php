@@ -150,56 +150,141 @@ class StudentRegistrationController extends Controller
 
 
 
+public function reg_submitApplication($id)
+{
+    // 1️⃣ First check if registration exists
+    $registration = reg_stu_information::find($id);
+    if (!$registration) {
+        return back()->withErrors(['error' => 'আবেদন পাওয়া যায়নি!']);
+    }
 
-    public function reg_submitApplication($id)
-    {
-        // 1️⃣ First check markaz_agreements table
-        $registration = reg_stu_information::find($id);
-        if (!$registration) {
-            return back()->withErrors(['error' => 'আবেদন পাওয়া যায়নি!']);
-        }
+    // 2️⃣ Now check schedule timing before anything else
+    $schedule = ExamFee::where('exam_setup_id', $registration->exam_id)
+        ->first();
 
-        // 2️⃣ Now check schedule timing before anything else
-        $schedule = ExamFee::where('exam_setup_id', $registration->exam_id)
-            // ->where('schedule_type', 'মারকায আবেদন')
-            // ->where('is_active', true)
+    if (!$schedule) {
+        return back()->withErrors(['error' => 'সময়সূচী পাওয়া যায়নি!']);
+    }
+
+    // 3️⃣ Check if within submission period
+    $currentDate = now();
+    $startDate = \Carbon\Carbon::parse($schedule->reg_date_from);
+    $endDate = \Carbon\Carbon::parse($schedule->reg_date_to);
+
+    if ($currentDate->lt($startDate)) {
+        return back()->withErrors([
+            'error' => 'আবেদনের সময় শুরু হয়নি! ' . $startDate->format('d-m-Y') . ' তারিখে আবার চেষ্টা করুন।'
+        ]);
+    }
+
+    if ($currentDate->gt($endDate)) {
+        return back()->withErrors(['error' => 'আবেদনের সময় শেষ! আগামী বছর আবার চেষ্টা করুন।']);
+    }
+
+    // 4️⃣ Check if application already submitted
+    $existingLog = reg_stu_information_log::where('reg_student_id', $registration->id)
+        ->where('status', 'submitted')
+        ->exists();
+
+    if ($existingLog) {
+        return back()->with('info', 'এই আবেদনটি ইতিমধ্যে বোর্ডে দাখিল করা হয়েছে।');
+    }
+
+    // 5️⃣ If all checks pass, then create activity log
+    reg_stu_information_log::create([
+        'reg_student_id' => $registration->id,
+        'actor_id' => Auth::id(),  // ইউজারের আইডি যোগ করা হয়েছে
+        'actor_type' => 'user',    // কোটেশন মার্ক সহ
+        'status' => 'submitted',
+        'message' => null,
+        'created_at' => now(),
+        'updated_at' => now()
+    ]);
+
+    return back()->with('success', 'আবেদন সফলভাবে সাবমিট হয়েছে!');
+}
+
+
+
+
+
+
+
+
+
+public function submitAllApplications(){
+    // Get all applications for the current user (without status condition)
+    $registrations = reg_stu_information::where('user_id', Auth::id())->get();
+
+    if ($registrations->isEmpty()) {
+        return back()->withErrors(['error' => 'কোন আবেদন পাওয়া যায়নি!']);
+    }
+
+    // Get the schedule information
+    $firstRegistration = $registrations->first();
+    $schedule = ExamFee::where('exam_setup_id', $firstRegistration->exam_id)
+        ->first();
+
+    if (!$schedule) {
+        return back()->withErrors(['error' => 'সময়সূচী পাওয়া যায়নি!']);
+    }
+
+    // Check if within submission period
+    $currentDate = now();
+    $startDate = \Carbon\Carbon::parse($schedule->reg_date_from);
+    $endDate = \Carbon\Carbon::parse($schedule->reg_date_to);
+
+    if ($currentDate->lt($startDate)) {
+        return back()->withErrors(['error' => 'আবেদনের সময় শুরু হয়নি! ' . $startDate->format('d-m-Y') . ' তারিখে আবার চেষ্টা করুন।']);
+    }
+
+    if ($currentDate->gt($endDate)) {
+        return back()->withErrors(['error' => 'আবেদনের সময় শেষ! আগামী বছর আবার চেষ্টা করুন।']);
+    }
+
+    // Process all applications
+    $successCount = 0;
+    $alreadySubmittedCount = 0;
+    $user = Auth::user();
+
+    foreach ($registrations as $registration) {
+        // Get the latest log entry for this registration
+        $latestLog = reg_stu_information_log::where('reg_student_id', $registration->id)
+            ->orderBy('created_at', 'desc')
             ->first();
 
-        if (!$schedule) {
-            return back()->withErrors(['error' => 'সময়সূচী পাওয়া যায়নি!']);
+        // Check if can submit:
+        // 1. No previous log exists (first time submission)
+        // 2. Latest status is 'returned' (admin returned it for correction)
+        $canSubmit = !$latestLog || $latestLog->status === 'returned';
+
+        if ($canSubmit) {
+            // Create activity log for each application
+            reg_stu_information_log::create([
+                'reg_student_id' => $registration->id,
+                'actor_id' => Auth::id(),
+                'actor_type' => 'user',
+                'status' => 'submitted',
+                'message' => null,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            $successCount++;
+        } else {
+            // Count applications that are already submitted and not returned
+            $alreadySubmittedCount++;
         }
-
-        $currentDate = now();
-        $startDate = \Carbon\Carbon::parse($schedule->reg_date_from);
-        $endDate = \Carbon\Carbon::parse($schedule->reg_date_to);
-
-        if ($currentDate->lt($startDate)) {
-            return back()->withErrors(['error' => 'আবেদনের সময় শুরু হয়নি! ' . $startDate->format('d-m-Y') . ' তারিখে আবার চেষ্টা করুন।']);
-        }
-
-        if ($currentDate->gt($endDate)) {
-            return back()->withErrors(['error' => 'আবেদনের সময় শেষ! আগামী বছর আবার চেষ্টা করুন।']);
-        }
-
-
-
-        // 4️⃣ If all checks pass, then create activity log
-        reg_stu_information_log::create([
-            'reg_student_id' => $registration->id,
-            'user_id' => Auth::user()->id,
-            'status' => 'বোর্ড দাখিল',
-            'actor_type' => 'user',
-            'user_name' => Auth::user()->name,
-            'user_position' => Auth::user()->admin_Designation,
-            'admin_position' => null,
-            'admin_message' => null,
-            'admin_feedback_image' => null,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        return back()->with('success', 'আবেদন সফলভাবে সাবমিট হয়েছে!');
     }
+
+    // Return appropriate message
+    if ($successCount > 0 && $alreadySubmittedCount > 0) {
+        return back()->with('success', $successCount . ' টি আবেদন সফলভাবে বোর্ড দাখিল করা হয়েছে! ' . $alreadySubmittedCount . ' টি আবেদন ইতিমধ্যে দাখিল করা ছিল।');
+    } elseif ($successCount > 0) {
+        return back()->with('success', $successCount . ' টি আবেদন সফলভাবে বোর্ড দাখিল করা হয়েছে!');
+    } else {
+        return back()->with('info', 'সকল আবেদন ইতিমধ্যে বোর্ডে দাখিল করা হয়েছে।');
+    }
+}
 
 
 
@@ -322,32 +407,57 @@ class StudentRegistrationController extends Controller
 
 
 
+public function getMarkazMadrasaList($markaz_id)
+{
+    // Get all MRID values from stu_rledger_p table where MDID matches the markaz ID
+    $mridValues = DB::table('stu_rledger_p')
+        ->where('MDID', $markaz_id)
+        ->pluck('MRID')
+        ->unique()
+        ->toArray();
 
-    public function getMarkazMadrasaList($markaz_id)
-    {
-        // Get all MRID values from stu_rledger_p table where MDID matches the markaz ID
-        $mridValues = DB::table('stu_rledger_p')
-            ->where('MDID', $markaz_id)
-            ->pluck('MRID')
-            ->unique()
-            ->toArray();
+    // Get madrashas where id matches any of the MRID values
+    $madrashaList = DB::table('madrasha')
+        ->whereIn('id', $mridValues)
+        ->select('id', 'MName as name', 'ElhaqNo as Elhaq_no', 'Mobile as mobile_no')
+        ->get();
 
-        // Get madrashas where id matches any of the MRID values
-        $madrashaList = DB::table('madrasha')
-            ->whereIn('id', $mridValues)
-            ->select('id', 'MName as name', 'ElhaqNo as Elhaq_no', 'Mobile as mobile_no')
-            ->get();
-
-        // Get the markaz name
-        $markazName = DB::table('madrasha')
-            ->where('id', $markaz_id)
-            ->value('MName');
-
-        return response()->json([
-            'madrashaList' => $madrashaList,
-            'markazName' => $markazName
-        ]);
+    // Get student count for each madrasha
+    foreach ($madrashaList as $madrasha) {
+        $madrasha->student_count = DB::table('reg_stu_informations')
+            ->where('madrasha_id', $madrasha->id)
+            ->count();
     }
+
+    // Get the markaz name
+    $markazName = DB::table('madrasha')
+        ->where('id', $markaz_id)
+        ->value('MName');
+
+    // Get total student count for this markaz
+    $totalStudents = DB::table('reg_stu_informations')
+        ->whereIn('madrasha_id', $mridValues)
+        ->count();
+
+    return response()->json([
+        'madrashaList' => $madrashaList,
+        'markazName' => $markazName,
+        'totalStudents' => $totalStudents
+    ]);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     public function abandonStuList($markaz_id)
@@ -521,16 +631,22 @@ class StudentRegistrationController extends Controller
 
 // for madrasa view
 
-    public function studentRegistrationView($id)
-    {
-        // reg_stu_informations টেবিল থেকে ডাটা নিয়ে আসা
-        $student = reg_stu_information::findOrFail($id);
+   public function studentRegistrationView($id)
+{
+    // reg_stu_informations টেবিল থেকে ডাটা নিয়ে আসা
+    $student = reg_stu_information::findOrFail($id);
 
-        // পুরো ডাটা পাঠানো হচ্ছে
-        return inertia('students_registration/student_registraion_view', [
-            'student' => $student
-        ]);
-    }
+    // reg_stu_information_logs টেবিল থেকে ডাটা নিয়ে আসা
+    // যেখানে reg_student_id ফিল্ড reg_stu_information টেবিলের আইডির সাথে মিলে
+    $studentLogs = reg_stu_information_log::where('reg_student_id', $student->id)->get();
+
+    // পুরো ডাটা পাঠানো হচ্ছে
+    return inertia('students_registration/student_registraion_view', [
+        'student' => $student,
+        'studentLogs' => $studentLogs
+    ]);
+}
+
 
 
 // for admin view
@@ -571,81 +687,204 @@ public function AdminstudentRegistrationView($id)
 
     // for admin student registration aprove
 
-    public function StuApproveApplication(Request $request, $id)
-    {
-        // Find the agreement
-        $student = reg_stu_information::find($id);
-
-        if (!$student) {
-            return back()->withErrors(['error' => 'আবেদন পাওয়া যায়নি!']);
-        }
-
-        $adminId = Auth::guard('admin')->id();
-        $adminName = Auth::guard('admin')->user()->name;
-
-        // Create activity log entry
-        $logData = [
-            'admin_id' => $adminId,
-            'admin_name' => $adminName,
-            'reg_student_id' => $student->id,
-            'status' => 'অনুমোদন',
-            'processed_at' => now(),
-        ];
-
-        // Insert into activity_logs
-        $inserted = reg_stu_information_log::create($logData);
-
-        if ($inserted) {
-            return back()->with('success', 'আবেদন সফলভাবে অনুমোদন করা হয়েছে!');
-        }
-
-        return back()->withErrors(['error' => 'আপডেট করতে সমস্যা হয়েছে!']);
+public function StuApproveApplication(Request $request, $id)
+{
+    // Find the student application
+    $student = reg_stu_information::find($id);
+    if (!$student) {
+        return back()->withErrors(['error' => 'আবেদন পাওয়া যায়নি!']);
     }
+
+    // Get admin information
+    $admin = Auth::guard('admin')->user();
+    if (!$admin) {
+        return back()->withErrors(['error' => 'অ্যাডমিন লগইন করা নেই!']);
+    }
+
+    // Check if application already approved
+    $existingLog = reg_stu_information_log::where('reg_student_id', $student->id)
+        ->where('status', 'approved')
+        ->exists();
+    if ($existingLog) {
+        return back()->with('info', 'এই আবেদনটি ইতিমধ্যে অনুমোদন করা হয়েছে।');
+    }
+
+    // Determine actor_type based on admin designation
+    $actorType = 'admin'; // Default value
+
+    if ($admin->designation == 1) {
+        $actorType = 'সুপার এডমিন';
+    } elseif ($admin->designation == 2) {
+        $actorType = 'সহ সুপার এডমিন';
+    } elseif ($admin->designation == 3) {
+        $actorType = 'বোর্ড এডমিন';
+    }
+
+    // Create activity log entry
+    $logData = [
+        'reg_student_id' => $student->id,
+        'actor_id' => $admin->id,
+         'actor_name' => $admin->name,
+        'actor_type' => $actorType,
+        'status' => 'approved',
+        'message' => $request->message ?? null,
+        'created_at' => now(),
+        'updated_at' => now()
+    ];
+
+    // Insert into logs table
+    $inserted = reg_stu_information_log::create($logData);
+
+    if ($inserted) {
+        return back()->with('success', 'আবেদন সফলভাবে অনুমোদন করা হয়েছে!');
+    }
+
+    return back()->withErrors(['error' => 'আপডেট করতে সমস্যা হয়েছে!']);
+}
+
+
+
+
+
 
 
 
 // admin return student registration
 
 
+/**
+ * Return a student application with feedback
+ *
+ * @param Request $request
+ * @param int $id
+ * @return \Illuminate\Http\RedirectResponse
+ */
 public function studentReturn(Request $request, $id)
 {
-    // Find the agreement by ID
+    // Find the student application
     $student = reg_stu_information::find($id);
-
-    // If the agreement is not found, return error
     if (!$student) {
         return back()->withErrors(['error' => 'আবেদন পাওয়া যায়নি!']);
     }
 
-    $adminId = Auth::guard('admin')->id();
-    $adminName = Auth::guard('admin')->user()->name;
+    // Get admin information
+    $admin = Auth::guard('admin')->user();
+    if (!$admin) {
+        return back()->withErrors(['error' => 'অ্যাডমিন লগইন করা নেই!']);
+    }
+
+    // Validate the request
+    $request->validate([
+        'message' => 'required|string|max:500',
+        // 'image' => 'nullable|image|max:2048', // Uncomment if you need image upload
+    ]);
+
+
+ $existingLog = reg_stu_information_log::where('reg_student_id', $student->id)
+        ->where('status', 'approved')
+        ->exists();
+    if ($existingLog) {
+        return back()->with('info', 'এই আবেদনটি ইতিমধ্যে অনুমোদন করা হয়েছে।');
+    }
+
+    // Determine actor_type based on admin designation
+    $actorType = 'admin'; // Default value
+
+    if ($admin->designation == 1) {
+        $actorType = 'সুপার এডমিন';
+    } elseif ($admin->designation == 2) {
+        $actorType = 'সহ সুপার এডমিন';
+    } elseif ($admin->designation == 3) {
+        $actorType = 'বোর্ড এডমিন';
+    }
+
 
     // Initialize feedback data
     $feedbackData = [
-        'admin_id' => $adminId,
-        'admin_name' => $adminName,
-        'reg_student_id' => $student->id,
-        'status' => 'বোর্ড ফেরত', // Update status
-        'admin_message' => $request->message, // Insert the admin's message
-        'processed_at' => now(),
+       'reg_student_id' => $student->id,
+        'actor_id' => $admin->id,
+         'actor_name' => $admin->name,
+        'actor_type' => $actorType,
+        'status' => 'returned',
+        'message' => $request->message ?? null,
+        'created_at' => now(),
+        'updated_at' => now()
     ];
 
     // Check if an image is uploaded and store it
     // if ($request->hasFile('image')) {
     //     $imagePath = $request->file('image')->store('images/feedback', 'public');
-    //     $feedbackData['admin_feedback_image'] = $imagePath; // Store the image path
+    //     $feedbackData['attachment'] = $imagePath; // Store the image path
     // }
 
-    // Insert the feedback into the activity_logs table
+    // Insert the feedback into the logs table
     $inserted = reg_stu_information_log::create($feedbackData);
 
     // If the insert was successful, return success message
     if ($inserted) {
+        // Optionally update the student's status in the main table
+        $student->update(['status' => 'returned']);
+
         return back()->with('success', 'আবেদন সফলভাবে ফেরত পাঠানো হয়েছে!');
-    } else {
-        return back()->withErrors(['error' => 'আপডেট করতে সমস্যা হয়েছে!']);
     }
+
+    return back()->withErrors(['error' => 'আপডেট করতে সমস্যা হয়েছে!']);
 }
+
+
+
+// public function studentRejected(Request $request, $id)
+// {
+//     // Find the student application
+//     $student = reg_stu_information::find($id);
+//     if (!$student) {
+//         return back()->withErrors(['error' => 'আবেদন পাওয়া যায়নি!']);
+//     }
+
+//     // Get admin information
+//     $admin = Auth::guard('admin')->user();
+//     if (!$admin) {
+//         return back()->withErrors(['error' => 'অ্যাডমিন লগইন করা নেই!']);
+//     }
+
+//     // Validate the request
+//     $request->validate([
+//         'message' => 'required|string|max:500',
+//         // 'image' => 'nullable|image|max:2048', // Uncomment if you need image upload
+//     ]);
+
+//     // Initialize feedback data
+//     $feedbackData = [
+//         'reg_student_id' => $student->id,
+//         'actor_id' => $admin->id,
+//         'actor_type' => 'admin',
+//         'status' => 'rejected',
+//         'message' => $request->message,
+//         'created_at' => now(),
+//         'updated_at' => now()
+//     ];
+
+//     // Check if an image is uploaded and store it
+//     // if ($request->hasFile('image')) {
+//     //     $imagePath = $request->file('image')->store('images/feedback', 'public');
+//     //     $feedbackData['attachment'] = $imagePath; // Store the image path
+//     // }
+
+//     // Insert the feedback into the logs table
+//     $inserted = reg_stu_information_log::create($feedbackData);
+
+//     // If the insert was successful, return success message
+//     if ($inserted) {
+//         // Optionally update the student's status in the main table
+//         $student->update(['status' => 'rejected']);
+
+//         return back()->with('success', 'আবেদন সফলভাবে ফেরত পাঠানো হয়েছে!');
+//     }
+
+//     return back()->withErrors(['error' => 'আপডেট করতে সমস্যা হয়েছে!']);
+// }
+
+
 
 
 }

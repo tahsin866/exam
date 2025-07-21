@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class madrasha extends Model
 {
-    protected $table = 'madrasha';
+    protected $table = 'madrashs';
 
     protected $fillable = [
 

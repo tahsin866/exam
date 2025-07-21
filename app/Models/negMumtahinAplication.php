@@ -52,7 +52,9 @@ class NegMumtahinAplication extends Model
         'birth_cert_file',
         'negaranComments',
         'mumtahinComments',
-        'user_id'
+        'user_id',
+           'madrasha_id',
+           'teaching_books'
 
 
     ];
@@ -75,6 +77,24 @@ class NegMumtahinAplication extends Model
         return $this->hasMany(EducationalQualification::class, 'application_id', 'id');
     }
 
+   public function madrasha()
+    {
+        return $this->belongsTo(Madrasha::class, 'madrasha_id');
+    }
 
 
+
+     public function logs()
+    {
+        return $this->hasMany(negran_mumtahin_log::class, 'application_id');
+
+
+    }
+
+
+    public function latestLog()
+    {
+        return $this->hasOne(negran_mumtahin_log::class, 'application_id')
+            ->latest('created_at');
+    }
 }

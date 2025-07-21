@@ -7,7 +7,8 @@ import dashboard_card from '../admin_dashboard/dashboard_card.vue';
 import notice_bord_and_upcomming_exam from '../admin_dashboard/notice_bord_and_upcomming_exam.vue';
 
 import registrasion_update_dashboard from '../admin_dashboard/registrasion_update_dashboard.vue';
-
+import exam_analytics from '../admin_dashboard/exam_analytics.vue';
+import center_management from '../admin_dashboard/center_management.vue';
 // Enhanced statistics data
 
 
@@ -135,18 +136,27 @@ const search = () => {
                 <dashboard_card />
 
                 <!-- Main Content Grid -->
-                <Notice_bord_and_upcomming_exam />
+  <notice_bord_and_upcomming_exam />
                 <!-- Recent Activities -->
                 <div class=" bg-[#F8F9FA] mt-5  mb-5">
     <!-- Header Section -->
-    <Registrasion_update_dashboard />
+ <registrasion_update_dashboard />
+
   </div>
 
 
+              <div class=" bg-[#F8F9FA] mt-5  mb-5">
+    <!-- Header Section -->
+<exam_analytics />
+
+  </div>
 
 
+              <div class=" bg-[#F8F9FA] mt-5  mb-5">
+    <!-- Header Section -->
+<center_management />
 
-
+  </div>
 
 
             </div>

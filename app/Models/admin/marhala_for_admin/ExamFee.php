@@ -2,6 +2,7 @@
 
 namespace App\Models\admin\marhala_for_admin;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\admin\marhala_for_admin\reg_stu_information;
 
 class ExamFee extends Model
 {

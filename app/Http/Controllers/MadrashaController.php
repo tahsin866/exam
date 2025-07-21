@@ -366,6 +366,9 @@ public function filterMarkazStudents(Request $request)
 
 
 
+
+
+
 public function madrashaListUnderMarkaz($markazId)
 {
     // Get all MRID values from stu_rledger_p table where MDID matches the markaz ID

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Auth;
-use App\Models\admin\madrasha;
+use App\Models\madrasha;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

@@ -84,6 +84,8 @@ Route::prefix('api')->group(function () {
     Route::post('/old-teacher-store', [teacherController::class, 'OldtecherStore'])->name('Oldteacher.store');
 Route::delete('/negran-mumtahin/delete/{id}', [teacherController::class, 'destroy'])->name('Negran_Mumtahin.delete');
 
+Route::post('/mumtahin/submit-to-board/{id}', [teacherController::class, 'submitedToBoard'])->name('mumtahin.submit-to-board');
+
 
 
 

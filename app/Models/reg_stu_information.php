@@ -72,20 +72,20 @@ class reg_stu_information extends Model
     ];
 
 
-    public function logs()
-    {
-        return $this->hasMany(reg_stu_information_log::class, 'reg_student_id');
-    }
+    // public function logs()
+    // {
+    //     return $this->hasMany(reg_stu_information_log::class, 'reg_student_id');
+    // }
 
 
 
 
-    // সর্বশেষ লগ পাওয়ার জন্য রিলেশন
-    public function latestLog()
-    {
-        return $this->hasOne(reg_stu_information_log::class, 'reg_student_id')
-            ->latest('id'); // 'id' কলাম অনুসারে সর্টিং করুন
-    }
+    // // সর্বশেষ লগ পাওয়ার জন্য রিলেশন
+    // public function latestLog()
+    // {
+    //     return $this->hasOne(reg_stu_information_log::class, 'reg_student_id')
+    //         ->latest('id'); // 'id' কলাম অনুসারে সর্টিং করুন
+    // }
 
 
     public function examFee()
@@ -103,6 +103,21 @@ class reg_stu_information extends Model
     {
         return $this->belongsTo(Madrasha::class, 'markaz_id');
     }
+
+
+
+
+// RegStuInformation মডেলে
+public function logs()
+{
+    return $this->hasMany(reg_stu_information_log::class, 'reg_student_id');
+}
+
+public function latestLog()
+{
+    return $this->hasOne(reg_stu_information_log::class, 'reg_student_id')
+        ->latest('created_at');
+}
 
 
 

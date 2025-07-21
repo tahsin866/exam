@@ -62,6 +62,11 @@ class admin extends Authenticatable
         return $this->hasMany(activity_log::class, 'madrasha_id', 'id');
     }
 
+// Admin মডেলে
+public function studentLogs()
+{
+    return $this->morphMany(reg_stu_information_log::class, 'actor');
+}
 
 
 }

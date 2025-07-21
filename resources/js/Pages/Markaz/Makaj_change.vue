@@ -4,6 +4,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import axios from 'axios';
 import { createToaster } from "@meforma/vue-toaster";
 import { useForm } from '@inertiajs/vue3';
+
 // Sidebar state
 const centers = ref({});
 const error = ref(null);
@@ -14,7 +15,10 @@ const searchKirat = ref('');
 const searchResults = ref({
   darsiyat: [],
   hifz: [],
-  kirat: []
+  kirat: [],
+  selectedDarsiyat: null,
+  selectedHifz: null,
+  selectedKirat: null
 });
 const files = ref({
   darsiyat: { noc: null, consent: null },
@@ -30,6 +34,7 @@ const modalSearch = ref('');
 const modalSearchResults = ref([]);
 const modalFiles = ref({ noc: null, consent: null });
 const selectedModalCenter = ref('');
+const selectedModalCenterData = ref(null);
 
 // Computed property for modal title
 const modalTitle = computed(() => {
@@ -45,7 +50,6 @@ const fetchCenters = async () => {
   try {
     // API প্রিফিক্স সহ সঠিক URL
     const response = await fetch('/api/markaz-Center');
-
     if (!response.ok) {
       throw new Error('Failed to fetch centers');
     }
@@ -58,11 +62,6 @@ const fetchCenters = async () => {
   }
 };
 
-
-
-
-
-
 // Open modal function
 function openModal(type, center) {
   modalType.value = type;
@@ -72,6 +71,7 @@ function openModal(type, center) {
   modalSearchResults.value = [];
   modalFiles.value = { noc: null, consent: null };
   selectedModalCenter.value = '';
+  selectedModalCenterData.value = null;
 }
 
 // Close modal function
@@ -96,29 +96,24 @@ function handleModalFileChange(event, fileType) {
 }
 
 // Select center from search results
-// Select center from search results
-// Select center from search results
 function selectCenter(type, center) {
   console.log("Selected center:", center); // ডিবাগিং এর জন্য
-
   if (type === 'darsiyat') {
-    searchDarsiyat.value = center.name; // center.name সঠিকভাবে সেট হচ্ছে কিনা চেক করুন
+    searchDarsiyat.value = center.name;
+    searchResults.value.selectedDarsiyat = center;
     searchResults.value.darsiyat = [];
   } else if (type === 'hifz') {
     searchHifz.value = center.name;
+    searchResults.value.selectedHifz = center;
     searchResults.value.hifz = [];
   } else if (type === 'kirat') {
     searchKirat.value = center.name;
+    searchResults.value.selectedKirat = center;
     searchResults.value.kirat = [];
   }
 }
 
-
-
-
-
 const madrashas = ref([]);
-
 const form = ref({
   exam_id: null,
   exam_name: ''
@@ -137,74 +132,58 @@ onMounted(async () => {
   }
 });
 
-
-
-
 // Search function for main form
 const searchMadrashas = async (query, type) => {
   if (!query || query.length < 2) {
     searchResults.value[type] = [];
     return;
   }
-
   const filteredMadrashas = madrashas.value.filter(madrasha => {
     const name = (madrasha.name || '').toLowerCase();
     const elhaqNo = (madrasha.ElhaqNo || '').toString().toLowerCase();
     const searchQuery = query.toLowerCase().trim();
-
     // Handle all types of Elhaq number formats
     const normalizedElhaqNo = elhaqNo.replace(/[`']/g, '').replace(/\s+/g, '');
     const normalizedSearchQuery = searchQuery.replace(/[`']/g, '').replace(/\s+/g, '');
-
     // Check if search query matches any part of the Elhaq number
     if (normalizedElhaqNo.includes(normalizedSearchQuery)) return true;
-
     // Check name match
     const searchWords = searchQuery.split(' ');
     return searchWords.every(word => name.includes(word));
   });
-
   searchResults.value[type] = filteredMadrashas;
 };
 
-
-
-// Search function for modal
 // Search function for modal
 const searchModalMadrashas = async (query) => {
   if (!query || query.length < 2) {
     modalSearchResults.value = [];
     return;
   }
-
   const filteredMadrashas = madrashas.value.filter(madrasha => {
     const name = (madrasha.name || '').toLowerCase();
     const elhaqNo = (madrasha.ElhaqNo || '').toString().toLowerCase();
     const searchQuery = query.toLowerCase().trim();
-
     // Handle all types of Elhaq number formats
     const normalizedElhaqNo = elhaqNo.replace(/[`']/g, '').replace(/\s+/g, '');
     const normalizedSearchQuery = searchQuery.replace(/[`']/g, '').replace(/\s+/g, '');
-
     // Check if search query matches any part of the Elhaq number
     if (normalizedElhaqNo.includes(normalizedSearchQuery)) return true;
-
     // Check name match
     const searchWords = searchQuery.split(' ');
     return searchWords.every(word => name.includes(word));
   });
-
   modalSearchResults.value = filteredMadrashas;
 };
 
 // Select center in modal
 function selectModalCenter(center) {
   selectedModalCenter.value = center.name;
+  selectedModalCenterData.value = center;
   modalSearch.value = center.name;
   modalSearchResults.value = [];
 }
 
-// Save modal changes
 // Save modal changes
 async function saveModalChanges() {
   if (selectedModalCenter.value) {
@@ -217,17 +196,15 @@ async function saveModalChanges() {
       const formData = new FormData();
       formData.append('markaz_type', modalType.value);
       formData.append('asking_madrasha', selectedModalCenter.value);
+      formData.append('markaz_id', selectedModalCenterData.value?.id || '');
       formData.append('onapotti_potro', modalFiles.value.noc);
       formData.append('shommoti_potro', modalFiles.value.consent);
-
       // URL পরিবর্তন - route() হেল্পার ব্যবহার করুন অথবা সরাসরি URL দিন
       const response = await axios.post('/markaz-exchange', formData, {
-  headers: {
-    'Content-Type': 'multipart/form-data'
-  }
-});
-
-
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       alert(response.data.message);
       closeModal();
       fetchCenters(); // রিফ্রেশ করি বর্তমান মারকাজ তথ্য
@@ -241,20 +218,16 @@ async function saveModalChanges() {
   }
 }
 
-
 // Watch for search inputs
 watch(searchDarsiyat, (val) => {
   searchMadrashas(val, 'darsiyat');
 });
-
 watch(searchHifz, (val) => {
   searchMadrashas(val, 'hifz');
 });
-
 watch(searchKirat, (val) => {
   searchMadrashas(val, 'kirat');
 });
-
 watch(modalSearch, (val) => {
   searchModalMadrashas(val);
 });
@@ -262,9 +235,6 @@ watch(modalSearch, (val) => {
 onMounted(() => {
   fetchCenters();
 });
-
-
-
 
 // ফাইল দেখার ফাংশন
 function viewFile(file) {
@@ -279,25 +249,19 @@ function removeFile(type, fileType) {
   files.value[type][fileType] = null;
 }
 
-
 // মোডাল ফাইল রিমুভ করার ফাংশন
 function removeModalFile(fileType) {
   modalFiles.value[fileType] = null;
 }
 
-
 const toaster = createToaster();
-
-
 const markazForm = useForm({
   markaz_type: '',
   asking_madrasha: '',
-
+  markaz_id: '',
   onapotti_potro: null,
   shommoti_potro: null
 });
-
-
 
 const submitMarkazChange = () => {
   // Check if user has no existing markaz
@@ -307,31 +271,37 @@ const submitMarkazChange = () => {
       toaster.error('দয়া করে একটি মারকাজ টাইপ নির্বাচন করুন');
       return;
     }
-
-    // Get selected madrasa name
+    // Get selected madrasa name and ID
     let askingMadrasha = '';
-    if (selectedType.value === 'darsiyat') askingMadrasha = searchDarsiyat.value;
-    if (selectedType.value === 'hifz') askingMadrasha = searchHifz.value;
-    if (selectedType.value === 'kirat') askingMadrasha = searchKirat.value;
-
+    let selectedMadrashaId = '';
+    if (selectedType.value === 'darsiyat') {
+      askingMadrasha = searchDarsiyat.value;
+      selectedMadrashaId = searchResults.value.selectedDarsiyat?.id || '';
+    }
+    if (selectedType.value === 'hifz') {
+      askingMadrasha = searchHifz.value;
+      selectedMadrashaId = searchResults.value.selectedHifz?.id || '';
+    }
+    if (selectedType.value === 'kirat') {
+      askingMadrasha = searchKirat.value;
+      selectedMadrashaId = searchResults.value.selectedKirat?.id || '';
+    }
     // Check madrasa name
     if (!askingMadrasha) {
       toaster.error('দয়া করে একটি কাঙ্খিত মারকাজ নির্বাচন করুন');
       return;
     }
-
     // Check files
     if (!files.value[selectedType.value].noc || !files.value[selectedType.value].consent) {
       toaster.error('দয়া করে সকল প্রয়োজনীয় ফাইল আপলোড করুন');
       return;
     }
-
     // Set form values
     markazForm.markaz_type = selectedType.value;
     markazForm.asking_madrasha = askingMadrasha;
+    markazForm.markaz_id = selectedMadrashaId;
     markazForm.onapotti_potro = files.value[selectedType.value].noc;
     markazForm.shommoti_potro = files.value[selectedType.value].consent;
-
     // Submit form
     markazForm.post('/markaz-exchange', {
       onSuccess: (response) => {
@@ -353,18 +323,20 @@ const submitMarkazChange = () => {
     // If user already has markaz, check which type they're trying to submit for
     let markazType = '';
     let askingMadrasha = '';
-
+    let selectedMadrashaId = '';
     if (searchDarsiyat.value && !centers.value.darsiyat) {
       markazType = 'darsiyat';
       askingMadrasha = searchDarsiyat.value;
+      selectedMadrashaId = searchResults.value.selectedDarsiyat?.id || '';
     } else if (searchHifz.value && !centers.value.hifz) {
       markazType = 'hifz';
       askingMadrasha = searchHifz.value;
+      selectedMadrashaId = searchResults.value.selectedHifz?.id || '';
     } else if (searchKirat.value && !centers.value.kirat) {
       markazType = 'kirat';
       askingMadrasha = searchKirat.value;
+      selectedMadrashaId = searchResults.value.selectedKirat?.id || '';
     }
-
     // If they're trying to add a new type of markaz
     if (markazType && askingMadrasha) {
       // Check files
@@ -372,16 +344,17 @@ const submitMarkazChange = () => {
         toaster.error('দয়া করে সকল প্রয়োজনীয় ফাইল আপলোড করুন');
         return;
       }
-
+      // Set form values
       // Set form values
       markazForm.markaz_type = markazType;
+      markazForm.asking_madrasha;
+      markazForm.markaz_type = markazType;
       markazForm.asking_madrasha = askingMadrasha;
+      markazForm.markaz_id = selectedMadrashaId;
       markazForm.onapotti_potro = files.value[markazType].noc;
       markazForm.shommoti_potro = files.value[markazType].consent;
-
       // Submit form
       markazForm.post('/markaz-exchange', {
-
         onSuccess: (response) => {
           // Check if we have a response with data
           if (response && response.data && response.data.message) {
@@ -404,466 +377,600 @@ const submitMarkazChange = () => {
   }
 };
 
-
-
-
-
 // Add this function to reset the form after submission
 const resetForm = () => {
   searchDarsiyat.value = '';
   searchHifz.value = '';
   searchKirat.value = '';
   selectedType.value = '';
-
+  // Reset selected madrasha data
+  searchResults.value.selectedDarsiyat = null;
+  searchResults.value.selectedHifz = null;
+  searchResults.value.selectedKirat = null;
   // Reset files
   files.value = {
     darsiyat: { noc: null, consent: null },
     hifz: { noc: null, consent: null },
     kirat: { noc: null, consent: null }
   };
-
   // Refresh centers data
   fetchCenters();
 };
-
-
-
-
-
-
-
-
-
-
 </script>
 
-
-
 <template>
-    <AuthenticatedLayout>
+  <AuthenticatedLayout>
+    <div class="py-12">
+      <div class=" sm:px-6 lg:px-8">
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+          <div class="p-6 bg-white border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">মারকাজ পরিবর্তন</h2>
 
-    <!-- Content Section -->
-    <div class="p-6 mt-10">
-      <table class="w-full border-collapse">
-        <tbody>
-          <!-- Centers Information -->
-          <tr>
-            <td class="border p-4 w-1/3">
-              <label class="text-emerald-800 font-semibold">বর্তমান মারকাজসমূহ</label>
-            </td>
-            <td class="border p-4 w-2/3">
+            <!-- Centers Information -->
+            <div class="mb-6">
+              <h3 class="text-lg font-medium text-gray-700 mb-3">বর্তমান মারকাজসমূহ</h3>
               <div class="space-y-3">
-                <div v-if="centers.darsiyat" class="flex justify-between items-center bg-emerald-50 p-3 rounded-md">
-                  <span class="text-gray-800"><span class="font-semibold">দরসিয়াত:</span><br> {{ centers.darsiyat }}</span>
-                  <button @click="openModal('darsiyat')" class="px-3 py-1 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition">
+                <div v-if="centers.darsiyat" class="flex justify-between items-center bg-gray-50 p-3 rounded-md">
+                  <span class="text-gray-800">
+                    <span class="font-semibold">দরসিয়াত:</span><br> {{ centers.darsiyat }}
+                  </span>
+                  <button @click="openModal('darsiyat')" class="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
                     পরিবর্তন করুন
                   </button>
                 </div>
-                <div v-if="centers.hifz" class="flex justify-between items-center bg-emerald-50 p-3 rounded-md">
-                  <span class="text-gray-800"><span class="font-semibold">হিফজ:</span><br> {{ centers.hifz }}</span>
-                  <button @click="openModal('hifz')" class="px-3 py-1 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition">
+                <div v-if="centers.hifz" class="flex justify-between items-center bg-gray-50 p-3 rounded-md">
+                  <span class="text-gray-800">
+                    <span class="font-semibold">হিফজ:</span><br> {{ centers.hifz }}
+                  </span>
+                  <button @click="openModal('hifz')" class="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
                     পরিবর্তন করুন
                   </button>
                 </div>
-                <div v-if="centers.kirat" class="flex justify-between items-center bg-emerald-50 p-3 rounded-md">
-                  <span class="text-gray-800"><span class="font-semibold">কিরাত:</span><br> {{ centers.kirat }}</span>
-                  <button @click="openModal('kirat')" class="px-3 py-1 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition">
+                <div v-if="centers.kirat" class="flex justify-between items-center bg-gray-50 p-3 rounded-md">
+                  <span class="text-gray-800">
+                    <span class="font-semibold">কিরাত:</span><br> {{ centers.kirat }}
+                  </span>
+                  <button @click="openModal('kirat')" class="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
                     পরিবর্তন করুন
                   </button>
                 </div>
                 <div v-if="!Object.keys(centers).length" class="text-gray-500 italic">
                   <div class="mb-4">কোন মারকাজ পাওয়া যায়নি</div>
-
                   <!-- Radio buttons for users without any markaz -->
                   <div class="space-y-2">
                     <div class="flex items-center">
-                      <input id="darsiyat-radio" type="radio" v-model="selectedType" value="darsiyat" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
+                      <input id="darsiyat-radio" type="radio" v-model="selectedType" value="darsiyat" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
                       <label for="darsiyat-radio" class="ml-2 text-gray-700">দারসিয়াত মারকাজ</label>
                     </div>
                     <div class="flex items-center">
-                      <input id="hifz-radio" type="radio" v-model="selectedType" value="hifz" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
+                      <input id="hifz-radio" type="radio" v-model="selectedType" value="hifz" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
                       <label for="hifz-radio" class="ml-2 text-gray-700">হিফজ মারকাজ</label>
                     </div>
                     <div class="flex items-center">
-                      <input id="kirat-radio" type="radio" v-model="selectedType" value="kirat" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
+                      <input id="kirat-radio" type="radio" v-model="selectedType" value="kirat" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
                       <label for="kirat-radio" class="ml-2 text-gray-700">কিরাত মারকাজ</label>
                     </div>
                   </div>
                 </div>
               </div>
-            </td>
-          </tr>
-
-          <!-- Desired Centers by Type -->
-          <tr v-if="!centers.darsiyat || selectedType === 'darsiyat'">
-            <td class="border p-4">
-              <label class="text-emerald-800 font-semibold">কাঙ্খিত দারসিয়াত মারকাজ</label>
-            </td>
-            <td class="border p-4">
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <i class="fas fa-search text-gray-400"></i>
-                </div>
-                <input
-                  type="text"
-                  placeholder="দারসিয়াত মাদরাসা সার্চ করুন..."
-                  class="w-full pl-10 px-4 py-2 border border-emerald-200 rounded-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  v-model="searchDarsiyat"
-
-                >
-                <!-- Dropdown results would go here -->
-                <div v-if="searchDarsiyat && searchResults.darsiyat.length" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
-  <ul class="max-h-60 overflow-y-auto">
-    <li v-for="(result, index) in searchResults.darsiyat" :key="index"
-        class="px-4 py-2 hover:bg-emerald-50 cursor-pointer"
-        @click="selectCenter('darsiyat', result)">
-      {{ result.name }} ({{ result.ElhaqNo }})
-    </li>
-  </ul>
-</div>
-              </div>
-
-              <!-- Attachments for Darsiyat -->
-              <div class="mt-4 space-y-3" v-if="!centers.darsiyat || selectedType === 'darsiyat'">
-  <div class="relative">
-    <label class="block text-sm font-medium text-gray-700 mb-1">
-      <i class="fas fa-file-alt mr-1"></i>বর্তমান মারকাজ অনাপত্তিপত্র
-    </label>
-    <input
-      type="file"
-      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-      @change="handleFileChange($event, 'darsiyat', 'noc')"
-      v-if="!files.darsiyat.noc"
-    />
-    <div v-if="!files.darsiyat.noc" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-emerald-300 rounded-md hover:border-emerald-500">
-      <i class="fas fa-cloud-upload-alt text-emerald-400 text-xl mr-2"></i>
-      <span class="text-gray-600">ফাইল আপলোড করুন</span>
-    </div>
-    <!-- ফাইল আপলোড হলে দেখাবে -->
-    <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-emerald-300 rounded-md">
-      <div class="flex items-center">
-        <i class="fas fa-file-pdf text-emerald-500 text-xl mr-2"></i>
-        <span class="text-gray-700 truncate">{{ files.darsiyat.noc.name }}</span>
-      </div>
-      <div class="flex space-x-2">
-        <button type="button" @click="viewFile(files.darsiyat.noc)" class="text-blue-500 hover:text-blue-700">
-          <i class="fas fa-eye"></i>
-        </button>
-        <button type="button" @click="removeFile('darsiyat', 'noc')" class="text-red-500 hover:text-red-700">
-          <i class="fas fa-trash-alt"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="relative">
-    <label class="block text-sm font-medium text-gray-700 mb-1">
-      <i class="fas fa-file-signature mr-1"></i>কাঙ্খিত মারকাজ সম্মতিপত্র
-    </label>
-    <input
-      type="file"
-      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-      @change="handleFileChange($event, 'darsiyat', 'consent')"
-      v-if="!files.darsiyat.consent"
-    />
-    <div v-if="!files.darsiyat.consent" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-emerald-300 rounded-md hover:border-emerald-500">
-      <i class="fas fa-cloud-upload-alt text-emerald-400 text-xl mr-2"></i>
-      <span class="text-gray-600">ফাইল আপলোড করুন</span>
-    </div>
-    <!-- ফাইল আপলোড হলে দেখাবে -->
-    <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-emerald-300 rounded-md">
-      <div class="flex items-center">
-        <i class="fas fa-file-pdf text-emerald-500 text-xl mr-2"></i>
-        <span class="text-gray-700 truncate">{{ files.darsiyat.consent.name }}</span>
-      </div>
-      <div class="flex space-x-2">
-        <button type="button" @click="viewFile(files.darsiyat.consent)" class="text-blue-500 hover:text-blue-700">
-          <i class="fas fa-eye"></i>
-        </button>
-        <button type="button" @click="removeFile('darsiyat', 'consent')" class="text-red-500 hover:text-red-700">
-          <i class="fas fa-trash-alt"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-            </td>
-          </tr>
-
-          <tr v-if="!centers.hifz || selectedType === 'hifz'">
-            <td class="border p-4">
-              <label class="text-emerald-800 font-semibold">কাঙ্খিত হিফজ মারকাজ</label>
-            </td>
-            <td class="border p-4">
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <i class="fas fa-search text-gray-400"></i>
-                </div>
-                <input
-                  type="text"
-                  placeholder="হিফজ মাদরাসা সার্চ করুন..."
-                  class="w-full pl-10 px-4 py-2 border border-emerald-200 rounded-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  v-model="searchHifz"
-                >
-                <!-- Dropdown results would go here -->
-             <!-- হিফজ সার্চ রেজাল্ট -->
-<div v-if="searchHifz && searchResults.hifz.length" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
-  <ul class="max-h-60 overflow-y-auto">
-    <li v-for="(result, index) in searchResults.hifz" :key="index"
-        class="px-4 py-2 hover:bg-emerald-50 cursor-pointer"
-        @click="selectCenter('hifz', result)">
-      {{ result.name }} ({{ result.ElhaqNo }})
-    </li>
-  </ul>
-</div>
-              </div>
-
-              <!-- Attachments for Hifz -->
-              <div class="mt-4 space-y-3" v-if="!centers.hifz || selectedType === 'hifz'">
-                <div class="relative">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">
-                    <i class="fas fa-file-alt mr-1"></i>বর্তমান মারকাজ অনাপত্তিপত্র
-                  </label>
-                  <input
-                    type="file"
-                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    @change="handleFileChange($event, 'hifz', 'noc')"
-                  />
-                  <div class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-emerald-300 rounded-md hover:border-emerald-500">
-                    <i class="fas fa-cloud-upload-alt text-emerald-400 text-xl mr-2"></i>
-                    <span class="text-gray-600">ফাইল আপলোড করুন</span>
-                  </div>
-                </div>
-
-                <div class="relative">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">
-                    <i class="fas fa-file-signature mr-1"></i>কাঙ্খিত মারকাজ সম্মতিপত্র
-                  </label>
-                  <input
-                    type="file"
-                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    @change="handleFileChange($event, 'hifz', 'consent')"
-                  />
-                  <div class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-emerald-300 rounded-md hover:border-emerald-500">
-                    <i class="fas fa-cloud-upload-alt text-emerald-400 text-xl mr-2"></i>
-                    <span class="text-gray-600">ফাইল আপলোড করুন</span>
-                  </div>
-                </div>
-              </div>
-            </td>
-          </tr>
-
-          <tr v-if="!centers.kirat || selectedType === 'kirat'">
-            <td class="border p-4">
-              <label class="text-emerald-800 font-semibold">কাঙ্খিত কিরাত মারকাজ</label>
-            </td>
-            <td class="border p-4">
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <i class="fas fa-search text-gray-400"></i>
-                </div>
-                <input
-                  type="text"
-                  placeholder="কিরাত মাদরাসা সার্চ করুন..."
-                  class="w-full pl-10 px-4 py-2 border border-emerald-200 rounded-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  v-model="searchKirat"
-                >
-                <!-- Dropdown results would go here -->
-                <div v-if="searchKirat && searchResults.kirat.length" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
-  <ul class="max-h-60 overflow-y-auto">
-    <li v-for="(result, index) in searchResults.kirat" :key="index"
-        class="px-4 py-2 hover:bg-emerald-50 cursor-pointer"
-        @click="selectCenter('kirat', result)">
-      {{ result.name }} ({{ result.ElhaqNo }})
-    </li>
-  </ul>
-</div>
-              </div>
-
-              <!-- Attachments for Kirat -->
-              <div class="mt-4 space-y-3" v-if="!centers.kirat || selectedType === 'kirat'">
-  <div class="relative">
-    <label class="block text-sm font-medium text-gray-700 mb-1">
-      <i class="fas fa-file-alt mr-1"></i>বর্তমান মারকাজ অনাপত্তিপত্র
-    </label>
-    <input
-      type="file"
-      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-      @change="handleFileChange($event, 'kirat', 'noc')"
-      v-if="!files.kirat.noc"
-    />
-    <div v-if="!files.kirat.noc" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-emerald-300 rounded-md hover:border-emerald-500">
-      <i class="fas fa-cloud-upload-alt text-emerald-400 text-xl mr-2"></i>
-      <span class="text-gray-600">ফাইল আপলোড করুন</span>
-    </div>
-    <!-- ফাইল আপলোড হলে দেখাবে -->
-    <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-emerald-300 rounded-md">
-      <div class="flex items-center">
-        <i class="fas fa-file-pdf text-emerald-500 text-xl mr-2"></i>
-        <span class="text-gray-700 truncate">{{ files.kirat.noc.name }}</span>
-      </div>
-      <div class="flex space-x-2">
-        <button type="button" @click="viewFile(files.kirat.noc)" class="text-blue-500 hover:text-blue-700">
-          <i class="fas fa-eye"></i>
-        </button>
-        <button type="button" @click="removeFile('kirat', 'noc')" class="text-red-500 hover:text-red-700">
-          <i class="fas fa-trash-alt"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="relative">
-    <label class="block text-sm font-medium text-gray-700 mb-1">
-      <i class="fas fa-file-signature mr-1"></i>কাঙ্খিত মারকাজ সম্মতিপত্র
-    </label>
-    <input
-      type="file"
-      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-      @change="handleFileChange($event, 'kirat', 'consent')"
-      v-if="!files.kirat.consent"
-    />
-    <div v-if="!files.kirat.consent" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-emerald-300 rounded-md hover:border-emerald-500">
-      <i class="fas fa-cloud-upload-alt text-emerald-400 text-xl mr-2"></i>
-      <span class="text-gray-600">ফাইল আপলোড করুন</span>
-    </div>
-    <!-- ফাইল আপলোড হলে দেখাবে -->
-    <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-emerald-300 rounded-md">
-      <div class="flex items-center">
-        <i class="fas fa-file-pdf text-emerald-500 text-xl mr-2"></i>
-        <span class="text-gray-700 truncate">{{ files.kirat.consent.name }}</span>
-      </div>
-      <div class="flex space-x-2">
-        <button type="button" @click="viewFile(files.kirat.consent)" class="text-blue-500 hover:text-blue-700">
-          <i class="fas fa-eye"></i>
-        </button>
-        <button type="button" @click="removeFile('kirat', 'consent')" class="text-red-500 hover:text-red-700">
-          <i class="fas fa-trash-alt"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-            </td>
-          </tr>
-
-          <!-- Submit Button -->
-          <tr>
-            <td colspan="2" class="border p-4">
-                <button
-  @click="submitMarkazChange"
-  class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
-  <i class="fas fa-paper-plane mr-2"></i>আবেদন জমা দিন
-</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-
-  <!-- Modal for changing markaz -->
-  <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-      <div class="bg-gradient-to-r from-emerald-900 to-emerald-800 text-white px-6 py-4 rounded-t-lg flex justify-between items-center">
-        <h3 class="text-xl font-bold">{{ modalTitle }}</h3>
-        <button @click="closeModal" class="text-white hover:text-gray-200">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-
-      <div class="p-6">
-        <!-- Search for new markaz -->
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2">
-            কাঙ্খিত {{ modalType === 'darsiyat' ? 'দারসিয়াত' : modalType === 'hifz' ? 'হিফজ' : 'কিরাত' }} মারকাজ
-          </label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <i class="fas fa-search text-gray-400"></i>
             </div>
-            <input
-              type="text"
-              :placeholder="`${modalType === 'darsiyat' ? 'দারসিয়াত' : modalType === 'hifz' ? 'হিফজ' : 'কিরাত'} মাদরাসা সার্চ করুন...`"
-              class="w-full pl-10 px-4 py-2 border border-emerald-200 rounded-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              v-model="modalSearch"
-            >
-            <!-- Dropdown results -->
-           <!-- মোডাল সার্চ রেজাল্ট -->
-<div v-if="modalSearch && modalSearchResults.length" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
-  <ul class="max-h-60 overflow-y-auto">
-    <li v-for="(result, index) in modalSearchResults" :key="index"
-        class="px-4 py-2 hover:bg-emerald-50 cursor-pointer"
-        @click="selectModalCenter(result)">
-      {{ result.name }} ({{ result.ElhaqNo }})
-    </li>
-  </ul>
-</div>
 
+            <!-- Desired Centers by Type -->
+            <div class="space-y-6">
+              <!-- Darsiyat Section -->
+              <div v-if="!centers.darsiyat || selectedType === 'darsiyat'" class="border border-gray-200 rounded-md p-4">
+                <h3 class="text-lg font-medium text-gray-700 mb-3">কাঙ্খিত দারসিয়াত মারকাজ</h3>
+                <div class="relative mb-4">
+                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="দারসিয়াত মাদরাসা সার্চ করুন..."
+                    class="w-full pl-10 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    v-model="searchDarsiyat"
+                  >
+                  <!-- Dropdown results -->
+                  <div v-if="searchDarsiyat && searchResults.darsiyat.length" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
+                    <ul class="max-h-60 overflow-y-auto">
+                      <li v-for="(result, index) in searchResults.darsiyat" :key="index"
+                          class="px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                          @click="selectCenter('darsiyat', result)">
+                        {{ result.name }} ({{ result.ElhaqNo }})
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Attachments for Darsiyat -->
+                <div class="space-y-4">
+                  <div class="relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      বর্তমান মারকাজ অনাপত্তিপত্র
+                    </label>
+                    <input
+                      type="file"
+                      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      @change="handleFileChange($event, 'darsiyat', 'noc')"
+                      v-if="!files.darsiyat.noc"
+                    />
+                    <div v-if="!files.darsiyat.noc" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-gray-300 rounded-md hover:border-indigo-500">
+                      <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                      </svg>
+                      <span class="text-gray-600">ফাইল আপলোড করুন</span>
+                    </div>
+                    <!-- ফাইল আপলোড হলে দেখাবে -->
+                    <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-300 rounded-md">
+                      <div class="flex items-center">
+                        <svg class="w-5 h-5 text-indigo-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="text-gray-700 truncate">{{ files.darsiyat.noc.name }}</span>
+                      </div>
+                      <div class="flex space-x-2">
+                        <button type="button" @click="viewFile(files.darsiyat.noc)" class="text-blue-500 hover:text-blue-700">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                          </svg>
+                        </button>
+                        <button type="button" @click="removeFile('darsiyat', 'noc')" class="text-red-500 hover:text-red-700">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      কাঙ্খিত মারকাজ সম্মতিপত্র
+                    </label>
+                    <input
+                      type="file"
+                      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      @change="handleFileChange($event, 'darsiyat', 'consent')"
+                      v-if="!files.darsiyat.consent"
+                    />
+                    <div v-if="!files.darsiyat.consent" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-gray-300 rounded-md hover:border-indigo-500">
+                      <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                      </svg>
+                      <span class="text-gray-600">ফাইল আপলোড করুন</span>
+                    </div>
+                    <!-- ফাইল আপলোড হলে দেখাবে -->
+                    <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-300 rounded-md">
+                      <div class="flex items-center">
+                        <svg class="w-5 h-5 text-indigo-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="text-gray-700 truncate">{{ files.darsiyat.consent.name }}</span>
+                      </div>
+                      <div class="flex space-x-2">
+                        <button type="button" @click="viewFile(files.darsiyat.consent)" class="text-blue-500 hover:text-blue-700">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                          </svg>
+                        </button>
+                        <button type="button" @click="removeFile('darsiyat', 'consent')" class="text-red-500 hover:text-red-700">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Selected Darsiyat Center -->
+                <div v-if="searchResults.selectedDarsiyat" class="mt-4 p-3 bg-gray-50 rounded-md">
+                  <h4 class="font-medium text-gray-700 mb-2">নির্বাচিত মারকাজ</h4>
+                  <p class="text-gray-800">{{ searchResults.selectedDarsiyat.name }}</p>
+                  <p class="text-gray-600 text-sm">ইলহাক নং: {{ searchResults.selectedDarsiyat.ElhaqNo }}</p>
+                </div>
+              </div>
+
+              <!-- Hifz Section -->
+              <div v-if="!centers.hifz || selectedType === 'hifz'" class="border border-gray-200 rounded-md p-4">
+                <h3 class="text-lg font-medium text-gray-700 mb-3">কাঙ্খিত হিফজ মারকাজ</h3>
+                <div class="relative mb-4">
+                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="হিফজ মাদরাসা সার্চ করুন..."
+                    class="w-full pl-10 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    v-model="searchHifz"
+                  >
+                  <!-- Dropdown results -->
+                  <div v-if="searchHifz && searchResults.hifz.length" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
+                    <ul class="max-h-60 overflow-y-auto">
+                      <li v-for="(result, index) in searchResults.hifz" :key="index"
+                          class="px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                          @click="selectCenter('hifz', result)">
+                        {{ result.name }} ({{ result.ElhaqNo }})
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Attachments for Hifz -->
+                <div class="space-y-4">
+                  <div class="relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      বর্তমান মারকাজ অনাপত্তিপত্র
+                    </label>
+                    <input
+                      type="file"
+                      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      @change="handleFileChange($event, 'hifz', 'noc')"
+                      v-if="!files.hifz.noc"
+                    />
+                    <div v-if="!files.hifz.noc" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-gray-300 rounded-md hover:border-indigo-500">
+                      <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                      </svg>
+                      <span class="text-gray-600">ফাইল আপলোড করুন</span>
+                    </div>
+                    <!-- ফাইল আপলোড হলে দেখাবে -->
+                    <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-300 rounded-md">
+                      <div class="flex items-center">
+                        <svg class="w-5 h-5 text-indigo-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="text-gray-700 truncate">{{ files.hifz.noc.name }}</span>
+                      </div>
+                      <div class="flex space-x-2">
+                        <button type="button" @click="viewFile(files.hifz.noc)" class="text-blue-500 hover:text-blue-700">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                          </svg>
+                        </button>
+                        <button type="button" @click="removeFile('hifz', 'noc')" class="text-red-500 hover:text-red-700">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      কাঙ্খিত মারকাজ সম্মতিপত্র
+                    </label>
+                    <input
+                      type="file"
+                      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      @change="handleFileChange($event, 'hifz', 'consent')"
+                      v-if="!files.hifz.consent"
+                    />
+                    <div v-if="!files.hifz.consent" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-gray-300 rounded-md hover:border-indigo-500">
+                      <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                      </svg>
+                      <span class="text-gray-600">ফাইল আপলোড করুন</span>
+                    </div>
+                    <!-- ফাইল আপলোড হলে দেখাবে -->
+                    <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-300 rounded-md">
+                      <div class="flex items-center">
+                        <svg class="w-5 h-5 text-indigo-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="text-gray-700 truncate">{{ files.hifz.consent.name }}</span>
+                      </div>
+                      <div class="flex space-x-2">
+                        <button type="button" @click="viewFile(files.hifz.consent)" class="text-blue-500 hover:text-blue-700">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                          </svg>
+                        </button>
+                        <button type="button" @click="removeFile('hifz', 'consent')" class="text-red-500 hover:text-red-700">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Selected Hifz Center -->
+                <div v-if="searchResults.selectedHifz" class="mt-4 p-3 bg-gray-50 rounded-md">
+                  <h4 class="font-medium text-gray-700 mb-2">নির্বাচিত মারকাজ</h4>
+                  <p class="text-gray-800">{{ searchResults.selectedHifz.name }}</p>
+                  <p class="text-gray-600 text-sm">ইলহাক নং: {{ searchResults.selectedHifz.ElhaqNo }}</p>
+                </div>
+              </div>
+
+              <!-- Kirat Section -->
+              <div v-if="!centers.kirat || selectedType === 'kirat'" class="border border-gray-200 rounded-md p-4">
+                <h3 class="text-lg font-medium text-gray-700 mb-3">কাঙ্খিত কিরাত মারকাজ</h3>
+                <div class="relative mb-4">
+                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="কিরাত মাদরাসা সার্চ করুন..."
+                    class="w-full pl-10 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    v-model="searchKirat"
+                  >
+                  <!-- Dropdown results -->
+                  <div v-if="searchKirat && searchResults.kirat.length" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
+                    <ul class="max-h-60 overflow-y-auto">
+                      <li v-for="(result, index) in searchResults.kirat" :key="index"
+                          class="px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                          @click="selectCenter('kirat', result)">
+                        {{ result.name }} ({{ result.ElhaqNo }})
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Attachments for Kirat -->
+                <div class="space-y-4">
+                  <div class="relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      বর্তমান মারকাজ অনাপত্তিপত্র
+                    </label>
+                    <input
+                      type="file"
+                      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      @change="handleFileChange($event, 'kirat', 'noc')"
+                      v-if="!files.kirat.noc"
+                    />
+                    <div v-if="!files.kirat.noc" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-gray-300 rounded-md hover:border-indigo-500">
+                      <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                      </svg>
+                      <span class="text-gray-600">ফাইল আপলোড করুন</span>
+                    </div>
+                    <!-- ফাইল আপলোড হলে দেখাবে -->
+                    <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-300 rounded-md">
+                      <div class="flex items-center">
+                        <svg class="w-5 h-5 text-indigo-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="text-gray-700 truncate">{{ files.kirat.noc.name }}</span>
+                      </div>
+                      <div class="flex space-x-2">
+                        <button type="button" @click="viewFile(files.kirat.noc)" class="text-blue-500 hover:text-blue-700">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                          </svg>
+                        </button>
+                        <button type="button" @click="removeFile('kirat', 'noc')" class="text-red-500 hover:text-red-700">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      কাঙ্খিত মারকাজ সম্মতিপত্র
+                    </label>
+                    <input
+                      type="file"
+                      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      @change="handleFileChange($event, 'kirat', 'consent')"
+                      v-if="!files.kirat.consent"
+                    />
+                    <div v-if="!files.kirat.consent" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-gray-300 rounded-md hover:border-indigo-500">
+                      <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                      </svg>
+                      <span class="text-gray-600">ফাইল আপলোড করুন</span>
+                    </div>
+                    <!-- ফাইল আপলোড হলে দেখাবে -->
+                    <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-300 rounded-md">
+                      <div class="flex items-center">
+                        <svg class="w-5 h-5 text-indigo-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="text-gray-700 truncate">{{ files.kirat.consent.name }}</span>
+                      </div>
+                      <div class="flex space-x-2">
+                        <button type="button" @click="viewFile(files.kirat.consent)" class="text-blue-500 hover:text-blue-700">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                          </svg>
+                        </button>
+                        <button type="button" @click="removeFile('kirat', 'consent')" class="text-red-500 hover:text-red-700">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Selected Kirat Center -->
+                <div v-if="searchResults.selectedKirat" class="mt-4 p-3 bg-gray-50 rounded-md">
+                  <h4 class="font-medium text-gray-700 mb-2">নির্বাচিত মারকাজ</h4>
+                  <p class="text-gray-800">{{ searchResults.selectedKirat.name }}</p>
+                  <p class="text-gray-600 text-sm">ইলহাক নং: {{ searchResults.selectedKirat.ElhaqNo }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-8">
+              <button
+      @click="submitMarkazChange"
+                class="w-full px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
+              >
+                আবেদন জমা দিন
+              </button>
+            </div>
           </div>
         </div>
+      </div>
+    </div>
 
-      <!-- Attachments in modal -->
-<div class="space-y-4 mt-4">
-  <div class="relative">
-    <label class="block text-sm font-medium text-gray-700 mb-1">
-      <i class="fas fa-file-alt mr-1"></i>বর্তমান মারকাজ অনাপত্তিপত্র
-    </label>
-    <input
-      type="file"
-      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-      @change="handleModalFileChange($event, 'noc')"
-      v-if="!modalFiles.noc"
-    />
-    <div v-if="!modalFiles.noc" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-emerald-300 rounded-md hover:border-emerald-500">
-      <i class="fas fa-cloud-upload-alt text-emerald-400 text-xl mr-2"></i>
-      <span class="text-gray-600">ফাইল আপলোড করুন</span>
-    </div>
-    <!-- ফাইল আপলোড হলে দেখাবে -->
-    <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-emerald-300 rounded-md">
-      <div class="flex items-center">
-        <i class="fas fa-file-pdf text-emerald-500 text-xl mr-2"></i>
-        <span class="text-gray-700 truncate">{{ modalFiles.noc.name }}</span>
-      </div>
-      <div class="flex space-x-2">
-        <button type="button" @click="viewFile(modalFiles.noc)" class="text-blue-500 hover:text-blue-700">
-          <i class="fas fa-eye"></i>
-        </button>
-        <button type="button" @click="removeModalFile('noc')" class="text-red-500 hover:text-red-700">
-          <i class="fas fa-trash-alt"></i>
-        </button>
-      </div>
-    </div>
-  </div>
 
-  <div class="relative">
-    <label class="block text-sm font-medium text-gray-700 mb-1">
-      <i class="fas fa-file-signature mr-1"></i>কাঙ্খিত মারকাজ সম্মতিপত্র
-    </label>
-    <input
-      type="file"
-      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-      @change="handleModalFileChange($event, 'consent')"
-      v-if="!modalFiles.consent"
-    />
-    <div v-if="!modalFiles.consent" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-emerald-300 rounded-md hover:border-emerald-500">
-      <i class="fas fa-cloud-upload-alt text-emerald-400 text-xl mr-2"></i>
-      <span class="text-gray-600">ফাইল আপলোড করুন</span>
+
+
+
+<!-- Add this at the end of your template, just before the closing </AuthenticatedLayout> tag -->
+<!-- Modal for changing markaz -->
+<div v-if="showModal" class="fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Background overlay -->
+    <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+      <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
     </div>
-    <!-- ফাইল আপলোড হলে দেখাবে -->
-    <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-emerald-300 rounded-md">
-      <div class="flex items-center">
-        <i class="fas fa-file-pdf text-emerald-500 text-xl mr-2"></i>
-        <span class="text-gray-700 truncate">{{ modalFiles.consent.name }}</span>
+
+    <!-- Modal panel -->
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="sm:flex sm:items-start">
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+              {{ modalTitle }}
+            </h3>
+            <div class="mt-4">
+              <!-- Search input -->
+              <div class="relative mb-4">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="মাদরাসা সার্চ করুন..."
+                  class="w-full pl-10 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  v-model="modalSearch"
+                >
+                <!-- Dropdown results -->
+                <div v-if="modalSearch && modalSearchResults.length" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
+                  <ul class="max-h-60 overflow-y-auto">
+                    <li v-for="(result, index) in modalSearchResults" :key="index"
+                        class="px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                        @click="selectModalCenter(result)">
+                      {{ result.name }} ({{ result.ElhaqNo }})
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Selected Center -->
+              <div v-if="selectedModalCenterData" class="mb-4 p-3 bg-gray-50 rounded-md">
+                <h4 class="font-medium text-gray-700 mb-2">নির্বাচিত মারকাজ</h4>
+                <p class="text-gray-800">{{ selectedModalCenterData.name }}</p>
+                <p class="text-gray-600 text-sm">ইলহাক নং: {{ selectedModalCenterData.ElhaqNo }}</p>
+              </div>
+
+              <!-- File uploads -->
+              <div class="space-y-4">
+                <div class="relative">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    বর্তমান মারকাজ অনাপত্তিপত্র
+                  </label>
+                  <input
+                    type="file"
+                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    @change="handleModalFileChange($event, 'noc')"
+                    v-if="!modalFiles.noc"
+                  />
+                  <div v-if="!modalFiles.noc" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-gray-300 rounded-md hover:border-indigo-500">
+                    <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <span class="text-gray-600">ফাইল আপলোড করুন</span>
+                  </div>
+                  <!-- File preview -->
+                  <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-300 rounded-md">
+                    <div class="flex items-center">
+                      <svg class="w-5 h-5 text-indigo-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                      <span class="text-gray-700 truncate">{{ modalFiles.noc.name }}</span>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button type="button" @click="viewFile(modalFiles.noc)" class="text-blue-500 hover:text-blue-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                      </button>
+                      <button type="button" @click="removeModalFile('noc')" class="text-red-500 hover:text-red-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="relative">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    কাঙ্খিত মারকাজ সম্মতিপত্র
+                  </label>
+                  <input
+                    type="file"
+                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    @change="handleModalFileChange($event, 'consent')"
+                    v-if="!modalFiles.consent"
+                  />
+                  <div v-if="!modalFiles.consent" class="flex items-center justify-center w-full px-4 py-2 bg-white border-2 border-dashed border-gray-300 rounded-md hover:border-indigo-500">
+                    <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <span class="text-gray-600">ফাইল আপলোড করুন</span>
+                  </div>
+                  <!-- File preview -->
+                  <div v-else class="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-300 rounded-md">
+                    <div class="flex items-center">
+                      <svg class="w-5 h-5 text-indigo-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                      <span class="text-gray-700 truncate">{{ modalFiles.consent.name }}</span>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button type="button" @click="viewFile(modalFiles.consent)" class="text-blue-500 hover:text-blue-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                      </button>
+                      <button type="button" @click="removeModalFile('consent')" class="text-red-500 hover:text-red-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="flex space-x-2">
-        <button type="button" @click="viewFile(modalFiles.consent)" class="text-blue-500 hover:text-blue-700">
-          <i class="fas fa-eye"></i>
+      <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+        <button @click="saveModalChanges" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+          সাবমিট করুন
         </button>
-        <button type="button" @click="removeModalFile('consent')" class="text-red-500 hover:text-red-700">
-          <i class="fas fa-trash-alt"></i>
+        <button @click="closeModal" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+          বাতিল করুন
         </button>
       </div>
     </div>
@@ -871,23 +978,13 @@ const resetForm = () => {
 </div>
 
 
-        <!-- Modal buttons -->
-        <div class="flex justify-end mt-6 space-x-3">
-          <button @click="closeModal" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition">
-            বাতিল করুন
-          </button>
-          <button @click="saveModalChanges" class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition">
-            পরিবর্তন সংরক্ষণ করুন
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
-    </AuthenticatedLayout>
-  </template>
 
-  <style>
 
-  </style>
 
+  </AuthenticatedLayout>
+</template>
+
+<style scoped>
+/* Add any component-specific styles here */
+</style>

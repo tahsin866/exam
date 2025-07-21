@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\teacher;
 use App\Models\negMumtahinAplication;
+use App\Models\negran_mumtahin_log;
 use App\Models\EducationalQualification;
 use App\Models\admin\marhala_for_admin\Marhala;
 use App\Models\admin\marhala_for_admin\MarhalaSubject;
@@ -87,110 +88,116 @@ class teacherController extends Controller
 
 
 
-    public function techerStore(Request $request)
-    {
-        // Validate the request data
-        $validated = $request->validate([
-            'teachers.name' => 'nullable|string|max:255',
-            'teachers.Mobile' => 'nullable|string|max:255',
-            'teachers.DateofBirth' => 'nullable|date',
-            'teachers.whatsapp' => 'nullable|string|max:255',
-            'teachers.teaching_experience' => 'nullable|string|max:255',
-            'teachers.selected_book' => 'nullable|string|max:255',
-            'teachers.National_Id_Card' => 'nullable|string|max:255',
-            'teachers.nid' => 'nullable|string|max:255',
-            'teachers.gender' => 'nullable|string|max:255',
-            'profileImage' => 'nullable|image|max:2048',
-            'muhtamim_file' => 'nullable|file|max:2048|mimes:pdf,jpg,jpeg,png',  // নতুন যোগ করা হয়েছে
-            'nid_file' => 'nullable|file|max:2048|mimes:pdf,jpg,jpeg,png',       // নতুন যোগ করা হয়েছে
-            'birth_cert_file' => 'nullable|file|max:2048|mimes:pdf,jpg,jpeg,png', // নতুন যোগ করা হয়েছে
-            'applicationType' => 'required|string',
-            'educationalQualifications' => 'nullable|array',
-            'educationalQualifications.*.className' => 'nullable|string|max:255',
-            'educationalQualifications.*.passYear' => 'nullable|string|max:255',
-            'educationalQualifications.*.result' => 'nullable|string|max:255',
-            'educationalQualifications.*.institution' => 'nullable|string|max:255',
-        ]);
+  public function techerStore(Request $request)
+{
+    // Validate the request data
+    $validated = $request->validate([
+        'teachers.name' => 'nullable|string|max:255',
+        'teachers.Mobile' => 'nullable|string|max:255',
+        'teachers.DateofBirth' => 'nullable|date',
+        'teachers.whatsapp' => 'nullable|string|max:255',
+        'teachers.teaching_experience' => 'nullable|string|max:255',
+        'teachers.selected_book' => 'nullable|string|max:255',
+        'teachers.National_Id_Card' => 'nullable|string|max:255',
+        'teachers.nid' => 'nullable|string|max:255',
+        'teachers.gender' => 'nullable|string|max:255',
+        'profileImage' => 'nullable|image|max:2048',
+        'muhtamim_file' => 'nullable|file|max:2048|mimes:pdf,jpg,jpeg,png',  // নতুন যোগ করা হয়েছে
+        'nid_file' => 'nullable|file|max:2048|mimes:pdf,jpg,jpeg,png',       // নতুন যোগ করা হয়েছে
+        'birth_cert_file' => 'nullable|file|max:2048|mimes:pdf,jpg,jpeg,png', // নতুন যোগ করা হয়েছে
+        'applicationType' => 'required|string',
+        'educationalQualifications' => 'nullable|array',
+        'educationalQualifications.*.className' => 'nullable|string|max:255',
+        'educationalQualifications.*.passYear' => 'nullable|string|max:255',
+        'educationalQualifications.*.result' => 'nullable|string|max:255',
+        'educationalQualifications.*.institution' => 'nullable|string|max:255',
+    ]);
 
-        // Handle profile image upload
-        $profileImagePath = null;
-        if ($request->hasFile('profileImage')) {
-            $profileImagePath = $request->file('profileImage')->store('profile-images', 'public');
-        }
+    // Handle profile image upload
+    $profileImagePath = null;
+    if ($request->hasFile('profileImage')) {
+        $profileImagePath = $request->file('profileImage')->store('profile-images', 'public');
+    }
 
-        // Handle new file uploads
-        $muhtamimFilePath = null;
-        if ($request->hasFile('muhtamim_file')) {
-            $muhtamimFilePath = $request->file('muhtamim_file')->store('muhtamim-files', 'public');
-        }
+    // Handle new file uploads
+    $muhtamimFilePath = null;
+    if ($request->hasFile('muhtamim_file')) {
+        $muhtamimFilePath = $request->file('muhtamim_file')->store('muhtamim-files', 'public');
+    }
 
-        $nidFilePath = null;
-        if ($request->hasFile('nid_file')) {
-            $nidFilePath = $request->file('nid_file')->store('nid-files', 'public');
-        }
+    $nidFilePath = null;
+    if ($request->hasFile('nid_file')) {
+        $nidFilePath = $request->file('nid_file')->store('nid-files', 'public');
+    }
 
-        $birthCertFilePath = null;
-        if ($request->hasFile('birth_cert_file')) {
-            $birthCertFilePath = $request->file('birth_cert_file')->store('birth-cert-files', 'public');
-        }
+    $birthCertFilePath = null;
+    if ($request->hasFile('birth_cert_file')) {
+        $birthCertFilePath = $request->file('birth_cert_file')->store('birth-cert-files', 'public');
+    }
 
-        // Get the authenticated user's ID
-        $userId = Auth::id();
+    // Get the authenticated user's ID
+    $userId = Auth::id();
 
-        // Create new application using Eloquent ORM with mass assignment
-        $application = negMumtahinAplication::create([
-            'user_id' => $userId, // Add the user_id from authenticated user
-            'name' => $request->input('teachers.name'),
-            'mobile' => $request->input('teachers.Mobile'),
-            'birth_date' => $request->input('teachers.DateofBirth'),
-            'whatsapp' => $request->input('teachers.whatsapp'),
-            'teaching_experience' => $request->input('teachers.teaching_experience'),
-            'negaranComments' => $request->input('teachers.negaranComments'),
-            'mumtahinComments' => $request->input('teachers.mumtahinComments'),
-            'nagad_number' => $request->input('teachers.nagad_number'),
-            'rocket_number' => $request->input('teachers.rocket_number'),
-            'bkash_number' => $request->input('teachers.bkash_number'),
-            'selected_book' => $request->input('teachers.selected_book'),
-            'division' => $request->input('teachers.division'),
-            'district' => $request->input('teachers.district'),
-            'thana' => $request->input('teachers.thana'),
-            'birth_reg_no' => $request->input('teachers.National_Id_Card'),
-            'nid' => $request->input('teachers.nid'),
-            'gender' => $request->input('teachers.gender'),
-            'profile_image' => $profileImagePath,
-            'muhtamim_file' => $muhtamimFilePath,  // নতুন যোগ করা হয়েছে
-            'nid_file' => $nidFilePath,            // নতুন যোগ করা হয়েছে
-            'birth_cert_file' => $birthCertFilePath, // নতুন যোগ করা হয়েছে
-            'application_type' => $request->input('applicationType'),
-            'status' => 'pending',
-        ]);
+    // Get the madrasha_id from the users table
+    $user = \App\Models\User::find($userId);
+    $madrashaId = $user ? $user->madrasha_id : null;
 
-        // Store educational qualifications
-        if ($request->has('educationalQualifications') && is_array($request->educationalQualifications)) {
-            foreach ($request->educationalQualifications as $qualification) {
-                EducationalQualification::create([
-                    'application_id' => $application->id,
-                    'class_name' => $qualification['className'] ?? null,
-                    'pass_year' => $qualification['passYear'] ?? null,
-                    'result' => $qualification['result'] ?? null,
-                    'institution' => $qualification['institution'] ?? null,
-                ]);
-            }
-        }
+    // Create new application using Eloquent ORM with mass assignment
+    $application = negMumtahinAplication::create([
+        'user_id' => $userId, // Add the user_id from authenticated user
+        'madrasha_id' => $madrashaId, // Add the madrasha_id from user
+        'name' => $request->input('teachers.name'),
+        'mobile' => $request->input('teachers.Mobile'),
+        'birth_date' => $request->input('teachers.DateofBirth'),
+        'whatsapp' => $request->input('teachers.whatsapp'),
+        'teaching_experience' => $request->input('teachers.teaching_experience'),
+        'negaranComments' => $request->input('teachers.negaranComments'),
+        'mumtahinComments' => $request->input('teachers.mumtahinComments'),
+        'nagad_number' => $request->input('teachers.nagad_number'),
+        'rocket_number' => $request->input('teachers.rocket_number'),
+        'bkash_number' => $request->input('teachers.bkash_number'),
+        'selected_book' => $request->input('teachers.selected_book'),
+         'teaching_books' => $request->input('teachers.teaching_books'),
+        'division' => $request->input('teachers.division'),
+        'district' => $request->input('teachers.district'),
+        'thana' => $request->input('teachers.thana'),
+        'birth_reg_no' => $request->input('teachers.National_Id_Card'),
+        'nid' => $request->input('teachers.nid'),
+        'gender' => $request->input('teachers.gender'),
+        'profile_image' => $profileImagePath,
+        'muhtamim_file' => $muhtamimFilePath,  // নতুন যোগ করা হয়েছে
+        'nid_file' => $nidFilePath,            // নতুন যোগ করা হয়েছে
+        'birth_cert_file' => $birthCertFilePath, // নতুন যোগ করা হয়েছে
+        'application_type' => $request->input('applicationType'),
+        'status' => 'pending',
+    ]);
 
-        // Return Inertia response with flash message
-        if ($request->wantsJson()) {
-            // For XHR/fetch requests, return JSON
-            return response()->json([
-                'success' => true,
-                'message' => 'আপনার আবেদন সফলভাবে জমা হয়েছে',
-                'application_id' => $application->id
+    // Store educational qualifications
+    if ($request->has('educationalQualifications') && is_array($request->educationalQualifications)) {
+        foreach ($request->educationalQualifications as $qualification) {
+            EducationalQualification::create([
+                'application_id' => $application->id,
+                'class_name' => $qualification['className'] ?? null,
+                'pass_year' => $qualification['passYear'] ?? null,
+                'result' => $qualification['result'] ?? null,
+                'institution' => $qualification['institution'] ?? null,
             ]);
-        } else {
-            // For Inertia requests, return redirect with flash
-            return redirect()->back()->with('success', 'আপনার আবেদন সফলভাবে জমা হয়েছে');
         }
     }
+
+    // Return Inertia response with flash message
+    if ($request->wantsJson()) {
+        // For XHR/fetch requests, return JSON
+        return response()->json([
+            'success' => true,
+            'message' => 'আপনার আবেদন সফলভাবে জমা হয়েছে',
+            'application_id' => $application->id
+        ]);
+    } else {
+        // For Inertia requests, return redirect with flash
+        return redirect()->back()->with('success', 'আপনার আবেদন সফলভাবে জমা হয়েছে');
+    }
+}
 
 
 
@@ -340,19 +347,39 @@ class teacherController extends Controller
 
 
 
-    public function getTeachers()
-    {
-        // Get the authenticated user's ID
-        $userId = Auth::id();
+   public function getTeachers()
+{
+    // Get the authenticated user's ID
+    $userId = Auth::id();
 
-        // Query only the records that belong to the current user
-        $applications = DB::table('neg_mumtahin_aplications')
-            ->select('id', 'name', 'birth_date', 'application_type', 'mobile', 'status')
-            ->where('user_id', $userId)  // Filter by the authenticated user's ID
-            ->get();
+    // Get applications using ORM
+    $applications = NegMumtahinAplication::select(
+        'id',
+        'name',
+        'birth_date',
+        'application_type',
+        'mobile'
+    )
+    ->where('user_id', $userId)
+    ->get();
 
-        return response()->json($applications);
+    // For each application, get the latest status from logs
+    foreach ($applications as $application) {
+        $latestLog = negran_mumtahin_log::where('application_id', $application->id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        // Set the status from logs if available, otherwise keep the original status
+        if ($latestLog) {
+            $application->status = $latestLog->status;
+        } else {
+            // If no log found, you can set a default status or keep it null
+            $application->status = null;
+        }
     }
+
+    return response()->json($applications);
+}
 
 
 
@@ -381,7 +408,7 @@ class teacherController extends Controller
 }
 
 
-    public function update(Request $request, $id)
+    public function negupdate(Request $request, $id)
 {
     $teacher = NegMumtahinAplication::findOrFail($id);
 
@@ -419,4 +446,57 @@ class teacherController extends Controller
     return response()->json($updatedTeacher);
 }
 
+
+
+
+// submit to board
+
+
+public function submitedToBoard($id)
+{
+    try {
+        DB::beginTransaction();
+
+        // Find the application by ID
+        $application = NegMumtahinAplication::findOrFail($id);
+
+        // Get current authenticated user
+        $user = Auth::user();
+
+        // Create new log entry
+        $log = new negran_mumtahin_log();
+        $log->application_id = $application->id;
+        $log->user_id = $user->id;
+           $log->admin_id = null;
+        $log->status = 'বোর্ড দাখিল';
+        $log->actor_type = 'user';
+        $log->admin_name = '';
+        $log->user_name = $user->name;
+        $log->user_position = $user->position ?? '';
+        $log->admin_position = '';
+        $log->save();
+
+        // আমরা neg_mumtahin_aplications টেবিলের স্ট্যাটাস আপডেট করছি না
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'আবেদনটি সফলভাবে বোর্ডে দাখিল করা হয়েছে',
+            'data' => $log
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'আবেদন দাখিল করতে সমস্যা হয়েছে: ' . $e->getMessage()
+        ], 500);
+    }
 }
+
+
+
+}
+
+

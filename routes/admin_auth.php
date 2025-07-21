@@ -58,12 +58,7 @@ Route::prefix('admin')->middleware('auth:admin')->group(function () {
 
     // Route::put('password', [PasswordController::class, 'update'])->name('password.update');
 
-    Route::get('/admin_Dashboard', [dashboardController::class, 'permission'])->name('admin.admin_Dashboard');
-
-
-    Route::get('/admin_Dashboard', function () {
-        return Inertia::render('admin/admin_Dashboard');
-    })->name('admin.admin_Dashboard');
+    // Duplicate route removed - using the one from admin.php instead
 
 
 

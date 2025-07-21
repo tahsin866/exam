@@ -1,136 +1,105 @@
 <template>
-    <AuthenticatedLayout>
-      <div class="bg-[#f8f9fa] rounded-sm shadow-md p-6 border-t-4 border-emerald-600 mx-5 mt-5">
-        <!-- Header with Islamic Pattern -->
-        <div class="relative mb-8">
-          <div class="absolute inset-0 bg-emerald-50 opacity-25 pattern-islamic"></div>
-          <h2 class="text-2xl font-bold text-center text-emerald-800 py-4">মারহালা তথ্য</h2>
-        </div>
+  <AuthenticatedLayout>
+    <div class="py-12">
+      <div class=" sm:px-6 lg:px-8">
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-t-4 border-indigo-600">
+          <div class="p-6">
+            <!-- Header -->
+            <div class="relative mb-8">
+              <div class="absolute inset-0 bg-gray-100 opacity-25 pattern-dots"></div>
+              <h2 class="text-2xl font-bold text-center text-gray-800 py-4 relative z-10">মারহালা তথ্য</h2>
+            </div>
 
-        <!-- Table -->
-        <div class="card">
-          <DataTable
-            :value="marhalas"
-            responsiveLayout="scroll"
-            class="p-datatable-sm custom-datatable"
-            stripedRows
-            :rowHover="true"
-          >
-            <Column field="marhala_name_bn" header="মারহালা নাম">
-              <template #body="slotProps">
-                <span class="font-semibold text-emerald-700">{{ slotProps.data.marhala_name_bn }}</span>
-              </template>
-            </Column>
-
-            <Column field="total_subjects" header="মোট বিষয়">
-              <template #body="slotProps">
-                <span class="font-bold text-emerald-700">{{ slotProps.data.total_subjects }}</span>
-              </template>
-            </Column>
-
-            <Column field="male_subjects" header="পুরুষ">
-              <template #body="slotProps">
-                <span class="font-bold text-emerald-700">{{ slotProps.data.male_subjects }}</span>
-              </template>
-            </Column>
-
-            <Column field="female_subjects" header="মহিলা">
-              <template #body="slotProps">
-                <span class="font-bold text-emerald-700">{{ slotProps.data.female_subjects }}</span>
-              </template>
-            </Column>
-
-            <Column field="both_subjects" header="উভয়">
-              <template #body="slotProps">
-                <span class="font-bold text-emerald-700">{{ slotProps.data.both_subjects }}</span>
-              </template>
-            </Column>
-
-            <Column header="অ্যাকশন">
-              <template #body="slotProps">
-                <div class="flex justify-center gap-3">
-                  <Link
-                    :href="route('subjects_for_Admin.subject_setup', { marhala: slotProps.data.id })"
-                    class="flex items-center px-3 py-1.5 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors duration-200"
-                  >
-                    বিষয় সেটাপ করুন
-                  </Link>
-                </div>
-              </template>
-            </Column>
-          </DataTable>
+            <!-- Table -->
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      মারহালা নাম
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      মোট বিষয়
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      পুরুষ
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      মহিলা
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      উভয়
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      অ্যাকশন
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr v-for="marhala in marhalas" :key="marhala.id" class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <span class="font-semibold text-gray-700">{{ marhala.marhala_name_bn }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <span class="font-bold text-gray-700">{{ marhala.total_subjects }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <span class="font-bold text-gray-700">{{ marhala.male_subjects }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <span class="font-bold text-gray-700">{{ marhala.female_subjects }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <span class="font-bold text-gray-700">{{ marhala.both_subjects }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <Link
+                        :href="route('subjects_for_Admin.subject_setup', { marhala: marhala.id })"
+                        class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150"
+                      >
+                        বিষয় সেটাপ করুন
+                      </Link>
+                    </td>
+                  </tr>
+                  <!-- Empty state when no marhalas are available -->
+                  <tr v-if="marhalas.length === 0">
+                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                      কোন মারহালা তথ্য পাওয়া যায়নি
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
-    </AuthenticatedLayout>
-  </template>
+    </div>
+  </AuthenticatedLayout>
+</template>
 
-  <script setup>
-  import AuthenticatedLayout from '@/Layouts/admin/AuthenticatedLayout.vue';
-  import { ref, onMounted } from 'vue';
-  import axios from 'axios';
-  import { Link } from '@inertiajs/vue3';
+<script setup>
+import AuthenticatedLayout from '@/Layouts/admin/AuthenticatedLayout.vue';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import { Link } from '@inertiajs/vue3';
 
-  // PrimeVue components
-  import DataTable from 'primevue/datatable';
-  import Column from 'primevue/column';
+const marhalas = ref([]);
 
-  const marhalas = ref([]);
-
-  const loadMarhalaStats = async () => {
-    try {
-      const response = await axios.get('/api/subject-marhala-counts');
-      marhalas.value = response.data;
-    } catch (error) {
-      console.error('Error loading marhala stats:', error);
-    }
-  };
-
-  onMounted(() => {
-    loadMarhalaStats();
-  });
-  </script>
-
-  <style scoped>
-  /* Custom styling for PrimeVue DataTable */
-  :deep(.custom-datatable) {
-    border-collapse: collapse;
-    width: 100%;
+const loadMarhalaStats = async () => {
+  try {
+    const response = await axios.get('/api/subject-marhala-counts');
+    marhalas.value = response.data;
+  } catch (error) {
+    console.error('Error loading marhala stats:', error);
   }
+};
 
-  :deep(.p-datatable .p-datatable-thead > tr > th) {
-    background-color: rgb(209, 250, 229); /* emerald-100 */
-    border: 1px solid rgba(167, 243, 208, 0.5); /* emerald-200 with opacity */
-    padding: 0.75rem;
-    text-align: center;
-    font-weight: bold;
-  }
+onMounted(() => {
+  loadMarhalaStats();
+});
+</script>
 
-  :deep(.p-datatable .p-datatable-tbody > tr > td) {
-    border: 1px solid rgba(167, 243, 208, 0.5); /* emerald-200 with opacity */
-    padding: 0.75rem;
-    text-align: center;
-  }
+<style scoped>
+/* Simple dot pattern for the header background */
 
-  :deep(.p-datatable .p-datatable-tbody > tr:hover) {
-    background-color: rgb(236, 253, 245); /* emerald-50 */
-  }
-
-  /* Fix header alignment */
-  :deep(.p-datatable .p-datatable-thead > tr > th .p-column-title) {
-    display: inline-block;
-    width: 100%;
-    text-align: center;
-  }
-
-  /* Ensure the table has a subtle outer border */
-  :deep(.p-datatable) {
-    border: 1px solid rgba(167, 243, 208, 0.5); /* emerald-200 with opacity */
-    border-radius: 0.375rem;
-    overflow: hidden;
-  }
-
-  /* Islamic pattern background */
-  .pattern-islamic {
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2310b981' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  }
-  </style>
+</style>

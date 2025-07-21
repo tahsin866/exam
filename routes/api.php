@@ -13,6 +13,9 @@ use App\Http\Controllers\StudentRegistrationController;
 use App\Http\Controllers\dashboardController;
 use App\Http\Controllers\teacherController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\markaz\markazApplicationController;
+use App\Http\Controllers\BoardApplicationController;
+use App\Http\Controllers\markaz\getMadrashaController;
 
 // Marhala Controller Routes
 Route::get('/marhalas/{id}/edit', [MarhalaController::class, 'edit']);
@@ -49,10 +52,11 @@ Route::prefix('api')->group(function () {
 
 
     // MarkazAgreementController Routes
-    Route::get('/madrashas/list', [MarkazAgreementController::class, 'getMadrashas'])->name('madrashas.list');
-    Route::get('/exam-setups/latest', [MarkazAgreementController::class, 'getLatest_1'])->name('exam-setups.latest');
+    Route::get('/madrashas/list', [getMadrashaController::class, 'getMadrashas'])->name('madrashas.list');
+    Route::get('/exam-setups/latest', [markazApplicationController::class, 'getLatestExam'])->name('exam-setups.latest');
     Route::get('/markaz/get-table-data', [MarkazAgreementController::class, 'getTableData']);
-    Route::get('/markaz-agreements', [MarkazAgreementController::class, 'fatch']);
+    Route::get('/markaz-agreements', [markazApplicationController::class, 'fatch']);
+
     Route::get('/markaz-madrashas/list', [MarkazAgreementController::class, 'getMadrashas'])->name('markaz.madrashas.list');
 
 
@@ -121,9 +125,19 @@ Route::get('/get-book-categories', [teacherController::class, 'getBookCategories
 Route::get('/neg-mumtahin-applications', [teacherController::class, 'getTeachers']);
 
 
-Route::get('/negran/edit/{id}', [App\Http\Controllers\teacherController::class, 'negedit'])->name('negran.edit');
+Route::get('/negran/edit/{id}', [teacherController::class, 'negedit'])->name('negran.edit');
 
-Route::put('/negran/update/{id}', [App\Http\Controllers\teacherController::class, 'negupdate'])->name('negran.update');
+Route::put('/negran/update/{id}', [teacherController::class, 'negupdate'])->name('negran.update');
+
+
+
+Route::get('/negran-mumtahin/list', [BoardApplicationController::class, 'getNegranData']);
+
+Route::post('/markaz-changes/{id}/approve', [MarkazChangeController::class, 'approveMarkazChange']);
+
+
+
+Route::post('/submit-all-applications', [App\Http\Controllers\StudentRegistrationController::class, 'submitAllApplications'])->name('submit.all.applications');
 
 
 });

@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // রাউট মিডলওয়্যার রেজিস্টার করুন
         $middleware->alias([
             'check.madrasha.access' => \App\Http\Middleware\CheckMadrashaAccess::class,
+            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'permission' => \App\Http\Middleware\CheckPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

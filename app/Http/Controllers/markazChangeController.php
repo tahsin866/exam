@@ -187,57 +187,60 @@ class markazChangeController extends Controller
 
 
 
-    public function MarkazStore(Request $request)
-    {
-        $request->validate([
-            'markaz_type' => 'required|in:darsiyat,hifz,kirat',
-            'asking_madrasha' => 'required|string',
-            'onapotti_potro' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'shommoti_potro' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-        ]);
+  public function MarkazStore(Request $request)
+{
+    $request->validate([
+        'markaz_type' => 'required|in:darsiyat,hifz,kirat',
+        'asking_madrasha' => 'required|string',
+        'onapotti_potro' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        'shommoti_potro' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+    ]);
 
-        // Get current user
-        $user = Auth::user();
+    // Get current user
+    $user = Auth::user();
 
-        // Get latest exam setup
-        $examSetup = ExamSetup::latest()->first();
-        if (!$examSetup) {
-            if ($request->wantsJson()) {
-                return response()->json(['message' => 'No exam setup found'], 404);
-            }
-            return back()->with('error', 'No exam setup found');
-        }
-
-        // Upload files
-        $onapottiPath = $request->file('onapotti_potro')->store('markaz_changes/onapotti', 'public');
-        $shommotiPath = $request->file('shommoti_potro')->store('markaz_changes/shommoti', 'public');
-
-        // Create markaz change record
-        $markazChange = new markaz_change();
-        $markazChange->user_id = $user->id;
-        $markazChange->central_exam_id = $examSetup->id;
-        $markazChange->madrasha_id = $user->madrasha_id;
-        $markazChange->markaz_id = null; // Will be updated after approval
-        $markazChange->madrasha_name = $user->madrasha_name; // Get name directly from user
-        $markazChange->madrasha_code = $user->custom_code; // Get custom_code directly from user
-        $markazChange->asking_madrasha = $request->asking_madrasha;
-        $markazChange->markaz_type = $request->markaz_type;
-        $markazChange->onapotti_potro = $onapottiPath;
-        $markazChange->shommoti_potro = $shommotiPath;
-        $markazChange->save();
-
-        // Check if this is an Inertia request or an API request
+    // Get latest exam setup
+    $examSetup = ExamSetup::latest()->first();
+    if (!$examSetup) {
         if ($request->wantsJson()) {
-            return response()->json([
-                'message' => 'আপনার মারকাজ পরিবর্তনের আবেদন সফলভাবে জমা হয়েছে',
-                'markaz_change' => $markazChange
-            ], 201);
+            return response()->json(['message' => 'No exam setup found'], 404);
         }
-
-        // For Inertia requests
-        return back()->with('success', 'আপনার মারকাজ পরিবর্তনের আবেদন সফলভাবে জমা হয়েছে');
+        return back()->with('error', 'No exam setup found');
     }
 
+    // Upload files
+    $onapottiPath = $request->file('onapotti_potro')->store('markaz_changes/onapotti', 'public');
+    $shommotiPath = $request->file('shommoti_potro')->store('markaz_changes/shommoti', 'public');
+
+    // Get the madrasha ID from the asking_madrasha string
+    // Assuming the format is "MName (ElhaqNo)" or just the ID is passed
+    $askingMadrashaId = $request->input('markaz_id');
+
+    // Create markaz change record
+    $markazChange = new markaz_change();
+    $markazChange->user_id = $user->id;
+    $markazChange->central_exam_id = $examSetup->id;
+    $markazChange->madrasha_id = $user->madrasha_id;
+    $markazChange->madrasha_name = $user->madrasha_name; // Get name directly from user
+    $markazChange->madrasha_code = $user->custom_code; // Get custom_code directly from user
+    $markazChange->asking_madrasha = $request->asking_madrasha;
+    $markazChange->markaz_id = $askingMadrashaId; // Store the madrasha ID here
+    $markazChange->markaz_type = $request->markaz_type;
+    $markazChange->onapotti_potro = $onapottiPath;
+    $markazChange->shommoti_potro = $shommotiPath;
+    $markazChange->save();
+
+    // Check if this is an Inertia request or an API request
+    if ($request->wantsJson()) {
+        return response()->json([
+            'message' => 'আপনার মারকাজ পরিবর্তনের আবেদন সফলভাবে জমা হয়েছে',
+            'markaz_change' => $markazChange
+        ], 201);
+    }
+
+    // For Inertia requests
+    return back()->with('success', 'আপনার মারকাজ পরিবর্তনের আবেদন সফলভাবে জমা হয়েছে');
+}
 
 
 
@@ -246,6 +249,7 @@ class markazChangeController extends Controller
 
 
 
+//================ এডমিন পেনেলে============
 
 
     public function getMarkazChange(Request $request)
@@ -279,6 +283,55 @@ class markazChangeController extends Controller
 
 
 
+
+
+
+
+
+
+
+
+public function approveMarkazChange($id){
+    try {
+        // Find the markaz change request
+        $markazChange = markaz_change::findOrFail($id);
+
+        // Get the madrasha ID and the new markaz ID
+        $madrashaId = $markazChange->madrasha_id;
+        $newMarkazId = $markazChange->markaz_id;
+
+        // Update the stu_rledger_p table
+        // Find all records where MRID matches the madrasha ID
+        $updatedLedgerCount = DB::table('stu_rledger_p')
+            ->where('MRID', $madrashaId)
+            ->update(['MDID' => $newMarkazId]);
+
+        // Update the reg_stu_informations table
+        // Find all records where madrasha_id matches and update markaz_id
+        $updatedStudentCount = DB::table('reg_stu_informations')
+            ->where('madrasha_id', $madrashaId)
+            ->update(['markaz_id' => $newMarkazId]);
+
+        // Update the markaz_change status to approved
+        $markazChange->status = 'approved';
+        $markazChange->approved_at = now();
+        $markazChange->approved_by = Auth::id();
+        $markazChange->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'মারকাজ পরিবর্তন সফলভাবে অনুমোদিত হয়েছে',
+            'updated_ledger_records' => $updatedLedgerCount,
+            'updated_student_records' => $updatedStudentCount
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'মারকাজ পরিবর্তন অনুমোদন করতে সমস্যা হয়েছে',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 
 
 

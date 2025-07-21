@@ -128,19 +128,6 @@ public function updateSubjectSetting(Request $request, $id)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 public function search(Request $request)
 {
     $query = subject_settings::with('MarhalaSubject');

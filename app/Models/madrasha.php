@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class madrasha extends Model
 {
 
-protected $table = 'madrasha';
+protected $table = 'madrashas';
 
 
 protected $fillable = [
@@ -45,8 +45,10 @@ public function thana()
 }
 
 
-
-
+    public function applications()
+    {
+        return $this->hasMany(negMumtahinAplication::class, 'madrasha_id');
+    }
 
 
 }

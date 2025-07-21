@@ -27,7 +27,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'mobile_no' => ['required', 'string'],
+            'login' => ['required', 'string'], // Can be email or mobile
             'password' => ['required', 'string'],
         ];
     }
@@ -41,11 +41,36 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (!Auth::attempt($this->only('mobile_no', 'password'), $this->boolean('remember'))) {
+        $login = $this->input('login');
+        $password = $this->input('password');
+        
+        // Determine if login is email or mobile
+        $loginField = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        
+        // For backward compatibility, also try Mobile_no field for existing users
+        $attemptData = [$loginField => $login, 'password' => $password];
+        
+        $authenticated = Auth::attempt($attemptData, $this->boolean('remember'));
+        
+        // If email/phone fails and it's not an email, try Mobile_no field (legacy)
+        if (!$authenticated && $loginField !== 'email') {
+            $authenticated = Auth::attempt(['Mobile_no' => $login, 'password' => $password], $this->boolean('remember'));
+        }
+
+        if (!$authenticated) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'mobile_no' => trans('auth.failed'),
+                'login' => 'ইমেইল/মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়।',
+            ]);
+        }
+
+        // Check if user is active
+        $user = Auth::user();
+        if (!$user->is_active) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'login' => 'আপনার একাউন্টটি নিষ্ক্রিয় করা হয়েছে। অনুগ্রহ করে প্রশাসকের সাথে যোগাযোগ করুন।',
             ]);
         }
 
@@ -80,6 +105,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('mobile_no')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('login')).'|'.$this->ip());
     }
 }

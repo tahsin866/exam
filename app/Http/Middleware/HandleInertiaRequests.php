@@ -30,28 +30,21 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $admin = $request->user('admin');
+        $user = $request->user();
         
-        // Load permissions if admin is logged in
-        if ($admin) {
-            $permissions = admin_permission::where('admin_id', $admin->id)->first();
-            if ($permissions) {
-                // Convert to array and remove unnecessary fields
-                $permissionsArray = collect($permissions->toArray())
-                    ->except(['id', 'admin_id', 'created_at', 'updated_at'])
-                    ->toArray();
-                
-                // Add permissions to admin object
-                $admin = $admin->toArray();
-                $admin['permissions'] = $permissionsArray;
-            }
+        // Load roles and permissions if user is logged in
+        if ($user) {
+            // Load all relationships at once
+            $user->load(['roles.permissions', 'permissions']);
+            
+            // Remove legacy admin_permissions completely
+            unset($user->admin_permissions);
         }
         
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
-                'admin' => $admin,
+                'user' => $user,
             ],
         ];
     }

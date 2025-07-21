@@ -1,129 +1,125 @@
 <template>
-    <AuthenticatedLayout>
-      <div class="bg-white mx-5 mt-5 dark:bg-gray-900 rounded-lg shadow-lg p-6 border border-emerald-100 dark:border-emerald-900">
-        <!-- Header with Islamic pattern -->
-        <div class="relative mb-6 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg p-4 overflow-hidden">
-          <div class="absolute inset-0 opacity-10 islamic-pattern"></div>
-          <h2 class="text-2xl text-emerald-800 dark:text-emerald-200 text-center relative z-10">
-            ইউজার ম্যানেজমেন্ট সিস্টেম
-          </h2>
-        </div>
-
-        <!-- Search and Add User Section -->
-        <div class="flex flex-col md:flex-row gap-4 mb-6">
-          <div class="flex-1">
-            <div class="relative">
-              <span class="p-input-icon-left w-full">
-
-                <InputText
-                  v-model="filters['global'].value"
-                  placeholder="ফোন নম্বর দিয়ে সার্চ করুন"
-                  class="w-full"
-                />
-              </span>
+  <AuthenticatedLayout>
+    <div class="py-12">
+      <div class=" sm:px-6 lg:px-8">
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+          <div class="p-6 bg-white border-b border-gray-200">
+            <!-- Header -->
+            <div class="mb-6">
+              <h2 class="text-xl font-semibold text-gray-800 leading-tight">
+                ইউজার ম্যানেজমেন্ট সিস্টেম
+              </h2>
             </div>
-          </div>
-          <div>
-            <Link
-              :href="route('user_create_for_admin.new_user_for_admin')"
-              class="w-full md:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md transition-colors duration-200 flex items-center justify-center gap-2 shadow-md"
-            >
-              <i class="pi pi-plus"></i>
-              নতুন ইউজার
-            </Link>
-          </div>
-        </div>
 
-        <!-- PrimeVue DataTable -->
-        <DataTable
-          :value="admins"
-          :paginator="true"
-          :rows="20"
-          :rowsPerPageOptions="[5, 10, 20, 50]"
-          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-          currentPageReportTemplate="মোট {totalRecords} জন ইউজারের মধ্যে {first}-{last} দেখাচ্ছে"
-          responsiveLayout="scroll"
-          :globalFilterFields="['name', 'phone', 'email']"
-          v-model:filters="filters"
-          filterDisplay="menu"
-          class="p-datatable-gridlines"
-        >
-          <Column field="profile_image" header="ছবি">
-            <template #body="slotProps">
-              <div class="h-10 w-10 rounded-full overflow-hidden border-2 border-emerald-200 dark:border-emerald-700">
-                <img
-                  :src="slotProps.data.profile_image ? '/storage/' + slotProps.data.profile_image : 'https://randomuser.me/api/portraits/men/1.jpg'"
-                  :alt="slotProps.data.name"
-                  class="h-full w-full object-cover"
-                />
+            <!-- Search and Add User Section -->
+            <div class="flex flex-col md:flex-row justify-between gap-4 mb-6">
+              <div class="flex-1">
+                <div class="relative">
+                  <span class="p-input-icon-left w-full">
+                    <InputText
+                      v-model="filters['global'].value"
+                      placeholder="ফোন নম্বর দিয়ে সার্চ করুন"
+                      class="w-full border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm"
+                    />
+                  </span>
+                </div>
               </div>
-            </template>
-          </Column>
+              <div>
+                <Link
+                  :href="route('user_create_for_admin.new_user_for_admin')"
+                  class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150"
+                >
+                  <i class="pi pi-plus mr-2"></i>
+                  নতুন ইউজার
+                </Link>
+              </div>
+            </div>
 
-          <Column field="name" header="নাম" :sortable="true" :filter="true" filterPlaceholder="নাম খুঁজুন">
-          </Column>
-
-          <Column field="phone" header="ফোন নম্বর" :sortable="true" :filter="true" filterPlaceholder="ফোন নম্বর খুঁজুন">
-          </Column>
-
-          <Column field="email" header="ইমেইল" :sortable="true" :filter="true" filterPlaceholder="ইমেইল খুঁজুন">
-          </Column>
-
-          <Column field="designation" header="পদবি" :sortable="true" :filter="true" filterMatchMode="equals">
-            <template #body="slotProps">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="getDesignationClass(slotProps.data.designation)">
-                {{ getDesignationText(slotProps.data.designation) }}
-              </span>
-            </template>
-            <template #filter="{ filterModel }">
-              <Dropdown
-                v-model="filterModel.value"
-                :options="designationOptions"
-                optionLabel="name"
-                optionValue="value"
-                placeholder="পদবি বাছাই করুন"
-                class="p-column-filter"
-                showClear
-              />
-            </template>
-          </Column>
-
-          <Column header="একশন">
-  <template #body="slotProps">
-    <div class="flex space-x-2">
-      <Toast />
-      <ConfirmPopup></ConfirmPopup>
-      <Dialog v-model:visible="showModal" :style="{width: '450px'}" header="এডমিন ডিলিট করুন" :modal="true">
-        <div class="flex items-start">
-          <i class="pi pi-exclamation-triangle mr-3 text-red-500" style="font-size: 2rem"></i>
-          <div>
-            <p class="text-sm text-gray-500">
-              আপনি কি নিশ্চিত যে আপনি এই এডমিন ডিলিট করতে চান? এই কাজটি অপরিবর্তনীয়।
-            </p>
+            <!-- PrimeVue DataTable -->
+            <DataTable
+              :value="admins"
+              :paginator="true"
+              :rows="20"
+              :rowsPerPageOptions="[5, 10, 20, 50]"
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+              currentPageReportTemplate="মোট {totalRecords} জন ইউজারের মধ্যে {first}-{last} দেখাচ্ছে"
+              responsiveLayout="scroll"
+              :globalFilterFields="['name', 'phone', 'email']"
+              v-model:filters="filters"
+              filterDisplay="menu"
+              class="p-datatable-sm"
+            >
+              <Column field="profile_image" header="ছবি">
+                <template #body="slotProps">
+                  <div class="h-10 w-10 rounded-full overflow-hidden border border-gray-200">
+                    <img
+                      :src="slotProps.data.profile_image ? '/storage/' + slotProps.data.profile_image : 'https://randomuser.me/api/portraits/men/1.jpg'"
+                      :alt="slotProps.data.name"
+                      class="h-full w-full object-cover"
+                    />
+                  </div>
+                </template>
+              </Column>
+              <Column field="name" header="নাম" :sortable="true" :filter="true" filterPlaceholder="নাম খুঁজুন">
+              </Column>
+              <Column field="phone" header="ফোন নম্বর" :sortable="true" :filter="true" filterPlaceholder="ফোন নম্বর খুঁজুন">
+              </Column>
+              <Column field="email" header="ইমেইল" :sortable="true" :filter="true" filterPlaceholder="ইমেইল খুঁজুন">
+              </Column>
+              <Column field="designation" header="পদবি" :sortable="true" :filter="true" filterMatchMode="equals">
+                <template #body="slotProps">
+                  <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                        :class="getDesignationClass(slotProps.data.designation)">
+                    {{ getDesignationText(slotProps.data.designation) }}
+                  </span>
+                </template>
+                <template #filter="{ filterModel }">
+                  <Dropdown
+                    v-model="filterModel.value"
+                    :options="designationOptions"
+                    optionLabel="name"
+                    optionValue="value"
+                    placeholder="পদবি বাছাই করুন"
+                    class="p-column-filter"
+                    showClear
+                  />
+                </template>
+              </Column>
+              <Column header="একশন">
+                <template #body="slotProps">
+                  <div class="flex space-x-2">
+                    <Toast />
+                    <ConfirmPopup></ConfirmPopup>
+                    <Dialog v-model:visible="showModal" :style="{width: '450px'}" header="এডমিন ডিলিট করুন" :modal="true">
+                      <div class="flex items-start">
+                        <i class="pi pi-exclamation-triangle mr-3 text-red-500" style="font-size: 2rem"></i>
+                        <div>
+                          <p class="text-sm text-gray-500">
+                            আপনি কি নিশ্চিত যে আপনি এই এডমিন ডিলিট করতে চান? এই কাজটি অপরিবর্তনীয়।
+                          </p>
+                        </div>
+                      </div>
+                      <template #footer>
+                        <Button label="বাতিল করুন" icon="pi pi-times" class="p-button-text" @click="showModal = false" />
+                        <Button label="ডিলিট করুন" icon="pi pi-check" class="p-button-danger" @click="deleteAdmin" />
+                      </template>
+                    </Dialog>
+                    <SplitButton
+                      label="সংশোধন"
+                      @click="editUser(slotProps.data.id)"
+                      :model="getActionItems(slotProps.data.id)"
+                      class="p-button-sm"
+                    />
+                  </div>
+                </template>
+              </Column>
+            </DataTable>
           </div>
         </div>
-        <template #footer>
-          <Button label="বাতিল করুন" icon="pi pi-times" class="p-button-text" @click="showModal = false" />
-          <Button label="ডিলিট করুন" icon="pi pi-check" class="p-button-danger" @click="deleteAdmin" />
-        </template>
-      </Dialog>
-      <SplitButton
-        label="সংশোধন"
-        @click="editUser(slotProps.data.id)"
-        :model="getActionItems(slotProps.data.id)"
-        class="p-button-sm"
-      />
-    </div>
-  </template>
-</Column>
-        </DataTable>
-
-        <!-- Delete Confirmation Dialog -->
-
       </div>
-    </AuthenticatedLayout>
-  </template>
+    </div>
+  </AuthenticatedLayout>
+</template>
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/admin/AuthenticatedLayout.vue';
@@ -162,6 +158,7 @@ const confirmDelete = (userId) => {
   adminIdToDelete.value = userId;
   showModal.value = true;
 };
+
 const deleteAdmin = () => {
   // Inertia.js ব্যবহার করে ডিলিট রিকোয়েস্ট পাঠানো
   router.delete(route('user_create_for_admin.destroy', adminIdToDelete.value), {
@@ -266,127 +263,89 @@ const getDesignationText = (designation) => {
 
 const getDesignationClass = (designation) => {
   if (designation == 1) {
-    return 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200';
+    return 'bg-purple-100 text-purple-800';
   } else if (designation == 2) {
-    return 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200';
+    return 'bg-gray-100 text-gray-800';
   } else {
-    return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200';
+    return 'bg-gray-100 text-gray-800';
   }
 };
 
 const adminIdToDelete = ref(null);
 </script>
 
-  <style>
-  .font-arabic {
-    font-family: 'Noto Sans Bengali', 'Hind Siliguri', sans-serif;
-  }
+<style>
+/* Laravel Breeze style customizations */
+.p-datatable .p-datatable-thead > tr > th {
+  @apply bg-gray-50 text-gray-700 text-sm font-medium px-6 py-3 border-b border-gray-200;
+}
 
-  .islamic-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2310b981' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  }
+.p-datatable .p-datatable-tbody > tr {
+  @apply border-b border-gray-200 hover:bg-gray-50;
+}
 
-  /* PrimeVue DataTable customization */
-  .p-datatable .p-datatable-thead > tr > th {
-    background-color: #ffffff !important;
-    color: #333333 !important;
-    padding: 0.75rem;
-    font-weight: 600;
-    border-bottom: 1px solid #e5e7eb;
-    border-right: 1px solid #e5e7eb;
-  }
+.p-datatable .p-datatable-tbody > tr > td {
+  @apply px-6 py-4 text-sm text-gray-500;
+}
 
-  .p-datatable .p-datatable-thead > tr > th:last-child {
-    border-right: none;
-  }
+.p-datatable .p-paginator {
+  @apply bg-white border-t border-gray-200 px-4 py-3;
+}
 
-  .p-datatable .p-datatable-tbody > tr {
-    background-color: #ffffff;
-    border-bottom: 1px solid #f3f4f6;
-  }
+.p-datatable .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+  @apply bg-gray-800 text-white;
+}
 
-  .p-datatable .p-datatable-tbody > tr > td {
-    padding: 0.75rem;
-    text-align: center;
-    border-right: 1px solid #f3f4f6;
-  }
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
+  @apply bg-gray-100 text-gray-900;
+}
 
-  .p-datatable .p-datatable-tbody > tr > td:last-child {
-    border-right: none;
-  }
+.p-inputtext:enabled:focus {
+  @apply border-indigo-300 ring ring-indigo-200 ring-opacity-50;
+}
 
-  .p-datatable .p-paginator {
-    padding: 1rem;
-  }
+.p-button.p-button-sm {
+  @apply text-xs px-2.5 py-1.5;
+}
 
-  .p-datatable .p-datatable-header {
-    background-color: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-bottom: none;
-    padding: 1rem;
-    font-weight: 700;
-  }
+.p-splitbutton.p-button-sm > .p-button {
+  @apply text-xs px-2.5 py-1.5;
+}
 
-  .p-datatable .p-datatable-footer {
-    background-color: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-top: none;
-    padding: 1rem;
-    font-weight: 700;
-  }
+.p-splitbutton-menubutton {
+  @apply border-l border-gray-300;
+}
 
-  /* Column filter styles */
-  .p-column-filter {
-    width: 100%;
-  }
+/* Dark mode support */
+.dark .p-datatable .p-datatable-thead > tr > th {
+  @apply bg-gray-800 text-gray-200 border-gray-700;
+}
 
-  .p-column-filter-menu-button {
-    width: 2rem;
-    height: 2rem;
-  }
+.dark .p-datatable .p-datatable-tbody > tr {
+  @apply border-gray-700 hover:bg-gray-700;
+}
 
-  .p-column-filter-overlay {
-    min-width: 200px;
-  }
+.dark .p-datatable .p-datatable-tbody > tr > td {
+  @apply text-gray-300;
+}
 
-  /* Dark mode support */
-  .dark .p-datatable .p-datatable-thead > tr > th {
-    background-color: #1f2937 !important;
-    color: #e5e7eb !important;
-    border-color: #374151;
-  }
+.dark .p-datatable .p-paginator {
+  @apply bg-gray-800 border-gray-700;
+}
 
-  .dark .p-datatable .p-datatable-tbody > tr {
-    background-color: #111827;
-    border-color: #374151;
-  }
+.dark .p-dropdown-panel {
+  @apply bg-gray-800 text-gray-200;
+}
 
-  .dark .p-datatable .p-datatable-tbody > tr > td {
-    border-color: #374151;
-    color: #e5e7eb;
-  }
+.dark .p-dropdown-item {
+  @apply text-gray-200;
+}
 
-  .dark .p-datatable .p-paginator {
-    background-color: #1f2937;
-    color: #e5e7eb;
-  }
+.dark .p-dropdown-item:hover {
+  @apply bg-gray-700;
+}
 
-  .dark .p-dropdown-panel {
-    background-color: #1f2937;
-    color: #e5e7eb;
-  }
-
-  .dark .p-dropdown-item {
-    color: #e5e7eb;
-  }
-
-  .dark .p-dropdown-item:hover {
-    background-color: #374151;
-  }
-
-  .dark .p-inputtext {
-    background-color: #1f2937;
-    color: #e5e7eb;
-    border-color: #374151;
-  }
-  </style>
+.dark .p-inputtext {
+  @apply bg-gray-800 text-gray-200 border-gray-700;
+}
+</style>

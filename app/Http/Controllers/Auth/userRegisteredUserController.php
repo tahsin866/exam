@@ -50,6 +50,10 @@ class userRegisteredUserController extends Controller
             'Mobile_no' => $request->Mobile_no,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'user_type' => 'madrasa', // Set as madrasa user
+            'phone' => $request->Mobile_no, // Map to new field
+            'nid' => $request->NID_no, // Map to new field
+            'is_active' => true,
             'madrasha_id' => session('madrasha_id'),
             'custom_code' => session('custom_code'),
             'madrasha_name' => session('madrasha_name'),
@@ -58,14 +62,13 @@ class userRegisteredUserController extends Controller
             'MType' => session('MType'),
             'Stage' => session('Stage'),
             'markaz_serial' => session('markaz_serial'),
-
         ]);
 
         event(new Registered($user));
         Auth::login($user);
 
         // Clear the session data
-        session()->forget(['madrasha_id', 'madrasha_name', 'thana', 'post', 'custom_code', 'markaz_serial']);
+        $this->clearMadrashaSession();
 
         return redirect()->route('dashboard');
     }

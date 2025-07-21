@@ -10,6 +10,7 @@ import Aura from '@primeuix/themes/aura';
 import ToastService from 'primevue/toastservice';
 import ConfirmationService from 'primevue/confirmationservice';
 import Tooltip from 'primevue/tooltip'
+import { MotionPlugin } from '@vueuse/motion'
 
 import 'primeicons/primeicons.css';
 
@@ -27,6 +28,7 @@ createInertiaApp({
 
         app.use(plugin)
         .use(ZiggyVue)
+        .use(MotionPlugin)
         .use(Toaster)
         .use(ToastService)
         .use(ConfirmationService)

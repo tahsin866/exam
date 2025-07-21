@@ -33,7 +33,19 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = Auth::user();
+
+        // Log the activity
+        activity()
+            ->causedBy($user)
+            ->log('User logged in');
+
+        // Redirect based on user type
+        if ($user->user_type === 'admin') {
+            return redirect()->intended(route('admin.dashboard', absolute: false));
+        } else {
+            return redirect()->intended(route('dashboard', absolute: false));
+        }
     }
 
     /**
@@ -41,6 +53,29 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
+
+        return redirect('/');
+    }
+
+    /**
+     * Destroy an admin session and redirect to root.
+     */
+    public function adminDestroy(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+        
+        // Log the activity
+        if ($user) {
+            activity()
+                ->causedBy($user)
+                ->log('Admin logged out');
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

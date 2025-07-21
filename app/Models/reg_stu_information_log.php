@@ -11,16 +11,15 @@ class reg_stu_information_log extends Model
 
     protected $fillable = [
         'reg_student_id',
-        'admin_id',
-        'user_id',
+        'actor_id',
+
         'status',
         'actor_type',
-        'admin_name',
-        'user_name',
-        'user_position',
-        'admin_position',
-        'admin_message',
-        'admin_feedback_image',
+
+
+
+        'message',
+        'feedback_image',
     ];
 
     /**
@@ -34,19 +33,16 @@ class reg_stu_information_log extends Model
     /**
      * Get the admin user associated with the log.
      */
-    public function admin()
-    {
-        return $this->belongsTo(User::class, 'admin_id');
-    }
+  public function user()
+{
+    return $this->belongsTo(User::class, 'actor_id');
+}
 
-    /**
-     * Get the regular user associated with the log.
-     */
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id');
+public function admin()
+{
+    return $this->belongsTo(Admin::class, 'actor_id');
+}
 
-    }
 
 
 

@@ -1,36 +1,232 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Link } from '@inertiajs/vue3'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import axios from 'axios'
-// Import PrimeVue components
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
 
 const isDialogOpen = ref(false)
 const examFees = ref([])
 const examName = ref('')
 const globalFilterValue = ref('')
-const filters = ref({
-  global: { value: null, matchMode: 'contains' }
+const currentPage = ref(1)
+const rowsPerPage = ref(10)
+const sortField = ref(null)
+const sortOrder = ref('asc')
+const totalPages = ref(0)
+const displayedExamFees = ref([])
+const isLoading = ref(true)
+const showFilters = ref(false)
+const showCustomColumns = ref(false)
+const visibleColumns = ref({
+  marhala_name_bn: true,
+  regularStartDate: true,
+  regularEndDate: true,
+  regularFee: true,
+  lateStartDate: true,
+  lateEndDate: true,
+  lateFee: true,
+  regularStudents: true,
+  irregularStudents: true
 })
 
-// Watch for changes in globalFilterValue to update filters
-watch(globalFilterValue, (newValue) => {
-  filters.value.global.value = newValue;
+// Filter options
+const filterOptions = ref({
+  marhalaFilter: '',
+  minRegularFee: '',
+  maxRegularFee: '',
+  minLateFee: '',
+  maxLateFee: '',
+  hasLateRegistration: 'all' // 'all', 'yes', 'no'
 })
 
 const fetchExamFees = async () => {
+  isLoading.value = true
   try {
     const response = await axios.get('/api/exam-fees')
     examFees.value = response.data.examFees
     examName.value = response.data.examName
+    updateDisplayedData()
   } catch (error) {
     console.error('Error fetching exam fees:', error)
+  } finally {
+    setTimeout(() => {
+      isLoading.value = false
+    }, 500) // Small timeout to show loading indicator
   }
 }
+
+const updateDisplayedData = () => {
+  let data = [...examFees.value]
+
+  // Apply global filter
+  if (globalFilterValue.value) {
+    const searchTerm = globalFilterValue.value.toLowerCase()
+    data = data.filter(item => {
+      return item.marhala_name_bn.toLowerCase().includes(searchTerm)
+    })
+  }
+
+  // Apply advanced filters
+  if (filterOptions.value.marhalaFilter) {
+    const marhalaSearch = filterOptions.value.marhalaFilter.toLowerCase()
+    data = data.filter(item => item.marhala_name_bn.toLowerCase().includes(marhalaSearch))
+  }
+
+  if (filterOptions.value.minRegularFee) {
+    data = data.filter(item => parseFloat(item.regularFee) >= parseFloat(filterOptions.value.minRegularFee))
+  }
+
+  if (filterOptions.value.maxRegularFee) {
+    data = data.filter(item => parseFloat(item.regularFee) <= parseFloat(filterOptions.value.maxRegularFee))
+  }
+
+  if (filterOptions.value.minLateFee) {
+    data = data.filter(item => parseFloat(item.lateFee) >= parseFloat(filterOptions.value.minLateFee))
+  }
+
+  if (filterOptions.value.maxLateFee) {
+    data = data.filter(item => parseFloat(item.lateFee) <= parseFloat(filterOptions.value.maxLateFee))
+  }
+
+  if (filterOptions.value.hasLateRegistration !== 'all') {
+    const hasLate = filterOptions.value.hasLateRegistration === 'yes'
+    data = data.filter(item => {
+      const hasLateRegistration = item.lateStartDate && item.lateEndDate
+      return hasLate ? hasLateRegistration : !hasLateRegistration
+    })
+  }
+
+  // Apply sorting
+  if (sortField.value) {
+    data.sort((a, b) => {
+      let valueA = a[sortField.value]
+      let valueB = b[sortField.value]
+
+      // Convert to number if it's a fee field
+      if (['regularFee', 'lateFee', 'regularStudents', 'irregularStudents'].includes(sortField.value)) {
+        valueA = parseFloat(valueA) || 0
+        valueB = parseFloat(valueB) || 0
+      }
+      // Handle string comparison
+      else if (typeof valueA === 'string') {
+        valueA = valueA.toLowerCase()
+        valueB = valueB.toLowerCase()
+      }
+
+      if (valueA < valueB) {
+        return sortOrder.value === 'asc' ? -1 : 1
+      }
+      if (valueA > valueB) {
+        return sortOrder.value === 'asc' ? 1 : -1
+      }
+      return 0
+    })
+  }
+
+  // Calculate total pages
+  totalPages.value = Math.ceil(data.length / rowsPerPage.value)
+
+  // Ensure current page is valid
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = Math.max(1, totalPages.value)
+  }
+
+  // Apply pagination
+  const start = (currentPage.value - 1) * rowsPerPage.value
+  const end = start + rowsPerPage.value
+  displayedExamFees.value = data.slice(start, end)
+}
+
+const resetFilters = () => {
+  filterOptions.value = {
+    marhalaFilter: '',
+    minRegularFee: '',
+    maxRegularFee: '',
+    minLateFee: '',
+    maxLateFee: '',
+    hasLateRegistration: 'all'
+  }
+  updateDisplayedData()
+}
+
+const sort = (field) => {
+  if (sortField.value === field) {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortField.value = field
+    sortOrder.value = 'asc'
+  }
+  updateDisplayedData()
+}
+
+const toggleColumn = (column) => {
+  visibleColumns.value[column] = !visibleColumns.value[column]
+}
+
+// Active filters count
+const activeFiltersCount = computed(() => {
+  let count = 0
+
+  if (filterOptions.value.marhalaFilter) count++
+  if (filterOptions.value.minRegularFee) count++
+  if (filterOptions.value.maxRegularFee) count++
+  if (filterOptions.value.minLateFee) count++
+  if (filterOptions.value.maxLateFee) count++
+  if (filterOptions.value.hasLateRegistration !== 'all') count++
+
+  return count
+})
+
+// Get total records
+const totalRecords = computed(() => {
+  return examFees.value.length
+})
+
+// Export to Excel function
+const exportToExcel = () => {
+  alert('Export to Excel functionality will be implemented here')
+}
+
+// Format date function for display
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
+
+  try {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('bn-BD').format(date)
+  } catch (e) {
+    return dateString
+  }
+}
+
+// Format number with Bangla digits
+const formatNumber = (num) => {
+  if (num === undefined || num === null) return 'N/A'
+  return new Intl.NumberFormat('bn-BD').format(num)
+}
+
+// Watch for changes that should trigger data update
+watch(globalFilterValue, () => {
+  currentPage.value = 1
+  updateDisplayedData()
+})
+
+watch(rowsPerPage, () => {
+  currentPage.value = 1
+  updateDisplayedData()
+})
+
+watch(currentPage, () => {
+  updateDisplayedData()
+})
+
+watch(filterOptions, {
+  deep: true,
+  handler: () => {
+    currentPage.value = 1
+    updateDisplayedData()
+  }
+})
 
 onMounted(() => {
   fetchExamFees()
@@ -39,96 +235,687 @@ onMounted(() => {
 const toggleDialog = () => {
   isDialogOpen.value = !isDialogOpen.value
 }
-</script>
 
+// Get current date and time
+const getCurrentDate = () => {
+  const date = new Date('2025-07-17 23:56:35')
+  return new Intl.DateTimeFormat('bn-BD', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(date)
+}
+
+const getCurrentTime = () => {
+  const date = new Date('2025-07-17 23:56:35')
+  return new Intl.DateTimeFormat('bn-BD', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).format(date)
+}
+
+
+const getColumnName = (column) => {
+  const names = {
+    'marhala_name_bn': 'মারহালা',
+    'regularStartDate': 'নিয়মিত (শুরু)',
+    'regularEndDate': 'নিয়মিত (শেষ)',
+    'regularFee': 'নিয়মিত ফি',
+    'lateStartDate': 'বিলম্ব (শুরু)',
+    'lateEndDate': 'বিলম্ব (শেষ)',
+    'lateFee': 'বিলম্ব ফি',
+    'regularStudents': 'নিয়মিত ছাত্র',
+    'irregularStudents': 'অনিয়মিত ছাত্র'
+  };
+  return names[column] || column;
+};
+
+const getPageNumbers = () => {
+  const pages = [];
+  const maxVisiblePages = 5;
+
+  if (totalPages.value <= maxVisiblePages) {
+    for (let i = 1; i <= totalPages.value; i++) {
+      pages.push(i);
+    }
+  } else {
+    if (currentPage.value <= 3) {
+      for (let i = 1; i <= 4; i++) {
+        pages.push(i);
+      }
+      pages.push('...');
+      pages.push(totalPages.value);
+    } else if (currentPage.value >= totalPages.value - 2) {
+      pages.push(1);
+      pages.push('...');
+      for (let i = totalPages.value - 3; i <= totalPages.value; i++) {
+        pages.push(i);
+      }
+    } else {
+      pages.push(1);
+      pages.push('...');
+      for (let i = currentPage.value - 1; i <= currentPage.value + 1; i++) {
+        pages.push(i);
+      }
+      pages.push('...');
+      pages.push(totalPages.value);
+    }
+  }
+
+  return pages;
+};
+
+
+</script>
 
 <template>
   <AuthenticatedLayout>
-    <div class="card mx-5 mt-5">
-      <!-- Header Section -->
-      <div class="bg-gradient-to-r from-emerald-800 to-emerald-600 p-6 rounded-t-sm shadow-lg">
-        <div class="container mx-auto">
-          <div class="flex justify-between items-center">
-            <!-- Title -->
-            <h2 class="text-white text-xl md:text-3xl font-bold">
-              {{ examName }}
-            </h2>
+    <div class="py-6 min-h-screen bg-gradient-to-br from-gray-50 to-emerald-50">
+      <div class=" mx-auto sm:px-6 lg:px-8">
+        <!-- Dashboard Header -->
+        <div class="mb-6 bg-white rounded-xl shadow-md overflow-hidden">
+          <div class="bg-gradient-to-r from-emerald-700 to-teal-600 p-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+              <div class="flex items-center mb-4 md:mb-0">
+                <div class="p-2 bg-white/20 rounded-lg mr-3">
+                  <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 class="text-white text-xl md:text-2xl font-bold">পরীক্ষার ফি সেটআপ</h2>
+                  <p class="text-emerald-100 text-sm md:text-base">{{ examName }}</p>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap gap-3">
+                <div class="bg-white/10 px-3 py-1.5 rounded-lg text-sm text-white flex items-center">
+                  <svg class="w-4 h-4 mr-1.5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {{ getCurrentDate() }}
+                </div>
+                <div class="bg-white/10 px-3 py-1.5 rounded-lg text-sm text-white flex items-center">
+                  <svg class="w-4 h-4 mr-1.5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {{ getCurrentTime() }}
+                </div>
+                <div class="bg-white/10 px-3 py-1.5 rounded-lg text-sm text-white flex items-center">
+                  <svg class="w-4 h-4 mr-1.5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  tahsin866
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Row -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-white border-b border-gray-100">
+            <div class="flex items-center p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+              <div class="p-2 bg-emerald-100 rounded-lg mr-3">
+                <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <div>
+                <div class="text-xs text-gray-500">মোট মারহালা</div>
+                <div class="text-lg font-bold text-gray-800">{{ formatNumber(totalRecords) }}</div>
+              </div>
+            </div>
+
+            <div class="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <div class="p-2 bg-blue-100 rounded-lg mr-3">
+                <svg class="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <div>
+                <div class="text-xs text-gray-500">মোট ছাত্র</div>
+                <div class="text-lg font-bold text-gray-800">
+                  {{ formatNumber(examFees.reduce((sum, fee) => sum + parseInt(fee.regularStudents || 0), 0)) }}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center p-3 bg-amber-50 rounded-lg border border-amber-100">
+              <div class="p-2 bg-amber-100 rounded-lg mr-3">
+                <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <div class="text-xs text-gray-500">গড় ফি (নিয়মিত)</div>
+                <div class="text-lg font-bold text-gray-800">
+                  ৳{{ formatNumber(Math.round(examFees.reduce((sum, fee) => sum + parseInt(fee.regularFee || 0), 0) /
+                      (examFees.length || 1))) }}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- DataTable Section -->
-      <div class="card">
-        <DataTable
-          :value="examFees"
-          :paginator="true"
-          :rows="10"
-          :rowsPerPageOptions="[5, 10, 20, 50]"
-          tableStyle="min-width: 50rem"
-          stripedRows
-          class="p-datatable-lg"
-          :globalFilterFields="['marhala_name_bn']"
-          v-model:filters="filters"
-          filterDisplay="menu"
-        >
-          <template #header>
-            <div class="flex justify-between">
-              <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText v-model="globalFilterValue" placeholder="অনুসন্ধান করুন..." class="p-inputtext-lg" />
-              </span>
+        <!-- Search and Filters Bar -->
+        <div class="mb-6 bg-white rounded-xl shadow-md overflow-hidden">
+          <div class="flex flex-col md:flex-row md:items-center justify-between p-4 border-b border-gray-200">
+            <div class="relative w-full md:w-96 mb-4 md:mb-0">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                v-model="globalFilterValue"
+                type="search"
+                class="block w-full p-2.5 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="অনুসন্ধান করুন..."
+              >
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <button @click="showFilters = !showFilters"
+                      class="flex items-center px-3.5 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                ফিল্টার
+                <span v-if="activeFiltersCount > 0"
+                      class="ml-1.5 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-emerald-500 rounded-full">
+                  {{ activeFiltersCount }}
+                </span>
+              </button>
+
+              <button @click="showCustomColumns = !showCustomColumns"
+                      class="flex items-center px-3.5 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+                কলাম
+              </button>
+
+              <button @click="exportToExcel"
+                      class="flex items-center px-3.5 py-2 border border-emerald-300 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-medium transition-colors">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                এক্সপোর্ট
+              </button>
+
+              <button @click="fetchExamFees"
+                      class="flex items-center px-3.5 py-2 border border-blue-300 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-medium transition-colors">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                রিফ্রেশ
+              </button>
+            </div>
+          </div>
+
+          <!-- Advanced Filters -->
+          <div v-if="showFilters" class="p-4 bg-gray-50 border-b border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">মারহালা ফিল্টার</label>
+                <input
+                  v-model="filterOptions.marhalaFilter"
+                  type="text"
+                  class="block w-full p-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                  placeholder="মারহালা নাম দিয়ে অনুসন্ধান..."
+                >
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">মিনিমাম ফি (নিয়মিত)</label>
+                  <input
+                    v-model="filterOptions.minRegularFee"
+                    type="number"
+                    class="block w-full p-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="মিনিমাম..."
+                  >
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">ম্যাক্সিমাম ফি (নিয়মিত)</label>
+                  <input
+                    v-model="filterOptions.maxRegularFee"
+                    type="number"
+                    class="block w-full p-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="ম্যাক্সিমাম..."
+                  >
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">মিনিমাম ফি (বিলম্ব)</label>
+                  <input
+                    v-model="filterOptions.minLateFee"
+                    type="number"
+                    class="block w-full p-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="মিনিমাম..."
+                  >
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">ম্যাক্সিমাম ফি (বিলম্ব)</label>
+                  <input
+                    v-model="filterOptions.maxLateFee"
+                    type="number"
+                    class="block w-full p-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder="ম্যাক্সিমাম..."
+                  >
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">বিলম্ব রেজিস্ট্রেশন আছে?</label>
+                <select
+                  v-model="filterOptions.hasLateRegistration"
+                  class="block w-full p-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="all">সকল</option>
+                  <option value="yes">হ্যাঁ</option>
+                  <option value="no">না</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <button @click="resetFilters"
+                      class="flex items-center px-3.5 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 text-gray-700 text-sm font-medium transition-colors">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                ফিল্টার রিসেট
+              </button>
+            </div>
+          </div>
+
+          <!-- Column Selection -->
+          <div v-if="showCustomColumns" class="p-4 bg-gray-50 border-b border-gray-200">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+              <div v-for="(visible, column) in visibleColumns" :key="column"
+                  class="flex items-center">
+                <input
+                  :id="`col-${column}`"
+                  type="checkbox"
+                  :checked="visible"
+                  @change="toggleColumn(column)"
+                  class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                >
+                <label :for="`col-${column}`" class="ml-2 text-sm text-gray-700">
+                  {{ getColumnName(column) }}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+          <!-- Loading Indicator -->
+          <div v-if="isLoading" class="flex items-center justify-center p-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+          </div>
+
+          <template v-else>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-800">
+                  <tr>
+                    <th v-if="visibleColumns.marhala_name_bn"
+                        @click="sort('marhala_name_bn')"
+                        class="py-3.5 px-4 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-emerald-100 transition-colors">
+                      <div class="flex items-center">
+                        মারহালা
+                        <span v-if="sortField === 'marhala_name_bn'" class="ml-1">
+                          <svg v-if="sortOrder === 'asc'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                          </svg>
+                          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </th>
+                    <th v-if="visibleColumns.regularStartDate"
+                        @click="sort('regularStartDate')"
+                        class="py-3.5 px-4 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-emerald-100 transition-colors">
+                      <div class="flex items-center">
+                        নিয়মিত (শুরু)
+                        <span v-if="sortField === 'regularStartDate'" class="ml-1">
+                          <svg v-if="sortOrder === 'asc'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                          </svg>
+                          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </th>
+                    <th v-if="visibleColumns.regularEndDate"
+                        @click="sort('regularEndDate')"
+                        class="py-3.5 px-4 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-emerald-100 transition-colors">
+                      <div class="flex items-center">
+                        নিয়মিত (শেষ)
+                        <span v-if="sortField === 'regularEndDate'" class="ml-1">
+                          <svg v-if="sortOrder === 'asc'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                          </svg>
+                          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </th>
+                    <th v-if="visibleColumns.regularFee"
+                        @click="sort('regularFee')"
+                        class="py-3.5 px-4 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-emerald-100 transition-colors">
+                      <div class="flex items-center">
+                        নিয়মিত ফি
+                        <span v-if="sortField === 'regularFee'" class="ml-1">
+                          <svg v-if="sortOrder === 'asc'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                          </svg>
+                          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </th>
+                    <th v-if="visibleColumns.lateStartDate"
+                        @click="sort('lateStartDate')"
+                        class="py-3.5 px-4 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-emerald-100 transition-colors">
+                      <div class="flex items-center">
+                        বিলম্ব (শুরু)
+                        <span v-if="sortField === 'lateStartDate'" class="ml-1">
+                          <svg v-if="sortOrder === 'asc'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                          </svg>
+                          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </th>
+                    <th v-if="visibleColumns.lateEndDate"
+                        @click="sort('lateEndDate')"
+                        class="py-3.5 px-4 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-emerald-100 transition-colors">
+                      <div class="flex items-center">
+                        বিলম্ব (শেষ)
+                        <span v-if="sortField === 'lateEndDate'" class="ml-1">
+                          <svg v-if="sortOrder === 'asc'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                          </svg>
+                          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </th>
+                    <th v-if="visibleColumns.lateFee"
+                        @click="sort('lateFee')"
+                        class="py-3.5 px-4 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-emerald-100 transition-colors">
+                      <div class="flex items-center">
+                        বিলম্ব ফি
+                        <span v-if="sortField === 'lateFee'" class="ml-1">
+                          <svg v-if="sortOrder === 'asc'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                          </svg>
+                          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </th>
+                    <th v-if="visibleColumns.regularStudents"
+                        @click="sort('regularStudents')"
+                        class="py-3.5 px-4 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-emerald-100 transition-colors">
+                      <div class="flex items-center">
+                        নিয়মিত ছাত্র
+                        <span v-if="sortField === 'regularStudents'" class="ml-1">
+                          <svg v-if="sortOrder === 'asc'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                          </svg>
+                          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </th>
+                    <th v-if="visibleColumns.irregularStudents"
+                        @click="sort('irregularStudents')"
+                        class="py-3.5 px-4 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-emerald-100 transition-colors">
+                      <div class="flex items-center">
+                        অনিয়মিত ছাত্র
+                        <span v-if="sortField === 'irregularStudents'" class="ml-1">
+                          <svg v-if="sortOrder === 'asc'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                          </svg>
+                          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </th>
+                    <th class="py-3.5 px-4 text-left text-xs font-semibold uppercase tracking-wider">
+                      একশন
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <tr v-for="(fee, index) in displayedExamFees" :key="index"
+                      class="hover:bg-gray-50 transition-colors"
+                      :class="{'bg-gray-50/50': index % 2 === 0}">
+                    <td v-if="visibleColumns.marhala_name_bn" class="px-4 py-3 whitespace-nowrap">
+                      <div class="font-medium text-gray-900">{{ fee.marhala_name_bn }}</div>
+                    </td>
+                    <td v-if="visibleColumns.regularStartDate" class="px-4 py-3 whitespace-nowrap">
+                      <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {{ formatDate(fee.regularStartDate) }}
+                      </div>
+                    </td>
+                    <td v-if="visibleColumns.regularEndDate" class="px-4 py-3 whitespace-nowrap">
+                      <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        {{ formatDate(fee.regularEndDate) }}
+                      </div>
+                    </td>
+                    <td v-if="visibleColumns.regularFee" class="px-4 py-3 whitespace-nowrap">
+                      <div class="text-gray-900 font-semibold">৳ {{ formatNumber(fee.regularFee) }}</div>
+                    </td>
+                    <td v-if="visibleColumns.lateStartDate" class="px-4 py-3 whitespace-nowrap">
+                      <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                        {{ formatDate(fee.lateStartDate) }}
+                      </div>
+                    </td>
+                    <td v-if="visibleColumns.lateEndDate" class="px-4 py-3 whitespace-nowrap">
+                      <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        {{ formatDate(fee.lateEndDate) }}
+                      </div>
+                    </td>
+                    <td v-if="visibleColumns.lateFee" class="px-4 py-3 whitespace-nowrap">
+                      <div class="text-gray-900 font-semibold">৳ {{ formatNumber(fee.lateFee) }}</div>
+                    </td>
+                    <td v-if="visibleColumns.regularStudents" class="px-4 py-3 whitespace-nowrap">
+                      <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {{ formatNumber(fee.regularStudents) }}
+                      </div>
+                    </td>
+                    <td v-if="visibleColumns.irregularStudents" class="px-4 py-3 whitespace-nowrap">
+                      <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        {{ formatNumber(fee.irregularStudents) }}
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="flex gap-2">
+                        <Link
+                          :href="route('students_registration.old_stu_reg_Form', { marhalaId: fee.marhala_id })"
+                          class="inline-flex items-center px-3 py-1.5 bg-emerald-600 border border-transparent rounded-lg text-xs text-white hover:bg-emerald-700 transition-colors shadow-sm"
+                        >
+                          <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                          </svg>
+                          নিবন্ধন
+                        </Link>
+                        <Link
+                          :href="route('students_registration.student_reg_table')"
+                          class="inline-flex items-center px-3 py-1.5 bg-blue-600 border border-transparent rounded-lg text-xs text-white hover:bg-blue-700 transition-colors shadow-sm"
+                        >
+                          <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                          </svg>
+                          তালিকা
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty State -->
+            <div v-if="displayedExamFees.length === 0" class="py-12 flex flex-col items-center justify-center">
+              <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <h3 class="mt-2 text-base font-medium text-gray-900">কোন রেকর্ড পাওয়া যায়নি</h3>
+              <p class="mt-1 text-sm text-gray-500">আপনার অনুসন্ধানের সাথে মিলে এমন কোন তথ্য নেই।</p>
+              <button @click="resetFilters" class="mt-3 inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700">
+                ফিল্টার রিসেট করুন
+              </button>
+            </div>
+
+            <!-- Pagination -->
+            <div class="border-t border-gray-200">
+              <div class="px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center">
+                  <span class="text-sm text-gray-700 mr-2">প্রতি পৃষ্ঠায়:</span>
+                  <select v-model="rowsPerPage" class="border border-gray-300 rounded-md text-sm p-1 focus:ring-emerald-500 focus:border-emerald-500">
+                    <option v-for="option in [5, 10, 20, 50]" :key="option" :value="option">{{ option }}</option>
+                  </select>
+                  <span class="ml-4 text-sm text-gray-700">
+                    দেখানো হচ্ছে {{ formatNumber((currentPage - 1) * rowsPerPage + 1) }} থেকে {{ formatNumber(Math.min(currentPage * rowsPerPage, totalRecords)) }} মোট {{ formatNumber(totalRecords) }} এর মধ্যে
+                  </span>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                  <button
+                    @click="currentPage = 1"
+                    :disabled="currentPage === 1"
+                    class="p-1.5 border rounded-md"
+                    :class="currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="currentPage--"
+                    :disabled="currentPage === 1"
+                    class="p-1.5 border rounded-md"
+                    :class="currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  <!-- Page numbers -->
+                  <div class="hidden md:flex">
+                    <template v-for="page in getPageNumbers()" :key="page">
+                      <button
+                        v-if="page !== '...'"
+                        @click="currentPage = page"
+                        class="px-3 py-1 border rounded-md transition-colors"
+                        :class="currentPage === page ? 'bg-emerald-50 text-emerald-600 border-emerald-300' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                      >
+                        {{ page }}
+                      </button>
+                      <span v-else class="px-3 py-1 border border-gray-200 rounded-md bg-white text-gray-700">
+                        ...
+                      </span>
+                    </template>
+                  </div>
+
+                  <button
+                    @click="currentPage++"
+                    :disabled="currentPage === totalPages"
+                    class="p-1.5 border rounded-md"
+                    :class="currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="currentPage = totalPages"
+                    :disabled="currentPage === totalPages"
+                    class="p-1.5 border rounded-md"
+                    :class="currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
           </template>
-
-          <Column field="marhala_name_bn" header="মারহালা" sortable style="min-width: 12rem"></Column>
-
-          <Column header="নিয়মিত রেজিস্ট্রেশন (শুরু)" field="regularStartDate" sortable style="min-width: 10rem"></Column>
-          <Column header="নিয়মিত রেজিস্ট্রেশন (শেষ)" field="regularEndDate" sortable style="min-width: 10rem"></Column>
-          <Column header="নিয়মিত ফি" field="regularFee" sortable style="min-width: 8rem">
-            <template #body="slotProps">
-              <span class="font-medium">৳{{ slotProps.data.regularFee }}</span>
-            </template>
-          </Column>
-
-          <Column header="বিলম্ব রেজিস্ট্রেশন (শুরু)" field="lateStartDate" sortable style="min-width: 10rem"></Column>
-          <Column header="বিলম্ব রেজিস্ট্রেশন (শেষ)" field="lateEndDate" sortable style="min-width: 10rem"></Column>
-          <Column header="বিলম্ব ফি" field="lateFee" sortable style="min-width: 8rem">
-            <template #body="slotProps">
-              <span class="font-medium">৳{{ slotProps.data.lateFee }}</span>
-            </template>
-          </Column>
-
-          <Column header="নিয়মিত ছাত্র সংখ্যা" field="regularStudents" sortable style="min-width: 8rem"></Column>
-          <Column header="অনিয়মিত ছাত্র সংখ্যা" field="irregularStudents" sortable style="min-width: 8rem"></Column>
-
-          <Column header="একশন" style="min-width: 12rem">
-            <template #body="slotProps">
-              <div class="flex gap-2">
-                <Link
-                  :href="route('students_registration.old_stu_reg_Form', { marhalaId: slotProps.data.marhala_id })"
-                  class="no-underline"
-                >
-                  <Button
-                    label="নিবন্ধন"
-                    icon="pi pi-user-plus"
-                    class="p-button-success p-button-lg"
-                  />
-                </Link>
-                <Link
-                  :href="route('students_registration.student_reg_table')"
-                  class="no-underline"
-                >
-                  <Button
-                    label="তালিকা"
-                    icon="pi pi-list"
-                    class="p-button-info p-button-lg"
-                  />
-                </Link>
-              </div>
-            </template>
-          </Column>
-        </DataTable>
+        </div>
       </div>
     </div>
   </AuthenticatedLayout>
 </template>
+
+<style scoped>
+/* Transitions */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+/* Button and input styling */
+button, a, input, select {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+</style>
