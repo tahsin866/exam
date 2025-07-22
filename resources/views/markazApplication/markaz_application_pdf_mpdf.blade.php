@@ -1,22 +1,18 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="bn" dir="ltr">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>মারকায আবেদন ফরম</title>
     <style>
-        /* Fonts are loaded via DomPDF config - no @font-face needed */
-
-        @page {
-            size: A4;
-            margin: 1.5cm;
+        * {
+            font-family: 'solaimanlipi', sans-serif !important;
         }
-
         body {
-            font-family: 'solaimanlipi', 'nikosh', 'kalpurush', sans-serif;
+            font-family: 'solaimanlipi', sans-serif;
             margin: 0;
-            padding: 0;
-            font-size: 12px;
+            padding: 20px;
+            font-size: 14px;
             line-height: 1.6;
             color: #333;
             background-color: #fff;
@@ -25,7 +21,6 @@
         .container {
             width: 100%;
             margin: 0 auto;
-            padding: 10px;
             position: relative;
         }
 
@@ -34,83 +29,71 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 100px;
-            opacity: 0.03;
+            font-size: 120px;
+            opacity: 0.05;
             color: #000;
             pointer-events: none;
             z-index: -1;
-            width: 100%;
-            text-align: center;
+            font-weight: bold;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #006400;
-            padding-bottom: 10px;
-            position: relative;
-        }
-
-        .header:before {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background-color: #006400;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #006400;
+            padding-bottom: 15px;
         }
 
         .header h1 {
-            font-size: 20px;
-            margin: 5px 0;
+            font-size: 24px;
+            margin: 8px 0;
             color: #006400;
+            font-weight: bold;
+            font-family: 'solaimanlipi', sans-serif !important;
         }
 
         .header p {
-            font-size: 14px;
-            margin: 2px 0;
+            font-size: 16px;
+            margin: 5px 0;
+            color: #333;
+            font-family: 'solaimanlipi', sans-serif !important;
         }
 
         .header h2 {
-            font-size: 18px;
-            margin: 15px 0 5px;
+            font-size: 20px;
+            margin: 20px 0 10px;
             color: #006400;
             border: 2px solid #006400;
-            padding: 5px;
+            padding: 8px 15px;
             display: inline-block;
             background-color: #f9f9f9;
+            font-weight: bold;
+            font-family: 'solaimanlipi', sans-serif !important;
         }
 
         .form-section {
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .form-section:after {
-            content: '';
-            display: block;
+            margin-bottom: 20px;
             clear: both;
         }
 
         .form-section label {
             font-weight: bold;
             display: inline-block;
-            width: 170px;
+            width: 180px;
             vertical-align: top;
         }
 
         .form-section span {
             border-bottom: 1px dotted #000;
-            padding-bottom: 2px;
+            padding-bottom: 3px;
             display: inline-block;
-            min-width: 200px;
+            min-width: 220px;
             font-weight: 500;
         }
 
         .checkbox-group {
             display: inline-block;
-            margin-right: 25px;
+            margin-right: 30px;
             position: relative;
         }
 
@@ -118,20 +101,11 @@
             display: inline-block;
             position: relative;
             padding-left: 25px;
-            cursor: default;
-        }
-
-        .checkbox-container input {
-            position: absolute;
-            opacity: 0;
-            cursor: pointer;
-            height: 0;
-            width: 0;
         }
 
         .checkmark {
             position: absolute;
-            top: 0;
+            top: 2px;
             left: 0;
             height: 16px;
             width: 16px;
@@ -139,30 +113,31 @@
             background-color: #fff;
         }
 
-        .checkbox-container input:checked ~ .checkmark:after {
+        .checkmark.checked:after {
             content: "✓";
             position: absolute;
-            display: block;
-            left: 2px;
-            top: -3px;
-            font-size: 16px;
+            left: 3px;
+            top: -2px;
+            font-size: 14px;
             color: #006400;
+            font-weight: bold;
         }
 
         .section-heading {
             font-weight: bold;
-            margin-top: 20px;
-            margin-bottom: 15px;
+            margin-top: 25px;
+            margin-bottom: 20px;
             border-bottom: 2px solid #006400;
-            padding-bottom: 5px;
+            padding-bottom: 8px;
             color: #006400;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 15px 0;
+            margin: 20px 0;
+            font-size: 12px;
         }
 
         table, th, td {
@@ -173,16 +148,16 @@
             background-color: #e6f2e6;
             color: #006400;
             font-weight: bold;
-            padding: 8px 5px;
+            padding: 10px 8px;
             text-align: center;
-            font-size: 11px;
+            font-family: 'solaimanlipi', sans-serif !important;
         }
 
         td {
-            padding: 6px 5px;
+            padding: 8px 6px;
             text-align: center;
             vertical-align: middle;
-            font-size: 11px;
+            font-family: 'solaimanlipi', sans-serif !important;
         }
 
         tr:nth-child(even) {
@@ -190,31 +165,31 @@
         }
 
         .footer-signature {
-            margin-top: 40px;
+            margin-top: 50px;
             text-align: right;
-            position: relative;
         }
 
         .footer-signature div {
             border-top: 1px solid #000;
             display: inline-block;
-            padding-top: 5px;
-            width: 200px;
+            padding-top: 8px;
+            width: 220px;
             text-align: center;
         }
 
         .attachments {
-            margin-top: 20px;
+            margin-top: 25px;
             border: 1px solid #ddd;
-            padding: 10px 15px;
+            padding: 15px 20px;
             background-color: #f9f9f9;
             border-radius: 5px;
         }
 
         .attachments h3 {
             margin-top: 0;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             color: #006400;
+            font-size: 16px;
         }
 
         .attachments ul {
@@ -224,8 +199,8 @@
         }
 
         .attachments li {
-            margin-bottom: 8px;
-            padding-left: 20px;
+            margin-bottom: 10px;
+            padding-left: 25px;
             position: relative;
         }
 
@@ -235,11 +210,11 @@
             position: absolute;
             left: 0;
             top: 0;
+            font-weight: bold;
         }
 
         .page-break {
             page-break-after: always;
-            height: 0;
         }
 
         .conditions-list {
@@ -249,8 +224,8 @@
         }
 
         .conditions-list li {
-            margin-bottom: 10px;
-            padding: 5px 0;
+            margin-bottom: 15px;
+            padding: 8px 0;
             border-bottom: 1px dotted #ddd;
             position: relative;
             counter-increment: item;
@@ -258,7 +233,7 @@
 
         .conditions-list li p {
             margin: 0;
-            padding-left: 25px;
+            padding-left: 30px;
             position: relative;
         }
 
@@ -273,19 +248,19 @@
 
         .sub-conditions {
             list-style: none;
-            padding-left: 30px;
-            margin-top: 5px;
+            padding-left: 35px;
+            margin-top: 8px;
         }
 
         .sub-conditions li {
-            margin-bottom: 5px;
-            padding: 3px 0;
+            margin-bottom: 8px;
+            padding: 5px 0;
             border-bottom: none;
         }
 
         .oath-section {
-            margin-top: 30px;
-            padding: 15px;
+            margin-top: 35px;
+            padding: 20px;
             border: 1px solid #006400;
             background-color: #f9f9f9;
             border-radius: 5px;
@@ -296,82 +271,87 @@
             margin-top: 0;
             color: #006400;
             border-bottom: 1px solid #006400;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
         }
 
         .signature-line {
-            margin-top: 25px;
-            display: flex;
-            justify-content: space-between;
+            margin-top: 30px;
+            display: table;
+            width: 100%;
         }
 
         .signature-line div {
+            display: table-cell;
             border-top: 1px solid #000;
-            width: 200px;
-            padding-top: 5px;
+            width: 220px;
+            padding-top: 8px;
             text-align: center;
         }
 
         .green-box {
             background-color: #e6f2e6;
             border-left: 4px solid #006400;
-            padding: 5px 10px;
-            margin-bottom: 15px;
+            padding: 8px 15px;
+            margin-bottom: 20px;
         }
 
         .address-line {
-            display: flex;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
 
         .address-line label {
-            width: 170px;
+            width: 180px;
             font-weight: bold;
+            display: inline-block;
         }
 
         .address-line span {
-            flex: 1;
             border-bottom: 1px dotted #000;
+            padding-bottom: 3px;
+            display: inline-block;
+            min-width: 300px;
         }
 
         .stamp-area {
             border: 1px dashed #006400;
-            width: 150px;
-            height: 150px;
-            margin-top: 20px;
+            width: 180px;
+            height: 180px;
+            margin-top: 25px;
             border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
             color: #006400;
             font-style: italic;
-            text-align: center;
-            padding: 10px;
+            padding: 15px;
             opacity: 0.7;
         }
 
-        /* Print optimizations */
-        @media print {
-            body {
-                font-size: 11pt;
-                font-family: 'solaimanlipi', 'nikosh', 'kalpurush', sans-serif;
-            }
+        .highlight-box {
+            margin-top: 25px;
+            border: 1px solid #006400;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
 
-            .container {
-                border: none;
-                padding: 0;
-            }
+        .highlight-box label {
+            font-weight: bold;
+        }
 
-            .page-break {
-                page-break-after: always;
-            }
+        .highlight-box span {
+            font-weight: bold;
+            color: #006400;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="watermark">বেফাক</div>
+        
         <div class="header">
             <h1>বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ</h1>
             <p>(বাংলাদেশ কওমী মাদরাসা শিক্ষা বোর্ড)</p>
@@ -382,18 +362,17 @@
         <div class="form-section">
             <label>আবেদন নং:</label> <span>{{ $application->application_no ?? 'অফিস পূরণ করবে' }}</span>
         </div>
+        
         <div class="form-section">
             <div class="checkbox-group">
-                <label class="checkbox-container">ছাত্র
-                    <input type="checkbox" @if($application->is_student ?? false) checked @endif>
-                    <span class="checkmark"></span>
-                </label>
+                <span class="checkbox-container">ছাত্র
+                    <span class="checkmark {{ ($application->is_student ?? false) ? 'checked' : '' }}"></span>
+                </span>
             </div>
             <div class="checkbox-group">
-                <label class="checkbox-container">ছাত্রী
-                    <input type="checkbox" @if($application->is_female_student ?? false) checked @endif>
-                    <span class="checkmark"></span>
-                </label>
+                <span class="checkbox-container">ছাত্রী
+                    <span class="checkmark {{ ($application->is_female_student ?? false) ? 'checked' : '' }}"></span>
+                </span>
             </div>
         </div>
 
@@ -430,9 +409,10 @@
                 <label>পূর্বের মারকায:</label> <span>{{ $application->previous_markaz_info ?? '' }}</span>
             </div>
         </div>
+        
         <div class="form-section">
             <label>মারকায প্রাপ্তির প্রয়োজনীয়তা:</label>
-            <div style="border: 1px solid #ddd; padding: 10px; margin-top: 5px; background-color: #f9f9f9;">
+            <div style="border: 1px solid #ddd; padding: 15px; margin-top: 8px; background-color: #f9f9f9;">
                 <span style="border: none; min-width: 100%; display: block;">{{ $application->necessity_for_markaz ?? '' }}</span>
             </div>
         </div>
@@ -463,7 +443,7 @@
                     @foreach($application->affiliated_madrasas as $index => $madrasa)
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td style="text-align: left; padding-left: 5px;">{{ $madrasa->ilhok_madrasa_name_address ?? '' }}</td>
+                            <td style="text-align: left; padding-left: 8px;">{{ $madrasa->ilhok_madrasa_name_address ?? '' }}</td>
                             <td>{{ $madrasa->fazilot_sana_ulya ?? '' }}</td>
                             <td>{{ $madrasa->mutawassita ?? '' }}</td>
                             <td>{{ $madrasa->ibtidaia ?? '' }}</td>
@@ -485,15 +465,15 @@
             </tbody>
         </table>
 
-        <div class="form-section" style="margin-top: 20px; border: 1px solid #006400; padding: 10px; background-color: #f9f9f9;">
-            <label>আবেদনকৃত মারকাযের সর্বমোট পরীক্ষার্থীর সংখ্যা:</label> <span style="font-weight: bold; color: #006400;">{{ $application->total_examinees_applied_markaz ?? '' }}</span>
+        <div class="highlight-box">
+            <label>আবেদনকৃত মারকাযের সর্বমোট পরীক্ষার্থীর সংখ্যা:</label> <span>{{ $application->total_examinees_applied_markaz ?? '' }}</span>
         </div>
+        
         <div class="form-section">
             <div class="checkbox-group">
-                <label class="checkbox-container">
-                    <input type="checkbox" @if($application->hall_description_checked ?? false) checked @endif>
-                    <span class="checkmark"></span>
-                </label>
+                <span class="checkbox-container">
+                    <span class="checkmark {{ ($application->hall_description_checked ?? false) ? 'checked' : '' }}"></span>
+                </span>
             </div>
             <label>হলের বিবরণ:</label> স্বতন্ত্র হলরুম মসজিদ। হলের পরিধি- দৈর্ঘ্য <span>{{ $application->hall_length ?? '' }}</span> ফুট, প্রস্থ <span>{{ $application->hall_width ?? '' }}</span> ফুট = মোট <span><strong>{{ $application->total_square_feet ?? '' }}</strong></span> বর্গফুট এবং মানসম্মত <span><strong>{{ $application->tripod_count ?? '' }}</strong></span> টি তেপায়া।
         </div>
@@ -620,6 +600,7 @@
                 <p>বিগত ৭/৮/১৮ ঈ. তারিখের ইমতিহান কমিটির বৈঠকের সিদ্ধান্ত মোতাবেক, দরসিয়াত মারকায (ছাত্র/ছাত্রী) মঞ্জুরি-ফি (এককালীন)- ঢাকা মহানগর ২৪০০০/-, ঢাকা মফস্বল ও জেলা শহরগুলোতে ১৫,০০০/- এবং মফস্বল এলাকায় ৯,০০০/- মারকায মঞ্জুর হওয়া-সাপেক্ষে প্রদান করতে হবে।</p>
               </li>
             </ul>
+            
             <div class="oath-section">
               <h3 class="oath-title">অঙ্গীকারনামা</h3>
               <p>আমি অঙ্গীকার করছি যে, উল্লিখিত কোনো শর্ত পূরণ না হলে এবং আবেদন ফরমে কোনো অসম্পূর্ণ বা ভুল তথ্য প্রদান করলে; কিংবা নিবন্ধন ও অন্তর্ভুক্তি পরীক্ষার্থী প্রকৃত সংখ্যার চেয়ে বেশি দেখিয়ে থাকলে এবং মারকায-বিধি পালনে কোনোরূপ অসঙ্গতি পরিলক্ষিত হলে, বেফাক কর্তৃপক্ষের যে কোনো ফয়সালা মানতে বাধ্য থাকব।</p>

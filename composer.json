@@ -10,11 +10,13 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "barryvdh/laravel-dompdf": "^3.1",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "mirazmac/bangla-string": "^1.1",
+        "mpdf/mpdf": "^8.2",
         "spatie/laravel-activitylog": "^4.10",
         "spatie/laravel-permission": "^6.20",
         "tightenco/ziggy": "^2.0"

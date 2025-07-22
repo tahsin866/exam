@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\MarhalaController;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use App\Http\Controllers\Admin\Auth\RegisteredUserController;
 use App\Http\Controllers\markazChangeController;
 use App\Http\Controllers\ProfileController;
@@ -14,6 +15,7 @@ use App\Models\admin\marhala_for_admin\Marhala;
 use App\Http\Controllers\ExamSetupController;
 use App\Http\Controllers\Auth\madrasha_check_for_userController;
 use App\Http\Controllers\Auth\userRegisteredUserController;
+use App\Http\Controllers\markaz\MarkazAgreementPDFController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -105,6 +107,76 @@ Route::post('/mumtahin/submit-to-board/{id}', [teacherController::class, 'submit
     Route::get('register', [userRegisteredUserController::class, 'create'])->middleware('check.madrasha.access')
     ->name('register');
 
+
+Route::get('/markaz-agreements/{id}/pdf', [MarkazAgreementPDFController::class, 'generatePDF'])->name('markaz-agreements.pdf');
+
+// Test Bangla PDF route
+Route::get('/test-bangla-pdf', function () {
+    $testData = [
+        'application_no' => '১২৩৪৫',
+        'is_student' => true,
+        'is_female_student' => false,
+        'muhtamim_name' => 'মুহাম্মদ আবদুল করিম',
+        'years_with_befaq' => '৩',
+        'ilhok_no' => '১০০১',
+        'madrasa_code' => 'বেফাক-০০১',
+        'madrasa_name' => 'জামিয়া ইসলামিয়া ঢাকা',
+        'address' => 'ঢাকা, বাংলাদেশ',
+        'mobile' => '০১৭১১২২৩৩৪৪',
+        'email' => 'test@example.com',
+        'previous_markaz_info' => 'পূর্বের মারকায তথ্য',
+        'necessity_for_markaz' => 'শিক্ষার মান উন্নয়নের জন্য মারকায প্রয়োজন।',
+        'total_examinees_applied_markaz' => '১৫০',
+        'hall_description_checked' => true,
+        'hall_length' => '৫০',
+        'hall_width' => '৩০',
+        'total_square_feet' => '১৫০০',
+        'tripod_count' => '৫০',
+        'attachment_resolution' => true,
+        'attachment_previous_markaz_no_objection' => true,
+        'attachment_befaq_recommendation' => true,
+        'attachment_affiliated_madrasas_consent' => true,
+        'attachment_affiliated_madrasas_previous_no_objection' => true,
+        'muhtamim_mobile' => '০১৭১১২২৩৩৪৪',
+        'oath_date' => '২২/০৭/২০২৫',
+        'affiliated_madrasas' => []
+    ];
+
+    // Test with mPDF
+    $htmlContent = view('markazApplication.markaz_application_pdf_mpdf', ['application' => (object)$testData])->render();
+    
+    $mpdf = new \Mpdf\Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'orientation' => 'P',
+        'default_font' => 'solaimanlipi',
+        'fontDir' => [storage_path('fonts')],
+        'fontdata' => [
+            'solaimanlipi' => [
+                'R' => 'SolaimanLipi.ttf',
+                'B' => 'SolaimanLipi.ttf',
+                'I' => 'SolaimanLipi.ttf',
+                'BI' => 'SolaimanLipi.ttf',
+                'useOTL' => 0xFF,
+                'useKashida' => 75,
+            ]
+        ],
+        'autoScriptToLang' => true,
+        'autoLangToFont' => true,
+    ]);
+    
+    // Configure for better Bangla rendering
+    $mpdf->useSubstitutions = false;
+    $mpdf->simpleTables = true;
+    $mpdf->SetDirectionality('ltr');
+    $mpdf->SetDefaultFont('solaimanlipi');
+    
+    $mpdf->WriteHTML($htmlContent);
+    
+    return response($mpdf->Output('test_bangla_markaz.pdf', 'D'))
+        ->header('Content-Type', 'application/pdf')
+        ->header('Content-Disposition', 'attachment; filename="test_bangla_markaz.pdf"');
+});
 
 
 require __DIR__ . '/auth.php';

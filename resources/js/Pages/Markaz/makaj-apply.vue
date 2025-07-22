@@ -78,6 +78,14 @@ const fetchAgreements = async () => {
 
 const getMenuItems = (agreement) => {
     const items = [];
+
+    // Add PDF Download option (always available regardless of status)
+    items.push({
+        label: 'পিডিএফ ডাউনলোড',
+        icon: 'pi pi-file-pdf',
+        command: () => downloadPdf(agreement.id)
+    });
+
     if (agreement.status !== 'অনুমোদন') {
         items.push({
             label: 'সম্পাদনা করুন',
@@ -96,6 +104,12 @@ const getMenuItems = (agreement) => {
         });
     }
     return items;
+};
+
+// Function to handle PDF download
+const downloadPdf = (id) => {
+    // Redirect to a PDF download route or open in a new tab
+    window.open(route('markaz-agreements.pdf', id), '_blank');
 };
 
 const editAgreement = (id) => {
@@ -444,17 +458,17 @@ const emit = defineEmits(['deleted']);
                                     </template>
                                 </Column>
 
-                                <Column header="করনীয়" style="width: 140px" class="text-center">
-                                    <template #body="slotProps">
-                                        <SplitButton
-                                            label="বিস্তারিত"
-                                            icon="pi pi-eye"
-                                            @click="router.get(route('Markaz.view', slotProps.data.id))"
-                                            :model="getMenuItems(slotProps.data)"
-                                            class="p-button-sm custom-split-button"
-                                        />
-                                    </template>
-                                </Column>
+                        <Column header="করনীয়" style="width: 140px" class="text-center">
+    <template #body="slotProps">
+        <SplitButton
+            label="বিস্তারিত"
+            icon="pi pi-eye"
+            @click="router.get(route('Markaz.view', slotProps.data.id))"
+            :model="getMenuItems(slotProps.data)"
+            class="p-button-sm custom-split-button"
+        />
+    </template>
+</Column>
                             </DataTable>
                         </div>
                     </template>
