@@ -9,7 +9,9 @@
                 <div class="p-6 bg-white border-b border-gray-200">
                     <!-- Improved AutoComplete with Immediate Results -->
                     <div class="mb-4 w-full">
-                        <label class="block font-medium text-sm text-gray-700 mb-2">মাদরাসা নির্বাচন করুন</label>
+                        <label class="block font-medium text-sm text-gray-700 mb-2">
+                            মাদরাসা নির্বাচন করুন <span class="text-red-500">*</span>
+                        </label>
                         <AutoComplete
                             v-model="row.searchQuery"
                             :suggestions="getSuggestions(row)"
@@ -33,15 +35,61 @@
                                 <div class="p-2 text-gray-500">কোন মাদরাসা পাওয়া যায়নি</div>
                             </template>
                         </AutoComplete>
+                        <div v-if="!row.madrasa_id" class="text-sm text-red-500 mt-1">
+                            মাদরাসা নির্বাচন করুন
+                        </div>
                     </div>
 
-                    <!-- Student Numbers with InputNumber -->
+                    <!-- Student Numbers with InputNumber - Conditional Display Based on Markaz Type -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div v-for="field in fields" :key="field.key" class="flex flex-col">
-                            <label class="block font-medium text-sm text-gray-700 mb-2">{{ field.label }}</label>
+                        <!-- Darsiyat Fields -->
+                        <div v-if="showDarsiyatFields" class="flex flex-col">
+                            <label class="block font-medium text-sm text-gray-700 mb-2">
+                                ফযীলত <span class="text-red-500">*</span>
+                            </label>
                             <InputNumber
-                                v-model="row[field.key]"
-                                :placeholder="field.placeholder"
+                                v-model="row.fazilat"
+                                placeholder="ছাত্র সংখ্যা লিখুন"
+                                :min="0"
+                                showButtons
+                                buttonLayout="horizontal"
+                                decrementButtonClass="p-button-secondary"
+                                incrementButtonClass="p-button-secondary"
+                                inputClass="w-full h-10 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm"
+                                class="w-full"
+                            />
+                            <div v-if="!row.fazilat && row.madrasa_id" class="text-sm text-red-500 mt-1">
+                                ফযীলত ছাত্র সংখ্যা লিখুন
+                            </div>
+                        </div>
+
+                        <div v-if="showDarsiyatFields" class="flex flex-col">
+                            <label class="block font-medium text-sm text-gray-700 mb-2">
+                                সানাবিয়া ‍উলইয়া <span class="text-red-500">*</span>
+                            </label>
+                            <InputNumber
+                                v-model="row.sanabiya_ulya"
+                                placeholder="ছাত্র সংখ্যা লিখুন"
+                                :min="0"
+                                showButtons
+                                buttonLayout="horizontal"
+                                decrementButtonClass="p-button-secondary"
+                                incrementButtonClass="p-button-secondary"
+                                inputClass="w-full h-10 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm"
+                                class="w-full"
+                            />
+                            <div v-if="!row.sanabiya_ulya && row.madrasa_id" class="text-sm text-red-500 mt-1">
+                                সানাবিয়া ‍উলইয়া ছাত্র সংখ্যা লিখুন
+                            </div>
+                        </div>
+
+                        <div v-if="showDarsiyatFields" class="flex flex-col">
+                            <label class="block font-medium text-sm text-gray-700 mb-2">
+                                সানাবিয়া
+                            </label>
+                            <InputNumber
+                                v-model="row.sanabiya"
+                                placeholder="ছাত্র সংখ্যা লিখুন"
                                 :min="0"
                                 showButtons
                                 buttonLayout="horizontal"
@@ -51,6 +99,83 @@
                                 class="w-full"
                             />
                         </div>
+
+                        <div v-if="showDarsiyatFields" class="flex flex-col">
+                            <label class="block font-medium text-sm text-gray-700 mb-2">
+                                মুতাওয়াসসিতা
+                            </label>
+                            <InputNumber
+                                v-model="row.mutawassita"
+                                placeholder="ছাত্র সংখ্যা লিখুন"
+                                :min="0"
+                                showButtons
+                                buttonLayout="horizontal"
+                                decrementButtonClass="p-button-secondary"
+                                incrementButtonClass="p-button-secondary"
+                                inputClass="w-full h-10 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm"
+                                class="w-full"
+                            />
+                        </div>
+
+                        <div v-if="showDarsiyatFields" class="flex flex-col">
+                            <label class="block font-medium text-sm text-gray-700 mb-2">
+                                ইবতেদাইয়্যাহ
+                            </label>
+                            <InputNumber
+                                v-model="row.ibtedaiyyah"
+                                placeholder="ছাত্র সংখ্যা লিখুন"
+                                :min="0"
+                                showButtons
+                                buttonLayout="horizontal"
+                                decrementButtonClass="p-button-secondary"
+                                incrementButtonClass="p-button-secondary"
+                                inputClass="w-full h-10 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm"
+                                class="w-full"
+                            />
+                        </div>
+
+                        <!-- Hifzul Quran Field -->
+                        <div v-if="showHifzField" class="flex flex-col">
+                            <label class="block font-medium text-sm text-gray-700 mb-2">
+                                হিফজুল কোরান <span class="text-red-500">*</span>
+                            </label>
+                            <InputNumber
+                                v-model="row.hifzul_quran"
+                                placeholder="ছাত্র সংখ্যা লিখুন"
+                                :min="0"
+                                showButtons
+                                buttonLayout="horizontal"
+                                decrementButtonClass="p-button-secondary"
+                                incrementButtonClass="p-button-secondary"
+                                inputClass="w-full h-10 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm"
+                                class="w-full"
+                            />
+                            <div v-if="!row.hifzul_quran && row.madrasa_id" class="text-sm text-red-500 mt-1">
+                                হিফজুল কোরান ছাত্র সংখ্যা লিখুন
+                            </div>
+                        </div>
+
+                        <!-- Kirat Field -->
+                        <div v-if="showKiratField" class="flex flex-col">
+                            <label class="block font-medium text-sm text-gray-700 mb-2">
+                                ইলমুল কিরআত <span class="text-red-500">*</span>
+                            </label>
+                            <InputNumber
+                                v-model="row.qirat"
+                                placeholder="ছাত্র সংখ্যা লিখুন"
+                                :min="0"
+                                showButtons
+                                buttonLayout="horizontal"
+                                decrementButtonClass="p-button-secondary"
+                                incrementButtonClass="p-button-secondary"
+                                inputClass="w-full h-10 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm"
+                                class="w-full"
+                            />
+                            <div v-if="!row.qirat && row.madrasa_id" class="text-sm text-red-500 mt-1">
+                                ইলমুল কিরআত ছাত্র সংখ্যা লিখুন
+                            </div>
+                        </div>
+
                         <div v-if="rows.length > 1" class="flex items-end">
                             <Button
                                 @click="$emit('remove-row', index)"
@@ -64,11 +189,13 @@
 
                     <!-- File Uploads for NOC & Resolution -->
                     <div class="mt-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">প্রয়োজনীয় ডকুমেন্টস</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">প্রয়োজনীয় ডকুমেন্টস <span class="text-red-500">*</span></h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="border border-gray-300 rounded-md p-4">
                                 <div class="flex items-center justify-between mb-2">
-                                    <label class="block font-medium text-sm text-gray-700">পূর্বের মাদরাসার অনাপত্তিপত্র</label>
+                                    <label class="block font-medium text-sm text-gray-700">
+                                        পূর্বের মাদরাসার অনাপত্তিপত্র <span class="text-red-500">*</span>
+                                    </label>
                                     <div v-if="row.files.nocPreview" class="flex items-center space-x-2">
                                         <a :href="row.files.nocPreview" target="_blank"
                                             class="inline-flex items-center px-2 py-1 bg-gray-100 border border-gray-300 rounded-md text-xs text-gray-700">
@@ -87,15 +214,20 @@
                                 <FileUpload
                                     mode="basic"
                                     accept="application/pdf,image/*"
-                                    :auto="false"
+                                    :auto="true"
                                     chooseLabel="ফাইল নির্বাচন করুন"
-                                    @select="e => $emit('file-upload', e, 'noc', index)"
+                                    @select="e => $emit('file-upload', e.files[0], 'noc', index)"
                                     class="w-full"
                                 />
+                                <div v-if="!row.files.noc && row.madrasa_id" class="text-sm text-red-500 mt-1">
+                                    অনাপত্তিপত্র আপলোড করুন
+                                </div>
                             </div>
                             <div class="border border-gray-300 rounded-md p-4">
                                 <div class="flex items-center justify-between mb-2">
-                                    <label class="block font-medium text-sm text-gray-700">বর্তমান মাদরাসার সম্মতিপত্র</label>
+                                    <label class="block font-medium text-sm text-gray-700">
+                                        বর্তমান মাদরাসার সম্মতিপত্র <span class="text-red-500">*</span>
+                                    </label>
                                     <div v-if="row.files.resolutionPreview" class="flex items-center space-x-2">
                                         <a :href="row.files.resolutionPreview" target="_blank"
                                             class="inline-flex items-center px-2 py-1 bg-gray-100 border border-gray-300 rounded-md text-xs text-gray-700">
@@ -114,11 +246,14 @@
                                 <FileUpload
                                     mode="basic"
                                     accept="application/pdf,image/*"
-                                    :auto="false"
+                                    :auto="true"
                                     chooseLabel="ফাইল নির্বাচন করুন"
-                                    @select="e => $emit('file-upload', e, 'resolution', index)"
+                                    @select="e => $emit('file-upload', e.files[0], 'resolution', index)"
                                     class="w-full"
                                 />
+                                <div v-if="!row.files.resolution && row.madrasa_id" class="text-sm text-red-500 mt-1">
+                                    সম্মতিপত্র আপলোড করুন
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -138,7 +273,7 @@
 </template>
 
 <script setup>
-import { defineProps, ref } from 'vue'
+import { defineProps, ref, computed } from 'vue'
 import AutoComplete from 'primevue/autocomplete'
 import InputNumber from 'primevue/inputnumber'
 import FileUpload from 'primevue/fileupload'
@@ -148,7 +283,11 @@ const props = defineProps({
     rows: Array,
     madrashas: Array,
     filteredOptions: Function,
-})
+    markazType: {
+        type: String,
+        default: ''
+    }
+});
 
 // Track suggestions for each row
 const suggestionCache = ref({});
@@ -193,15 +332,10 @@ const preloadSuggestions = (row) => {
     row.isOpen = true;
 }
 
-const fields = [
-    { key: 'fazilat', label: 'ফযীলত', placeholder: 'ছাত্র সংখ্যা লিখুন' },
-    { key: 'sanabiya_ulya', label: 'সানাবিয়া ‍উলইয়া', placeholder: 'ছাত্র সংখ্যা লিখুন' },
-    { key: 'sanabiya', label: 'সানাবিয়া', placeholder: 'ছাত্র সংখ্যা লিখুন' },
-    { key: 'mutawassita', label: 'মুতাওয়াসসিতা', placeholder: 'ছাত্র সংখ্যা লিখুন' },
-    { key: 'ibtedaiyyah', label: 'ইবতেদাইয়্যাহ', placeholder: 'ছাত্র সংখ্যা লিখুন' },
-    { key: 'hifzul_quran', label: 'হিফজুল কোরান', placeholder: 'ছাত্র সংখ্যা লিখুন' },
-    { key: 'qirat', label: 'ইলমুল কিরআত', placeholder: 'ছাত্র সংখ্যা লিখুন' }
-]
+// Computed properties to control field visibility based on markaz_type
+const showDarsiyatFields = computed(() => props.markazType === 'দরসিয়াত');
+const showHifzField = computed(() => props.markazType === 'তাহফিজুল কোরআন');
+const showKiratField = computed(() => props.markazType === 'কিরাআত');
 </script>
 
 <style scoped>
@@ -216,5 +350,13 @@ const fields = [
 
 :deep(.p-autocomplete-panel) {
     z-index: 1000;
+}
+
+:deep(.p-fileupload-buttonbar) {
+    padding: 0;
+}
+
+:deep(.p-fileupload-content) {
+    padding: 0;
 }
 </style>

@@ -5,6 +5,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { usePage } from '@inertiajs/vue3'
 import { useToast } from 'primevue/usetoast'
+import MarkazConditions from '@/Pages/Markaz/components/MarkazConditions.vue'
 import CategorySelect from '@/Pages/Markaz/components/CategorySelect.vue'
 import MainMadrasaInfo from '@/Pages/Markaz/components/MainMadrasaInfo.vue'
 import DynamicMadrasas from '@/Pages/Markaz/components/DynamicMadrasas.vue'
@@ -22,6 +23,10 @@ const step = ref(0)
 const toast = useToast();
 const loading = ref(false);
 const formErrors = ref([]);
+// Add validation errors object
+const validationErrors = ref({});
+// Track if user has agreed to conditions
+const conditionsAgreed = ref(false);
 
 const form = useForm({
     user_id: usePage().props.auth.user.id,
@@ -86,11 +91,13 @@ const addRow = () => {
     }
   })
 }
+
 const removeRow = (index) => {
     if (rows.value.length > 1) {
         rows.value.splice(index, 1)
     }
 }
+
 const handleFileUpload = (file, type, index) => {
     if (!file) return
     if (type === 'noc') {
@@ -101,6 +108,7 @@ const handleFileUpload = (file, type, index) => {
         rows.value[index].files.resolutionPreview = URL.createObjectURL(file)
     }
 }
+
 const removeFile = (type, index) => {
     if (type === 'noc') {
         rows.value[index].files.noc = null
@@ -139,6 +147,7 @@ const handleFileUploadMumtahin = (file, type) => {
             break
     }
 }
+
 const removeFileMumtahin = (type) => {
     switch (type) {
         case 'muhtamim':
@@ -155,15 +164,19 @@ const removeFileMumtahin = (type) => {
             break
     }
 }
+
 const removeFileForMadrahsa = (type) => {
     if (type === 'noc') {
         nocFileForMadrahsa.value = null
         nocPreviewForMadrahsa.value = null
+        form.noc_file = null
     } else {
         resolutionFileForMadrahsa.value = null
         resolutionPreviewForMadrahsa.value = null
+        form.resolution_file = null
     }
 }
+
 const handleFileUploadForMadrahsa = (file, type) => {
     if (!file) return
     if (type === 'noc') {
@@ -176,6 +189,7 @@ const handleFileUploadForMadrahsa = (file, type) => {
         resolutionPreviewForMadrahsa.value = URL.createObjectURL(file)
     }
 }
+
 const madrashas = ref([])
 onMounted(async () => {
     const { data } = await axios.get(route('madrashas.list'))
@@ -184,6 +198,7 @@ onMounted(async () => {
     form.exam_id = response.data.id
     form.exam_name = response.data.exam_name
 })
+
 const filteredOptions = computed(() => (row) => {
     if (!row.searchQuery) return [];
     return madrashas.value.filter(madrasha => {
@@ -197,6 +212,7 @@ const filteredOptions = computed(() => (row) => {
         return searchWords.every(word => name.includes(word));
     });
 });
+
 const selectOption = (madrasha, row) => {
     row.madrasa_Name = madrasha.name;
     row.madrasa_id = madrasha.id;
@@ -204,6 +220,7 @@ const selectOption = (madrasha, row) => {
     row.isOpen = false;
 };
 
+// Watch for form success
 watch(
   () => form.isSuccess,
   (success) => {
@@ -219,55 +236,220 @@ watch(
   }
 );
 
+// Watch for markaz_type changes to reset irrelevant fields
+watch(() => form.markaz_type, (newType) => {
+  if (newType === 'দরসিয়াত') {
+    form.hifzul_quran = '';
+    form.qirat = '';
+  } else if (newType === 'তাহফিজুল কোরআন') {
+    form.fazilat = '';
+    form.sanabiya_ulya = '';
+    form.sanabiya = '';
+    form.mutawassita = '';
+    form.ibtedaiyyah = '';
+    form.qirat = '';
+  } else if (newType === 'কিরাআত') {
+    form.fazilat = '';
+    form.sanabiya_ulya = '';
+    form.sanabiya = '';
+    form.mutawassita = '';
+    form.ibtedaiyyah = '';
+    form.hifzul_quran = '';
+  }
+
+  // Also update the dynamic rows
+  rows.value.forEach(row => {
+    if (newType === 'দরসিয়াত') {
+      row.hifzul_quran = '';
+      row.qirat = '';
+    } else if (newType === 'তাহফিজুল কোরআন') {
+      row.fazilat = '';
+      row.sanabiya_ulya = '';
+      row.sanabiya = '';
+      row.mutawassita = '';
+      row.ibtedaiyyah = '';
+      row.qirat = '';
+    } else if (newType === 'কিরাআত') {
+      row.fazilat = '';
+      row.sanabiya_ulya = '';
+      row.sanabiya = '';
+      row.mutawassita = '';
+      row.ibtedaiyyah = '';
+      row.hifzul_quran = '';
+    }
+  });
+});
+
 const submitForm = () => {
-    loading.value = true;
-    formErrors.value = [];
+  loading.value = true;
+  formErrors.value = [];
+  validationErrors.value = {};
 
-    form.associated_madrasas = rows.value.map(row => ({
-        madrasa_Name: row.madrasa_Name,
-        madrasa_id: row.madrasa_id,
-        fazilat: row.fazilat,
-        sanabiya_ulya: row.sanabiya_ulya,
-        sanabiya: row.sanabiya,
-        mutawassita: row.mutawassita,
-        ibtedaiyyah: row.ibtedaiyyah,
-        hifzul_quran: row.hifzul_quran,
-        qirat: row.qirat,
-        noc_file: row.files.noc,
-        resolution_file: row.files.resolution
-    }))
-    form.muhtamim_consent = muhtamimFile.value
-    form.president_consent = presidentFile.value
-    form.committee_resolution = committeeFile.value
+  // Validate before submission
+  if (!form.requirements) {
+    loading.value = false;
+    toast.add({
+      severity: 'error',
+      summary: 'ত্রুটি!',
+      detail: 'মারকাজ প্রয়োজনীয়তা ব্যাখ্যা করুন',
+      life: 3500,
+      group: 'tr'
+    });
+    return;
+  }
 
-    form.post(route('markaz-agreements.store'), {
-        onSuccess: (page) => {
-            loading.value = false;
-            toast.add({
-                severity: 'success',
-                summary: 'সফল!',
-                detail: 'মারকায আবেদন সফলভাবে সাবমিট হয়েছে!',
-                life: 3500,
-                group: 'tr'
-            });
-        },
-        onError: (errors) => {
-            loading.value = false;
-            formErrors.value = errors;
-            toast.add({
-                severity: 'error',
-                summary: 'ত্রুটি!',
-                detail: 'ফরম সাবমিট করতে সমস্যা হয়েছে!',
-                life: 3500,
-                group: 'tr'
-            });
-        }
-    })
+  // Validate markaz_type and fields
+  if (!form.markaz_type) {
+    loading.value = false;
+    toast.add({
+      severity: 'error',
+      summary: 'ত্রুটি!',
+      detail: 'মারকাযের স্তর নির্বাচন করুন',
+      life: 3500,
+      group: 'tr'
+    });
+    return;
+  }
+
+  // Validate fields based on markaz_type
+  if (form.markaz_type === 'দরসিয়াত') {
+    if (form.fazilat === '' || form.fazilat === null) {
+      loading.value = false;
+      toast.add({
+        severity: 'error',
+        summary: 'ত্রুটি!',
+        detail: 'ফাযীলাত ফিল্ড পূরণ করুন',
+        life: 3500,
+        group: 'tr'
+      });
+      return;
+    }
+    if (form.sanabiya_ulya === '' || form.sanabiya_ulya === null) {
+      loading.value = false;
+      toast.add({
+        severity: 'error',
+        summary: 'ত্রুটি!',
+        detail: 'সানাবিয়া উলইয়া ফিল্ড পূরণ করুন',
+        life: 3500,
+        group: 'tr'
+      });
+      return;
+    }
+  } else if (form.markaz_type === 'তাহফিজুল কোরআন') {
+    if (form.hifzul_quran === '' || form.hifzul_quran === null) {
+      loading.value = false;
+      toast.add({
+        severity: 'error',
+        summary: 'ত্রুটি!',
+        detail: 'হিফযুল কোরআন ফিল্ড পূরণ করুন',
+        life: 3500,
+        group: 'tr'
+      });
+      return;
+    }
+  } else if (form.markaz_type === 'কিরাআত') {
+    if (form.qirat === '' || form.qirat === null) {
+      loading.value = false;
+      toast.add({
+        severity: 'error',
+        summary: 'ত্রুটি!',
+        detail: 'কিরাআত ফিল্ড পূরণ করুন',
+        life: 3500,
+        group: 'tr'
+      });
+      return;
+    }
+  }
+
+  // Check if all required files are uploaded
+  if (!nocFileForMadrahsa.value || !resolutionFileForMadrahsa.value) {
+    loading.value = false;
+    toast.add({
+      severity: 'error',
+      summary: 'ত্রুটি!',
+      detail: 'মূল মাদ্রাসার সমস্ত প্রয়োজনীয় ফাইল আপলোড করুন',
+      life: 3500,
+      group: 'tr'
+    });
+    return;
+  }
+
+  // Check if all associated madrasas have required data
+  const invalidRows = rows.value.filter(row => {
+    if (!row.madrasa_id) return true;
+    if (!row.files.noc || !row.files.resolution) return true;
+
+    if (form.markaz_type === 'দরসিয়াত') {
+      if (row.fazilat === '' || row.fazilat === null) return true;
+      if (row.sanabiya_ulya === '' || row.sanabiya_ulya === null) return true;
+    } else if (form.markaz_type === 'তাহফিজুল কোরআন') {
+      if (row.hifzul_quran === '' || row.hifzul_quran === null) return true;
+    } else if (form.markaz_type === 'কিরাআত') {
+      if (row.qirat === '' || row.qirat === null) return true;
+    }
+
+    return false;
+  });
+
+  if (invalidRows.length > 0) {
+    loading.value = false;
+    toast.add({
+      severity: 'error',
+      summary: 'ত্রুটি!',
+      detail: `${invalidRows.length}টি সংযুক্ত মাদ্রাসার তথ্য অসম্পূর্ণ`,
+      life: 3500,
+      group: 'tr'
+    });
+    return;
+  }
+
+  // Prepare form data for submission
+  form.associated_madrasas = rows.value.map(row => ({
+    madrasa_Name: row.madrasa_Name,
+    madrasa_id: row.madrasa_id,
+    fazilat: row.fazilat,
+    sanabiya_ulya: row.sanabiya_ulya,
+    sanabiya: row.sanabiya,
+    mutawassita: row.mutawassita,
+    ibtedaiyyah: row.ibtedaiyyah,
+    hifzul_quran: row.hifzul_quran,
+    qirat: row.qirat,
+    noc_file: row.files.noc,
+    resolution_file: row.files.resolution
+  }))
+
+  form.muhtamim_consent = muhtamimFile.value
+  form.president_consent = presidentFile.value
+  form.committee_resolution = committeeFile.value
+
+  form.post(route('markaz-agreements.store'), {
+    onSuccess: () => {
+      loading.value = false;
+      toast.add({
+        severity: 'success',
+        summary: 'সফল!',
+        detail: 'মারকায আবেদন সফলভাবে সাবমিট হয়েছে!',
+        life: 3500,
+        group: 'tr'
+      });
+    },
+    onError: (errors) => {
+      loading.value = false;
+      formErrors.value = errors;
+      toast.add({
+        severity: 'error',
+        summary: 'ত্রুটি!',
+        detail: 'ফরম সাবমিট করতে সমস্যা হয়েছে!',
+        life: 3500,
+        group: 'tr'
+      });
+    }
+  })
 }
 
 // Helper function to get current date and time
 const getCurrentDateTime = () => {
-    return "2025-07-18 01:21:44"; // Updated with provided value
+    return "2025-07-22 04:59:57"; // Updated with provided value
 }
 
 // Helper function to get current user
@@ -275,31 +457,82 @@ const getCurrentUser = () => {
     return "tahsin866"; // Using the provided value
 }
 
-// Step completion tracking
+// Function to handle condition agreement
+const handleConditionsAccepted = () => {
+    conditionsAgreed.value = true;
+}
+
+// Step completion tracking with improved validation logic
+// Add condition check for the first step
+const isConditionsAccepted = computed(() => {
+    return conditionsAgreed.value;
+});
+
 const isStep1Valid = computed(() => {
-    return form.markaz_type && form.fazilat !== '' && form.sanabiya_ulya !== '';
+  if (!form.markaz_type) return false;
+
+  if (form.markaz_type === 'দরসিয়াত') {
+    return form.fazilat !== '' && form.fazilat !== null &&
+           form.sanabiya_ulya !== '' && form.sanabiya_ulya !== null &&
+           nocFileForMadrahsa.value && resolutionFileForMadrahsa.value;
+  } else if (form.markaz_type === 'তাহফিজুল কোরআন') {
+    return form.hifzul_quran !== '' && form.hifzul_quran !== null &&
+           nocFileForMadrahsa.value && resolutionFileForMadrahsa.value;
+  } else if (form.markaz_type === 'কিরাআত') {
+    return form.qirat !== '' && form.qirat !== null &&
+           nocFileForMadrahsa.value && resolutionFileForMadrahsa.value;
+  }
+
+  return false;
 });
 
 const isStep2Valid = computed(() => {
-    return rows.value.length > 0 && rows.value.some(row => row.madrasa_Name);
+  if (rows.value.length === 0) return false;
+
+  return rows.value.every(row => {
+    if (!row.madrasa_id) return false;
+    if (!row.files.noc || !row.files.resolution) return false;
+
+    if (form.markaz_type === 'দরসিয়াত') {
+      return row.fazilat !== '' && row.fazilat !== null &&
+             row.sanabiya_ulya !== '' && row.sanabiya_ulya !== null;
+    } else if (form.markaz_type === 'তাহফিজুল কোরআন') {
+      return row.hifzul_quran !== '' && row.hifzul_quran !== null;
+    } else if (form.markaz_type === 'কিরাআত') {
+      return row.qirat !== '' && row.qirat !== null;
+    }
+
+    return false;
+  });
 });
 
-// Fixed the Step 3 validation logic to make the submit button enable correctly
 const isStep3Valid = computed(() => {
-    // Only require the requirements field to be filled - attachments are optional
-    return !!form.requirements;
+  // Requirements field is mandatory
+  return !!form.requirements;
+});
+
+// Check if a step is accessible based on completion of previous steps
+const canAccessStep = computed(() => {
+  return {
+    0: true, // Step 1 (শর্তাবলী) is always accessible
+    1: isConditionsAccepted.value, // Step 2 needs conditions to be accepted
+    2: isConditionsAccepted.value && isStep1Valid.value, // Step 3 needs Step 2 to be valid
+    3: isConditionsAccepted.value && isStep1Valid.value && isStep2Valid.value // Step 4 needs Step 3 to be valid
+  };
 });
 
 const getStepCompletionPercentage = computed(() => {
     let total = 0;
-    if (isStep1Valid.value) total += 33.33;
-    if (isStep2Valid.value) total += 33.33;
-    if (isStep3Valid.value) total += 33.34;
+    if (isConditionsAccepted.value) total += 25;
+    if (isStep1Valid.value) total += 25;
+    if (isStep2Valid.value) total += 25;
+    if (isStep3Valid.value) total += 25;
     return Math.round(total);
 });
 
-// Step labels for the wizard
+// Updated step labels for the wizard
 const stepLabels = [
+    { label: "শর্তাবলী", icon: "pi pi-info-circle" },
     { label: "ধরন ও মূল তথ্য", icon: "pi pi-file-edit" },
     { label: "সংযুক্ত মাদ্রাসা", icon: "pi pi-building" },
     { label: "প্রয়োজনীয়তা ও সংযুক্তি", icon: "pi pi-paperclip" }
@@ -307,19 +540,59 @@ const stepLabels = [
 
 // Get status icon for each step
 const getStepIcon = (index) => {
-    if (index === 0 && isStep1Valid.value) return "pi pi-check-circle text-green-500";
-    if (index === 1 && isStep2Valid.value) return "pi pi-check-circle text-green-500";
-    if (index === 2 && isStep3Valid.value) return "pi pi-check-circle text-green-500";
+    if (index === 0 && isConditionsAccepted.value) return "pi pi-check-circle text-green-500";
+    if (index === 1 && isStep1Valid.value) return "pi pi-check-circle text-green-500";
+    if (index === 2 && isStep2Valid.value) return "pi pi-check-circle text-green-500";
+    if (index === 3 && isStep3Valid.value) return "pi pi-check-circle text-green-500";
     return step.value === index ? "pi pi-spin pi-spinner text-blue-500" : "pi pi-circle-fill text-gray-400";
+};
+
+// Function to handle direct tab changes - Prevent tab changes when conditions not agreed or previous steps are not completed
+const handleTabChange = (event) => {
+    const targetIndex = event.index;
+
+    // If trying to access a step that's not yet accessible
+    if (!canAccessStep.value[targetIndex]) {
+        event.preventDefault();
+
+        // Different message based on which step they're trying to access
+        let message = '';
+        if (targetIndex === 1 && !isConditionsAccepted.value) {
+            message = 'অনুগ্রহ করে শর্তাবলী পড়ুন এবং সম্মতি দিন';
+        } else if (targetIndex === 2 && !isStep1Valid.value) {
+            message = 'ধরন ও মূল তথ্য প্রদান করুন';
+        } else if (targetIndex === 3 && !isStep2Valid.value) {
+            message = 'সংযুক্ত মাদ্রাসার তথ্য সম্পূর্ণ করুন';
+        }
+
+        toast.add({
+            severity: 'warn',
+            summary: 'সতর্কতা!',
+            detail: message,
+            life: 3000
+        });
+        return;
+    }
+
+    // Allow the tab change if accessible
+    step.value = targetIndex;
+};
+
+// Function to go to next step (used by buttons)
+const goToNextStep = () => {
+  const nextStep = step.value + 1;
+  if (canAccessStep.value[nextStep]) {
+    step.value = nextStep;
+  }
 };
 </script>
 
 <template>
 <AuthenticatedLayout>
-    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-emerald-50">
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-emerald-50 mt-8">
         <!-- Header Banner -->
         <div class="bg-gradient-to-r from-emerald-800 to-emerald-700 shadow-md">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div class="flex flex-col md:flex-row justify-between items-center">
                     <div class="flex items-center mb-4 md:mb-0">
                         <div class="bg-white/10 p-3 rounded-lg shadow-inner mr-4">
@@ -345,7 +618,7 @@ const getStepIcon = (index) => {
         </div>
 
         <!-- Progress Tracker -->
-        <div class=" mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <div class="mx-auto px-4 sm:px-6 lg:px-8 pt-6">
             <Card class="mb-6 shadow-md border-0">
                 <template #content>
                     <div class="flex flex-col">
@@ -359,19 +632,18 @@ const getStepIcon = (index) => {
                             <div
                                 v-for="(stepLabel, index) in stepLabels"
                                 :key="index"
-                                class="flex flex-col items-center w-1/3 transition-all duration-300"
+                                class="flex flex-col items-center w-1/4 transition-all duration-300"
                                 :class="{
-                                    'opacity-50': step.value !== index && !((index === 0 && isStep1Valid.value) ||
-                                                                          (index === 1 && isStep2Valid.value) ||
-                                                                          (index === 2 && isStep3Valid.value))
+                                    'opacity-50': !canAccessStep[index] && index !== step.value
                                 }"
                             >
                                 <div class="flex items-center justify-center h-10 w-10 rounded-full mb-2"
                                     :class="[
                                         step.value === index ? 'bg-blue-100 text-blue-600' :
-                                        ((index === 0 && isStep1Valid.value) ||
-                                         (index === 1 && isStep2Valid.value) ||
-                                         (index === 2 && isStep3Valid.value)) ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
+                                        ((index === 0 && isConditionsAccepted.value) ||
+                                         (index === 1 && isStep1Valid.value) ||
+                                         (index === 2 && isStep2Valid.value) ||
+                                         (index === 3 && isStep3Valid.value)) ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
                                     ]">
                                     <i :class="[stepLabel.icon, 'text-lg']"></i>
                                 </div>
@@ -384,15 +656,53 @@ const getStepIcon = (index) => {
         </div>
 
         <!-- Main Content -->
-        <div class=" mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <div class="mx-auto px-4 sm:px-6 lg:px-8 pb-12">
             <Card class="shadow-lg border-0">
                 <template #content>
-                    <TabView v-model:activeIndex="step" class="custom-tabs" :scrollable="true">
+                    <TabView v-model:activeIndex="step" class="custom-tabs" :scrollable="true" @tab-change="handleTabChange">
+                        <!-- Conditions Tab -->
                         <TabPanel>
                             <template #header>
                                 <div class="flex items-center">
                                     <i :class="getStepIcon(0)" class="mr-2"></i>
-                                    <span class="font-medium">১. ধরন ও মূল তথ্য</span>
+                                    <span class="font-medium">১. শর্তাবলী</span>
+                                </div>
+                            </template>
+                            <MarkazConditions @continue="handleConditionsAccepted" />
+
+                            <!-- Special message when conditions are not agreed -->
+                            <div v-if="!conditionsAgreed" class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-r">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="pi pi-exclamation-triangle text-yellow-500 text-xl"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-yellow-800">
+                                            শর্তাবলী সম্মত হলে চেকবক্সে টিক দিন এবং পরবর্তী ধাপে যেতে "পরবর্তী ধাপে যান" বাটনে ক্লিক করুন।
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Next button -->
+                            <div class="flex justify-end p-4 bg-gray-50 rounded-b-lg border-t border-gray-200 mt-4">
+                                <Button
+                                    label="পরবর্তী ধাপে যান"
+                                    icon="pi pi-arrow-right"
+                                    iconPos="right"
+                                    class="p-button-raised shadow-md"
+                                    :disabled="!conditionsAgreed"
+                                    @click="goToNextStep"
+                                />
+                            </div>
+                        </TabPanel>
+
+                        <TabPanel :disabled="!canAccessStep[1]">
+                            <template #header>
+                                <div class="flex items-center" :class="{ 'opacity-50': !canAccessStep[1] }">
+                                    <i :class="getStepIcon(1)" class="mr-2"></i>
+                                    <span class="font-medium">২. ধরন ও মূল তথ্য</span>
+                                    <i v-if="!canAccessStep[1]" class="pi pi-lock ml-2 text-yellow-500" v-tooltip.top="'প্রথমে শর্তাবলী সম্মত হন'"></i>
                                 </div>
                             </template>
                             <div class="p-4">
@@ -437,23 +747,31 @@ const getStepIcon = (index) => {
                                 </div>
                             </div>
 
-                            <div class="flex justify-end p-4 bg-gray-50 rounded-b-lg border-t border-gray-200">
+                            <div class="flex justify-between p-4 bg-gray-50 rounded-b-lg border-t border-gray-200">
+                                <Button
+                                    label="পূর্ববর্তী ধাপ"
+                                    icon="pi pi-arrow-left"
+                                    class="p-button-outlined"
+                                    @click="step = 0"
+                                />
                                 <Button
                                     label="পরবর্তী ধাপ"
                                     icon="pi pi-arrow-right"
                                     iconPos="right"
                                     class="p-button-raised shadow-md"
                                     :disabled="!isStep1Valid"
-                                    @click="step = 1"
+                                    @click="goToNextStep"
                                 />
                             </div>
                         </TabPanel>
 
-                        <TabPanel>
+                        <TabPanel :disabled="!canAccessStep[2]">
                             <template #header>
-                                <div class="flex items-center">
-                                    <i :class="getStepIcon(1)" class="mr-2"></i>
-                                    <span class="font-medium">২. সংযুক্ত মাদ্রাসা</span>
+                                <div class="flex items-center" :class="{ 'opacity-50': !canAccessStep[2] }">
+                                    <i :class="getStepIcon(2)" class="mr-2"></i>
+                                    <span class="font-medium">৩. সংযুক্ত মাদ্রাসা</span>
+                                    <i v-if="!canAccessStep[2]" class="pi pi-lock ml-2 text-yellow-500"
+                                       v-tooltip.top="!isConditionsAccepted ? 'প্রথমে শর্তাবলী সম্মত হন' : 'ধরন ও মূল তথ্য সম্পূর্ণ করুন'"></i>
                                 </div>
                             </template>
                             <div class="p-4">
@@ -484,6 +802,7 @@ const getStepIcon = (index) => {
                                         :rows="rows"
                                         :madrashas="madrashas"
                                         :filteredOptions="filteredOptions"
+                                        :markazType="form.markaz_type"
                                         @add-row="addRow"
                                         @remove-row="removeRow"
                                         @file-upload="handleFileUpload"
@@ -499,7 +818,7 @@ const getStepIcon = (index) => {
                                     label="পূর্ববর্তী ধাপ"
                                     icon="pi pi-arrow-left"
                                     class="p-button-outlined"
-                                    @click="step = 0"
+                                    @click="step = 1"
                                 />
                                 <Button
                                     label="পরবর্তী ধাপ"
@@ -507,16 +826,18 @@ const getStepIcon = (index) => {
                                     iconPos="right"
                                     class="p-button-raised shadow-md"
                                     :disabled="!isStep2Valid"
-                                    @click="step = 2"
+                                    @click="goToNextStep"
                                 />
                             </div>
                         </TabPanel>
 
-                        <TabPanel>
+                        <TabPanel :disabled="!canAccessStep[3]">
                             <template #header>
-                                <div class="flex items-center">
-                                    <i :class="getStepIcon(2)" class="mr-2"></i>
-                                    <span class="font-medium">৩. প্রয়োজনীয়তা ও সংযুক্তি</span>
+                                <div class="flex items-center" :class="{ 'opacity-50': !canAccessStep[3] }">
+                                    <i :class="getStepIcon(3)" class="mr-2"></i>
+                                    <span class="font-medium">৪. প্রয়োজনীয়তা ও সংযুক্তি</span>
+                                    <i v-if="!canAccessStep[3]" class="pi pi-lock ml-2 text-yellow-500"
+                                       v-tooltip.top="!isConditionsAccepted ? 'প্রথমে শর্তাবলী সম্মত হন' : !isStep1Valid ? 'ধরন ও মূল তথ্য সম্পূর্ণ করুন' : 'সংযুক্ত মাদ্রাসার তথ্য সম্পূর্ণ করুন'"></i>
                                 </div>
                             </template>
                             <div class="p-4">
@@ -586,7 +907,7 @@ const getStepIcon = (index) => {
                                     label="পূর্ববর্তী ধাপ"
                                     icon="pi pi-arrow-left"
                                     class="p-button-outlined"
-                                    @click="step = 1"
+                                    @click="step = 2"
                                 />
                                 <Button
                                     label="আবেদন জমা দিন"
@@ -633,6 +954,14 @@ const getStepIcon = (index) => {
 .custom-tabs >>> .p-tabview-nav li.p-highlight .p-tabview-nav-link {
     color: #10b981;
     border-bottom: 2px solid #10b981;
+}
+
+/* Disabled tab styling */
+.custom-tabs >>> .p-tabview-nav li.p-disabled .p-tabview-nav-link {
+    color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.6;
+    pointer-events: none;
 }
 
 .custom-tabs >>> .p-tabview-panels {

@@ -91,19 +91,44 @@ const submitForm = () => {
 <template>
   <AuthenticatedLayout>
     <div class="container mx-auto px-4 mt-5">
-      <div>
-        <CategorySelect v-model="form.markaz_type" />
-        <MainMadrasaInfo :form="form" @update:file="(field, file) => { form[field] = file }" />
-        <DynamicMadrasas v-model:rows="rows" :madrashas="madrashas" />
-        <RequirementsSection v-model="form.requirements" />
-        <AttachmentSection
-          :form="form"
-          :markazData="props.markazData"
-          @update:file="(field, file) => { form[field] = file }"
-        />
-        <div class="mt-8 mx-5">
-          <button @click="submitForm" class="px-6 py-2 mb-5 bg-blue-600 text-white rounded-sm hover:bg-blue-700">
-            সেভ করুন
+      <div class="space-y-6">
+        <!-- Each component is now wrapped in a card container -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <CategorySelect v-model="form.markaz_type" />
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <MainMadrasaInfo :form="form" @update:file="(field, file) => { form[field] = file }" />
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <DynamicMadrasas
+            :rows="rows"
+            :madrashas="madrashas"
+            :markazType="form.markaz_type"
+            @update:rows="rows = $event"
+          />
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <RequirementsSection v-model="form.requirements" />
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <AttachmentSection
+            :form="form"
+            :markazData="props.markazData"
+            @update:file="(field, file) => { form[field] = file }"
+          />
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <button
+            @click="submitForm"
+            class="px-6 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700"
+            :disabled="form.processing"
+          >
+            {{ form.processing ? 'প্রসেসিং...' : 'সেভ করুন' }}
           </button>
         </div>
       </div>

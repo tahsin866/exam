@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps, defineEmits, watch } from 'vue'
+import { ref, defineProps, defineEmits, watch, computed } from 'vue'
 import InputNumber from 'primevue/inputnumber'
 import AutoComplete from 'primevue/autocomplete'
 import Button from 'primevue/button'
@@ -10,12 +10,21 @@ const props = defineProps({
   madrashas: {
     type: Array,
     default: () => []
+  },
+  markazType: {
+    type: String,
+    default: ''
   }
 })
 const emit = defineEmits(['update:rows'])
 
 // For instant suggestion, keep a cache for current search
 const suggestionCache = ref({})
+
+// Computed properties to control field visibility based on markaz_type
+const showDarsiyatFields = computed(() => props.markazType === 'দরসিয়াত');
+const showHifzField = computed(() => props.markazType === 'তাহফিজুল কোরআন');
+const showKiratField = computed(() => props.markazType === 'কিরাআত');
 
 // Watch for madrashas data update, clear cache
 watch(() => props.madrashas, () => {
@@ -25,10 +34,10 @@ watch(() => props.madrashas, () => {
 // Field label mapping
 const fieldLabels = {
   fazilat: 'ফযীলত',
-  sanabiya_ulya: 'সানাবিয়া উলইয়া',
-  sanabiya: 'সানাবিয়া',
-  mutawassita: 'মুতাওয়াসসিতা',
-  ibtedaiyyah: 'ইবতেদাইয়্যাহ',
+  sanabiya_ulya: 'সানাবিয়া উলইয়া',
+  sanabiya: 'সানাবিয়া',
+  mutawassita: 'মুতাওয়াসসিতা',
+  ibtedaiyyah: 'ইবতেদাইয়্যাহ',
   hifzul_quran: 'হিফজুল কোরআন',
   qirat: 'ইলমুল কিরাআত'
 }
@@ -81,6 +90,7 @@ const removeRow = idx => {
 const onMadrashaSelect = (madrasha, row) => {
   row.selectedMadrasha = madrasha
   row.madrasa_Name = madrasha.name
+  row.madrasa_id = madrasha.id // Make sure to set the madrasa_id for the backend
   row.searchQuery = `${madrasha.name} (ইলহাক: ${madrasha.ElhaqNo})`
 }
 
@@ -98,6 +108,60 @@ const onFileSelect = (field, row, event) => {
     row.files[`${field}Preview`] = null
   }
 }
+
+// Helper function to check if a field has a value
+const hasValue = (row, field) => {
+  return row && row[field] !== undefined && row[field] !== null && row[field] !== '';
+}
+
+// Check if the required fields are filled based on markaz type
+const isRequiredFieldEmpty = (row, field) => {
+  if (!row.selectedMadrasha) return false; // Don't show error until madrasa is selected
+
+  if (props.markazType === 'দরসিয়াত') {
+    if ((field === 'fazilat' || field === 'sanabiya_ulya') && !hasValue(row, field)) {
+      return true;
+    }
+  } else if (props.markazType === 'তাহফিজুল কোরআন') {
+    if (field === 'hifzul_quran' && !hasValue(row, field)) {
+      return true;
+    }
+  } else if (props.markazType === 'কিরাআত') {
+    if (field === 'qirat' && !hasValue(row, field)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Check if a field is required based on markaz type
+const isFieldRequired = (field) => {
+  if (props.markazType === 'দরসিয়াত') {
+    return field === 'fazilat' || field === 'sanabiya_ulya';
+  } else if (props.markazType === 'তাহফিজুল কোরআন') {
+    return field === 'hifzul_quran';
+  } else if (props.markazType === 'কিরাআত') {
+    return field === 'qirat';
+  }
+  return false;
+}
+
+// Check if a field should be visible based on markaz type
+const isFieldVisible = (field) => {
+  // For fields that have existing data, always show them
+  if (props.rows.some(row => hasValue(row, field))) {
+    return true;
+  }
+
+  if (props.markazType === 'দরসিয়াত') {
+    return ['fazilat', 'sanabiya_ulya', 'sanabiya', 'mutawassita', 'ibtedaiyyah'].includes(field);
+  } else if (props.markazType === 'তাহফিজুল কোরআন') {
+    return field === 'hifzul_quran';
+  } else if (props.markazType === 'কিরাআত') {
+    return field === 'qirat';
+  }
+  return true; // Default show all if no type selected
+}
 </script>
 
 <template>
@@ -109,7 +173,9 @@ const onFileSelect = (field, row, event) => {
       <div v-for="(row, idx) in rows" :key="idx" class="bg-white p-6 rounded-md shadow-md border border-slate-300">
         <!-- Madrasa Search Field -->
         <div class="mb-6">
-          <label class="block text-lg font-medium text-slate-700 mb-2 arabic-font">মাদরাসা নির্বাচন করুন</label>
+          <label class="block text-lg font-medium text-slate-700 mb-2 arabic-font">
+            মাদরাসা নির্বাচন করুন <span class="text-red-500">*</span>
+          </label>
           <AutoComplete
             v-model="row.searchQuery"
             :suggestions="getSuggestions(row.searchQuery)"
@@ -137,17 +203,30 @@ const onFileSelect = (field, row, event) => {
               class="p-1 text-sm"
               severity="secondary"
               rounded
-              @click="() => { row.selectedMadrasha = null; row.searchQuery = ''; row.madrasa_Name = ''; }"
+              @click="() => { row.selectedMadrasha = null; row.searchQuery = ''; row.madrasa_Name = ''; row.madrasa_id = ''; }"
               aria-label="Clear"
             />
           </div>
+          <div v-else class="mt-1 text-sm text-red-600">
+            মাদরাসা নির্বাচন করুন
+          </div>
         </div>
-        <!-- Student numbers -->
+
+        <!-- Student numbers - Conditional display based on markaz type -->
         <div class="flex flex-wrap gap-6 items-end">
-          <div v-for="field in Object.keys(fieldLabels)" :key="field" class="flex-1 min-w-[150px]">
-            <label :for="field" class="block text-lg font-medium text-slate-700 mb-2">{{ fieldLabels[field] }}</label>
+          <!-- Display fields based on markaz type -->
+          <div
+            v-for="field in Object.keys(fieldLabels)"
+            :key="field"
+            class="flex-1 min-w-[150px]"
+            v-show="isFieldVisible(field)"
+          >
+            <label :for="`${field}-${idx}`" class="block text-lg font-medium text-slate-700 mb-2">
+              {{ fieldLabels[field] }}
+              <span v-if="isFieldRequired(field)" class="text-red-500">*</span>
+            </label>
             <InputNumber
-              :id="field"
+              :id="`${field}-${idx}`"
               v-model="row[field]"
               class="w-full"
               inputClass="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-600 focus:border-purple-600 bg-white shadow-sm"
@@ -155,7 +234,11 @@ const onFileSelect = (field, row, event) => {
               :min="0"
               showButtons
             />
+            <div v-if="isRequiredFieldEmpty(row, field)" class="mt-1 text-sm text-red-600">
+              {{ fieldLabels[field] }} ছাত্র সংখ্যা দিন
+            </div>
           </div>
+
           <Button
             v-if="rows.length > 1"
             @click="removeRow(idx)"
@@ -165,12 +248,13 @@ const onFileSelect = (field, row, event) => {
             label="সারি মুছুন"
           />
         </div>
+
         <!-- NOC & Resolution File Upload: New row, 2 columns -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
           <!-- NOC File Upload -->
           <div>
             <label class="block text-lg font-medium text-slate-700 mb-2">
-              এনওসি (NOC) ফাইল
+              এনওসি (NOC) ফাইল <span class="text-red-500">*</span>
             </label>
             <FileUpload
               mode="basic"
@@ -184,14 +268,18 @@ const onFileSelect = (field, row, event) => {
             <div v-if="row.files.noc && typeof row.files.noc === 'object'" class="mt-2 text-sm text-green-700">
               ফাইল: {{ row.files.noc.name }}
             </div>
+            <div v-else-if="row.selectedMadrasha && !row.files.noc" class="mt-1 text-sm text-red-600">
+              NOC ফাইল আপলোড করুন
+            </div>
             <div v-if="row.files.nocPreview" class="mt-2">
               <img :src="row.files.nocPreview" alt="NOC Preview" class="max-h-20 border rounded" />
             </div>
           </div>
+
           <!-- Resolution File Upload -->
           <div>
             <label class="block text-lg font-medium text-slate-700 mb-2">
-              রেজল্যুশন (Resolution) ফাইল
+              রেজল্যুশন (Resolution) ফাইল <span class="text-red-500">*</span>
             </label>
             <FileUpload
               mode="basic"
@@ -204,6 +292,9 @@ const onFileSelect = (field, row, event) => {
             />
             <div v-if="row.files.resolution && typeof row.files.resolution === 'object'" class="mt-2 text-sm text-green-700">
               ফাইল: {{ row.files.resolution.name }}
+            </div>
+            <div v-else-if="row.selectedMadrasha && !row.files.resolution" class="mt-1 text-sm text-red-600">
+              রেজল্যুশন ফাইল আপলোড করুন
             </div>
             <div v-if="row.files.resolutionPreview" class="mt-2">
               <img :src="row.files.resolutionPreview" alt="Resolution Preview" class="max-h-20 border rounded" />
@@ -220,3 +311,30 @@ const onFileSelect = (field, row, event) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+:deep(.p-inputnumber) {
+  width: 100%;
+}
+
+:deep(.p-inputnumber-input) {
+  width: 100% !important;
+}
+
+:deep(.p-autocomplete-input) {
+  width: 100%;
+  padding: 0.5rem;
+}
+
+:deep(.p-fileupload-buttonbar) {
+  padding: 0;
+}
+
+:deep(.p-fileupload-content) {
+  display: none;
+}
+
+:deep(.p-button.p-component.p-fileupload-choose) {
+  width: 100%;
+}
+</style>
