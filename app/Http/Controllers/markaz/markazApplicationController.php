@@ -19,7 +19,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
 use Inertia\Inertia;
-
+use App\Services\MarkazAgreement\StoreMarkazAgreementService;
+use Illuminate\Contracts\Cache\Store;
 
 class markazApplicationController extends Controller
 {
@@ -48,123 +49,133 @@ class markazApplicationController extends Controller
 
     // মাদরাসার মারকায আবেদন
 
-public function store(Request $request)
-{
-    // Get user with madrasha relationship
-    $user = Auth::user();
-    $madrashaData = madrasha::where('id', $user->madrasha_id)->first();
+// public function store(Request $request)
+// {
+//     // Get user with madrasha relationship
+//     $user = Auth::user();
+//     $madrashaData = madrasha::where('id', $user->madrasha_id)->first();
 
-    // Get exam setup data
-    $examSetup = ExamSetup::select('id', 'exam_name')->latest()->first();
+//     // Get exam setup data
+//     $examSetup = ExamSetup::select('id', 'exam_name')->latest()->first();
 
-    // Create main agreement
-    $markazAgreement = new MarkazAgreement();
+//     // Create main agreement
+//     $markazAgreement = new MarkazAgreement();
 
-    // User and Exam related data
-    $markazAgreement->user_id = $user->id;
-    $markazAgreement->madrasha_Name = $user->madrasha_name;
-    $markazAgreement->madrasha_code = $user->custom_code;
-    $markazAgreement->exam_id = $examSetup->id;
-    $markazAgreement->exam_name = $examSetup->exam_name;
+//     // User and Exam related data
+//     $markazAgreement->user_id = $user->id;
+//     $markazAgreement->madrasha_Name = $user->madrasha_name;
+//     $markazAgreement->madrasha_code = $user->custom_code;
+//     $markazAgreement->exam_id = $examSetup->id;
+//     $markazAgreement->exam_name = $examSetup->exam_name;
 
-    // Madrasha related data - using relationships to get the actual names
-    if ($madrashaData) {
-        $division = Division::where('ID', $madrashaData->DID)->first();
-        $markazAgreement->division = $division ? $division->Division : '';
-        $markazAgreement->division_id = $madrashaData->DID ?? 0;
+//     // Madrasha related data - using relationships to get the actual names
+//     if ($madrashaData) {
+//         $division = Division::where('ID', $madrashaData->DID)->first();
+//         $markazAgreement->division = $division ? $division->Division : '';
+//         $markazAgreement->division_id = $madrashaData->DID ?? 0;
 
-        $district = District::where('DesID', $madrashaData->DISID)->first();
-        $markazAgreement->district = $district ? $district->District : '';
-        $markazAgreement->district_id = $madrashaData->DISID ?? 0;
+//         $district = District::where('DesID', $madrashaData->DISID)->first();
+//         $markazAgreement->district = $district ? $district->District : '';
+//         $markazAgreement->district_id = $madrashaData->DISID ?? 0;
 
-        $thana = Thana::where('Thana_ID', $madrashaData->TID)->first();
-        $markazAgreement->thana_uni = $thana ? $thana->Thana : '';
-        $markazAgreement->tid = $madrashaData->TID ?? 0;
+//         $thana = Thana::where('Thana_ID', $madrashaData->TID)->first();
+//         $markazAgreement->thana_uni = $thana ? $thana->Thana : '';
+//         $markazAgreement->tid = $madrashaData->TID ?? 0;
 
-        $markazAgreement->mtype = $madrashaData->MType ?? 0;
-        $markazAgreement->Stage = $madrashaData->Stage ?? 0;
-        $markazAgreement->Elhaq_no = $madrashaData->ElhaqNo ?? '';
-    } else {
-        $markazAgreement->division = '';
-        $markazAgreement->division_id = 0;
-        $markazAgreement->district = '';
-        $markazAgreement->district_id = 0;
-        $markazAgreement->thana_uni = '';
-        $markazAgreement->tid = 0;
-        $markazAgreement->mtype = 0;
-        $markazAgreement->Stage = 0;
-        $markazAgreement->Elhaq_no = '';
+//         $markazAgreement->mtype = $madrashaData->MType ?? 0;
+//         $markazAgreement->Stage = $madrashaData->Stage ?? 0;
+//         $markazAgreement->Elhaq_no = $madrashaData->ElhaqNo ?? '';
+//     } else {
+//         $markazAgreement->division = '';
+//         $markazAgreement->division_id = 0;
+//         $markazAgreement->district = '';
+//         $markazAgreement->district_id = 0;
+//         $markazAgreement->thana_uni = '';
+//         $markazAgreement->tid = 0;
+//         $markazAgreement->mtype = 0;
+//         $markazAgreement->Stage = 0;
+//         $markazAgreement->Elhaq_no = '';
+//     }
+
+//     // Student counts
+//     $markazAgreement->markaz_type = $request->markaz_type;
+//     $markazAgreement->fazilat = $request->fazilat;
+//     $markazAgreement->sanabiya_ulya = $request->sanabiya_ulya;
+//     $markazAgreement->sanabiya = $request->sanabiya;
+//     $markazAgreement->mutawassita = $request->mutawassita;
+//     $markazAgreement->ibtedaiyyah = $request->ibtedaiyyah;
+//     $markazAgreement->hifzul_quran = $request->hifzul_quran;
+//     $markazAgreement->qirat = $request->qirat;
+
+//     // File handling
+//     if ($request->hasFile('noc_file') && $request->file('noc_file') instanceof \Illuminate\Http\UploadedFile) {
+//         $markazAgreement->noc_file = $request->file('noc_file')->store('markaz/noc');
+//     }
+
+//     if ($request->hasFile('resolution_file') && $request->file('resolution_file') instanceof \Illuminate\Http\UploadedFile) {
+//         $markazAgreement->resolution_file = $request->file('resolution_file')->store('markaz/resolution');
+//     }
+
+//     // Requirements
+//     $markazAgreement->requirements = $request->requirements;
+
+//     // Consent files
+//     if ($request->hasFile('muhtamim_consent') && $request->file('muhtamim_consent') instanceof \Illuminate\Http\UploadedFile) {
+//         $markazAgreement->muhtamim_consent = $request->file('muhtamim_consent')->store('markaz/consent');
+//     }
+
+//     if ($request->hasFile('president_consent') && $request->file('president_consent') instanceof \Illuminate\Http\UploadedFile) {
+//         $markazAgreement->president_consent = $request->file('president_consent')->store('markaz/consent');
+//     }
+
+//     if ($request->hasFile('committee_resolution') && $request->file('committee_resolution') instanceof \Illuminate\Http\UploadedFile) {
+//         $markazAgreement->committee_resolution = $request->file('committee_resolution')->store('markaz/consent');
+//     }
+
+//     $markazAgreement->save();
+
+//     // Handle associated madrasas
+//     if ($request->has('associated_madrasas') && is_array($request->associated_madrasas)) {
+//         foreach ($request->associated_madrasas as $madrasaData) {
+//             $associatedMadrasa = new MarkazAgreementMadrasa();
+//             $associatedMadrasa->markaz_agreement_id = $markazAgreement->id;
+//             $associatedMadrasa->madrasa_Name = $madrasaData['madrasa_Name'] ?? '';
+//             $associatedMadrasa->madrasa_id = $madrasaData['madrasa_id'] ?? null;
+
+//             $associatedMadrasa->fazilat = $madrasaData['fazilat'] ?? 0;
+//             $associatedMadrasa->sanabiya_ulya = $madrasaData['sanabiya_ulya'] ?? 0;
+//             $associatedMadrasa->sanabiya = $madrasaData['sanabiya'] ?? 0;
+//             $associatedMadrasa->mutawassita = $madrasaData['mutawassita'] ?? 0;
+//             $associatedMadrasa->ibtedaiyyah = $madrasaData['ibtedaiyyah'] ?? 0;
+//             $associatedMadrasa->hifzul_quran = $madrasaData['hifzul_quran'] ?? 0;
+//             $associatedMadrasa->qirat = $madrasaData['qirat'] ?? 0;
+
+//             // File handling with type check
+//             if (isset($madrasaData['noc_file']) && $madrasaData['noc_file'] instanceof \Illuminate\Http\UploadedFile) {
+//                 $associatedMadrasa->noc_file = $madrasaData['noc_file']->store('markaz/associated/noc');
+//             }
+
+//             if (isset($madrasaData['resolution_file']) && $madrasaData['resolution_file'] instanceof \Illuminate\Http\UploadedFile) {
+//                 $associatedMadrasa->resolution_file = $madrasaData['resolution_file']->store('markaz/associated/resolution');
+//             }
+
+//             $associatedMadrasa->save();
+//         }
+//     }
+
+//     return redirect()->route('markaz-agreements.index')
+//         ->with('success', 'মারকায চুক্তি সফলভাবে সংরক্ষণ করা হয়েছে');
+// }
+
+  public function store(Request $request, StoreMarkazAgreementService $service)
+    {
+        $service->execute($request, Auth::user());
+
+        return redirect()->route('markaz-agreements.index')
+            ->with('success', 'মারকায চুক্তি সফলভাবে সংরক্ষণ করা হয়েছে');
     }
 
-    // Student counts
-    $markazAgreement->markaz_type = $request->markaz_type;
-    $markazAgreement->fazilat = $request->fazilat;
-    $markazAgreement->sanabiya_ulya = $request->sanabiya_ulya;
-    $markazAgreement->sanabiya = $request->sanabiya;
-    $markazAgreement->mutawassita = $request->mutawassita;
-    $markazAgreement->ibtedaiyyah = $request->ibtedaiyyah;
-    $markazAgreement->hifzul_quran = $request->hifzul_quran;
-    $markazAgreement->qirat = $request->qirat;
 
-    // File handling
-    if ($request->hasFile('noc_file') && $request->file('noc_file') instanceof \Illuminate\Http\UploadedFile) {
-        $markazAgreement->noc_file = $request->file('noc_file')->store('markaz/noc');
-    }
-
-    if ($request->hasFile('resolution_file') && $request->file('resolution_file') instanceof \Illuminate\Http\UploadedFile) {
-        $markazAgreement->resolution_file = $request->file('resolution_file')->store('markaz/resolution');
-    }
-
-    // Requirements
-    $markazAgreement->requirements = $request->requirements;
-
-    // Consent files
-    if ($request->hasFile('muhtamim_consent') && $request->file('muhtamim_consent') instanceof \Illuminate\Http\UploadedFile) {
-        $markazAgreement->muhtamim_consent = $request->file('muhtamim_consent')->store('markaz/consent');
-    }
-
-    if ($request->hasFile('president_consent') && $request->file('president_consent') instanceof \Illuminate\Http\UploadedFile) {
-        $markazAgreement->president_consent = $request->file('president_consent')->store('markaz/consent');
-    }
-
-    if ($request->hasFile('committee_resolution') && $request->file('committee_resolution') instanceof \Illuminate\Http\UploadedFile) {
-        $markazAgreement->committee_resolution = $request->file('committee_resolution')->store('markaz/consent');
-    }
-
-    $markazAgreement->save();
-
-    // Handle associated madrasas
-    if ($request->has('associated_madrasas') && is_array($request->associated_madrasas)) {
-        foreach ($request->associated_madrasas as $madrasaData) {
-            $associatedMadrasa = new MarkazAgreementMadrasa();
-            $associatedMadrasa->markaz_agreement_id = $markazAgreement->id;
-            $associatedMadrasa->madrasa_Name = $madrasaData['madrasa_Name'] ?? '';
-            $associatedMadrasa->madrasa_id = $madrasaData['madrasa_id'] ?? null;
-
-            $associatedMadrasa->fazilat = $madrasaData['fazilat'] ?? 0;
-            $associatedMadrasa->sanabiya_ulya = $madrasaData['sanabiya_ulya'] ?? 0;
-            $associatedMadrasa->sanabiya = $madrasaData['sanabiya'] ?? 0;
-            $associatedMadrasa->mutawassita = $madrasaData['mutawassita'] ?? 0;
-            $associatedMadrasa->ibtedaiyyah = $madrasaData['ibtedaiyyah'] ?? 0;
-            $associatedMadrasa->hifzul_quran = $madrasaData['hifzul_quran'] ?? 0;
-            $associatedMadrasa->qirat = $madrasaData['qirat'] ?? 0;
-
-            // File handling with type check
-            if (isset($madrasaData['noc_file']) && $madrasaData['noc_file'] instanceof \Illuminate\Http\UploadedFile) {
-                $associatedMadrasa->noc_file = $madrasaData['noc_file']->store('markaz/associated/noc');
-            }
-
-            if (isset($madrasaData['resolution_file']) && $madrasaData['resolution_file'] instanceof \Illuminate\Http\UploadedFile) {
-                $associatedMadrasa->resolution_file = $madrasaData['resolution_file']->store('markaz/associated/resolution');
-            }
-
-            $associatedMadrasa->save();
-        }
-    }
-
-    return redirect()->route('markaz-agreements.index')
-        ->with('success', 'মারকায চুক্তি সফলভাবে সংরক্ষণ করা হয়েছে');
-}
 
 
 

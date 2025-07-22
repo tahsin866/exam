@@ -98,14 +98,48 @@ const removeRow = (index) => {
     }
 }
 
+// সম্পূর্ণ পুনর্লিখিত handleFileUpload ফাংশন
 const handleFileUpload = (file, type, index) => {
-    if (!file) return
-    if (type === 'noc') {
-        rows.value[index].files.noc = file
-        rows.value[index].files.nocPreview = URL.createObjectURL(file)
-    } else {
-        rows.value[index].files.resolution = file
-        rows.value[index].files.resolutionPreview = URL.createObjectURL(file)
+    try {
+        // Direct check if file parameter is already a File object
+        if (file instanceof File || file instanceof Blob) {
+            // Process the File object directly
+            if (type === 'noc') {
+                rows.value[index].files.noc = file;
+                rows.value[index].files.nocPreview = URL.createObjectURL(file);
+            } else {
+                rows.value[index].files.resolution = file;
+                rows.value[index].files.resolutionPreview = URL.createObjectURL(file);
+            }
+            return;
+        }
+
+        // If not a direct File object, try to extract it from event
+        let extractedFile = null;
+
+        // Check various event structures
+        if (file && file.files && file.files.length > 0) {
+            extractedFile = file.files[0];
+        } else if (file && file.target && file.target.files && file.target.files.length > 0) {
+            extractedFile = file.target.files[0];
+        } else if (file && file.originalEvent && file.originalEvent.target &&
+                  file.originalEvent.target.files && file.originalEvent.target.files.length > 0) {
+            extractedFile = file.originalEvent.target.files[0];
+        }
+
+        if (extractedFile) {
+            if (type === 'noc') {
+                rows.value[index].files.noc = extractedFile;
+                rows.value[index].files.nocPreview = URL.createObjectURL(extractedFile);
+            } else {
+                rows.value[index].files.resolution = extractedFile;
+                rows.value[index].files.resolutionPreview = URL.createObjectURL(extractedFile);
+            }
+        } else {
+            console.error('No file found in event:', file);
+        }
+    } catch (error) {
+        console.error('Error in handleFileUpload:', error);
     }
 }
 
@@ -130,21 +164,62 @@ const presidentPreview = ref(null)
 const committeeFile = ref(null)
 const committeePreview = ref(null)
 
-const handleFileUploadMumtahin = (file, type) => {
-    if (!file) return
-    switch (type) {
-        case 'muhtamim':
-            muhtamimFile.value = file
-            muhtamimPreview.value = URL.createObjectURL(file)
-            break
-        case 'president':
-            presidentFile.value = file
-            presidentPreview.value = URL.createObjectURL(file)
-            break
-        case 'committee':
-            committeeFile.value = file
-            committeePreview.value = URL.createObjectURL(file)
-            break
+const handleFileUploadMumtahin = (event, type) => {
+    try {
+        // Direct check if event is a File object
+        if (event instanceof File || event instanceof Blob) {
+            // Process the File object directly
+            switch (type) {
+                case 'muhtamim':
+                    muhtamimFile.value = event;
+                    muhtamimPreview.value = URL.createObjectURL(event);
+                    break;
+                case 'president':
+                    presidentFile.value = event;
+                    presidentPreview.value = URL.createObjectURL(event);
+                    break;
+                case 'committee':
+                    committeeFile.value = event;
+                    committeePreview.value = URL.createObjectURL(event);
+                    break;
+            }
+            return;
+        }
+
+        // If not a direct File object, try to extract it from event
+        let file = null;
+
+        // Check various event structures
+        if (event && event.files && event.files.length > 0) {
+            file = event.files[0];
+        } else if (event && event.target && event.target.files && event.target.files.length > 0) {
+            file = event.target.files[0];
+        } else if (event && event.originalEvent && event.originalEvent.target &&
+                   event.originalEvent.target.files && event.originalEvent.target.files.length > 0) {
+            file = event.originalEvent.target.files[0];
+        }
+
+        if (!file) {
+            console.error('No file found in event:', event);
+            return;
+        }
+
+        switch (type) {
+            case 'muhtamim':
+                muhtamimFile.value = file;
+                muhtamimPreview.value = URL.createObjectURL(file);
+                break;
+            case 'president':
+                presidentFile.value = file;
+                presidentPreview.value = URL.createObjectURL(file);
+                break;
+            case 'committee':
+                committeeFile.value = file;
+                committeePreview.value = URL.createObjectURL(file);
+                break;
+        }
+    } catch (error) {
+        console.error('Error in handleFileUploadMumtahin:', error);
     }
 }
 
@@ -165,6 +240,55 @@ const removeFileMumtahin = (type) => {
     }
 }
 
+// সম্পূর্ণ পুনর্লিখিত handleFileUploadForMadrahsa ফাংশন
+const handleFileUploadForMadrahsa = (file, type) => {
+    try {
+        // Direct check if file parameter is already a File object
+        if (file instanceof File || file instanceof Blob) {
+            // Process the File object directly
+            if (type === 'noc') {
+                form.noc_file = file;
+                nocFileForMadrahsa.value = file;
+                nocPreviewForMadrahsa.value = URL.createObjectURL(file);
+            } else {
+                form.resolution_file = file;
+                resolutionFileForMadrahsa.value = file;
+                resolutionPreviewForMadrahsa.value = URL.createObjectURL(file);
+            }
+            return;
+        }
+
+        // If not a direct File object, try to extract it from event
+        let extractedFile = null;
+
+        // Check various event structures
+        if (file && file.files && file.files.length > 0) {
+            extractedFile = file.files[0];
+        } else if (file && file.target && file.target.files && file.target.files.length > 0) {
+            extractedFile = file.target.files[0];
+        } else if (file && file.originalEvent && file.originalEvent.target &&
+                  file.originalEvent.target.files && file.originalEvent.target.files.length > 0) {
+            extractedFile = file.originalEvent.target.files[0];
+        }
+
+        if (extractedFile) {
+            if (type === 'noc') {
+                form.noc_file = extractedFile;
+                nocFileForMadrahsa.value = extractedFile;
+                nocPreviewForMadrahsa.value = URL.createObjectURL(extractedFile);
+            } else {
+                form.resolution_file = extractedFile;
+                resolutionFileForMadrahsa.value = extractedFile;
+                resolutionPreviewForMadrahsa.value = URL.createObjectURL(extractedFile);
+            }
+        } else {
+            console.error('No file found in event:', file);
+        }
+    } catch (error) {
+        console.error('Error in handleFileUploadForMadrahsa:', error);
+    }
+}
+
 const removeFileForMadrahsa = (type) => {
     if (type === 'noc') {
         nocFileForMadrahsa.value = null
@@ -174,19 +298,6 @@ const removeFileForMadrahsa = (type) => {
         resolutionFileForMadrahsa.value = null
         resolutionPreviewForMadrahsa.value = null
         form.resolution_file = null
-    }
-}
-
-const handleFileUploadForMadrahsa = (file, type) => {
-    if (!file) return
-    if (type === 'noc') {
-        form.noc_file = file
-        nocFileForMadrahsa.value = file
-        nocPreviewForMadrahsa.value = URL.createObjectURL(file)
-    } else {
-        form.resolution_file = file
-        resolutionFileForMadrahsa.value = file
-        resolutionPreviewForMadrahsa.value = URL.createObjectURL(file)
     }
 }
 
@@ -449,7 +560,7 @@ const submitForm = () => {
 
 // Helper function to get current date and time
 const getCurrentDateTime = () => {
-    return "2025-07-22 04:59:57"; // Updated with provided value
+    return "2025-07-22 09:17:27"; // Updated with provided value
 }
 
 // Helper function to get current user
@@ -468,66 +579,92 @@ const isConditionsAccepted = computed(() => {
     return conditionsAgreed.value;
 });
 
+// সংশোধিত isStep1Valid কম্পিউটেড প্রোপার্টি
 const isStep1Valid = computed(() => {
-  if (!form.markaz_type) return false;
-
-  if (form.markaz_type === 'দরসিয়াত') {
-    return form.fazilat !== '' && form.fazilat !== null &&
-           form.sanabiya_ulya !== '' && form.sanabiya_ulya !== null &&
-           nocFileForMadrahsa.value && resolutionFileForMadrahsa.value;
-  } else if (form.markaz_type === 'তাহফিজুল কোরআন') {
-    return form.hifzul_quran !== '' && form.hifzul_quran !== null &&
-           nocFileForMadrahsa.value && resolutionFileForMadrahsa.value;
-  } else if (form.markaz_type === 'কিরাআত') {
-    return form.qirat !== '' && form.qirat !== null &&
-           nocFileForMadrahsa.value && resolutionFileForMadrahsa.value;
-  }
-
-  return false;
-});
-
-const isStep2Valid = computed(() => {
-  if (rows.value.length === 0) return false;
-
-  return rows.value.every(row => {
-    if (!row.madrasa_id) return false;
-    if (!row.files.noc || !row.files.resolution) return false;
+  try {
+    if (!form || !form.markaz_type) return false;
 
     if (form.markaz_type === 'দরসিয়াত') {
-      return row.fazilat !== '' && row.fazilat !== null &&
-             row.sanabiya_ulya !== '' && row.sanabiya_ulya !== null;
+      return form.fazilat !== '' && form.fazilat !== null &&
+             form.sanabiya_ulya !== '' && form.sanabiya_ulya !== null &&
+             !!nocFileForMadrahsa.value && !!resolutionFileForMadrahsa.value;
     } else if (form.markaz_type === 'তাহফিজুল কোরআন') {
-      return row.hifzul_quran !== '' && row.hifzul_quran !== null;
+      return form.hifzul_quran !== '' && form.hifzul_quran !== null &&
+             !!nocFileForMadrahsa.value && !!resolutionFileForMadrahsa.value;
     } else if (form.markaz_type === 'কিরাআত') {
-      return row.qirat !== '' && row.qirat !== null;
+      return form.qirat !== '' && form.qirat !== null &&
+             !!nocFileForMadrahsa.value && !!resolutionFileForMadrahsa.value;
     }
 
     return false;
-  });
+  } catch (error) {
+    console.error('Error in isStep1Valid:', error);
+    return false;
+  }
+});
+
+const isStep2Valid = computed(() => {
+  try {
+    if (!rows?.value || rows.value.length === 0) return false;
+
+    return rows.value.every(row => {
+      if (!row.madrasa_id) return false;
+      if (!row.files?.noc || !row.files?.resolution) return false;
+
+      if (form?.markaz_type === 'দরসিয়াত') {
+        return row.fazilat !== '' && row.fazilat !== null &&
+               row.sanabiya_ulya !== '' && row.sanabiya_ulya !== null;
+      } else if (form?.markaz_type === 'তাহফিজুল কোরআন') {
+        return row.hifzul_quran !== '' && row.hifzul_quran !== null;
+      } else if (form?.markaz_type === 'কিরাআত') {
+        return row.qirat !== '' && row.qirat !== null;
+      }
+
+      return false;
+    });
+  } catch (error) {
+    console.error('Error in isStep2Valid:', error);
+    return false;
+  }
 });
 
 const isStep3Valid = computed(() => {
-  // Requirements field is mandatory
-  return !!form.requirements;
+  try {
+    // Requirements field is mandatory
+    return !!form?.requirements;
+  } catch (error) {
+    console.error('Error in isStep3Valid:', error);
+    return false;
+  }
 });
 
-// Check if a step is accessible based on completion of previous steps
+// সংশোধিত canAccessStep কম্পিউটেড প্রোপার্টি
 const canAccessStep = computed(() => {
-  return {
-    0: true, // Step 1 (শর্তাবলী) is always accessible
-    1: isConditionsAccepted.value, // Step 2 needs conditions to be accepted
-    2: isConditionsAccepted.value && isStep1Valid.value, // Step 3 needs Step 2 to be valid
-    3: isConditionsAccepted.value && isStep1Valid.value && isStep2Valid.value // Step 4 needs Step 3 to be valid
-  };
+  try {
+    return {
+      0: true, // Step 1 (শর্তাবলী) is always accessible
+      1: !!isConditionsAccepted.value, // Step 2 needs conditions to be accepted
+      2: (!!isConditionsAccepted.value && !!isStep1Valid.value), // Step 3 needs Step 2 to be valid
+      3: (!!isConditionsAccepted.value && !!isStep1Valid.value && !!isStep2Valid.value) // Step 4 needs Step 3 to be valid
+    };
+  } catch (error) {
+    console.error('Error in canAccessStep:', error);
+    return { 0: true, 1: false, 2: false, 3: false };
+  }
 });
 
 const getStepCompletionPercentage = computed(() => {
-    let total = 0;
-    if (isConditionsAccepted.value) total += 25;
-    if (isStep1Valid.value) total += 25;
-    if (isStep2Valid.value) total += 25;
-    if (isStep3Valid.value) total += 25;
-    return Math.round(total);
+    try {
+        let total = 0;
+        if (isConditionsAccepted?.value) total += 25;
+        if (isStep1Valid?.value) total += 25;
+        if (isStep2Valid?.value) total += 25;
+        if (isStep3Valid?.value) total += 25;
+        return Math.round(total);
+    } catch (error) {
+        console.error('Error in getStepCompletionPercentage:', error);
+        return 0;
+    }
 });
 
 // Updated step labels for the wizard
@@ -634,16 +771,16 @@ const goToNextStep = () => {
                                 :key="index"
                                 class="flex flex-col items-center w-1/4 transition-all duration-300"
                                 :class="{
-                                    'opacity-50': !canAccessStep[index] && index !== step.value
+                                    'opacity-50': !canAccessStep[index] && index !== step
                                 }"
                             >
                                 <div class="flex items-center justify-center h-10 w-10 rounded-full mb-2"
                                     :class="[
-                                        step.value === index ? 'bg-blue-100 text-blue-600' :
-                                        ((index === 0 && isConditionsAccepted.value) ||
-                                         (index === 1 && isStep1Valid.value) ||
-                                         (index === 2 && isStep2Valid.value) ||
-                                         (index === 3 && isStep3Valid.value)) ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
+                                        step === index ? 'bg-blue-100 text-blue-600' :
+                                        ((index === 0 && isConditionsAccepted) ||
+                                         (index === 1 && isStep1Valid) ||
+                                         (index === 2 && isStep2Valid) ||
+                                         (index === 3 && isStep3Valid)) ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
                                     ]">
                                     <i :class="[stepLabel.icon, 'text-lg']"></i>
                                 </div>

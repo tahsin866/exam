@@ -23,7 +23,7 @@ Route::get('/markaz-change-table', fn() => Inertia::render('Markaz/markaz_change
 
 // Markaz Agreement
 Route::get('/markaz-agreement-form', fn() => Inertia::render('Markaz/markaz_agreement_form'))->name('Markaz.markaz_agreement_form');
-Route::resource('markaz-agreements', MarkazAgreementController::class); // resourceful MarkazAgreement routes
+
 
 // Markaz Marhala & Subject
 Route::get('/marhala-change', fn() => Inertia::render('Markaz/marhala_change'))->name('Markaz.marhala_change');

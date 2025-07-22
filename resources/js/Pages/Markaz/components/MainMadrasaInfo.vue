@@ -24,16 +24,14 @@ const showHifzField = computed(() => props.form.markaz_type === 'তাহফি
 const showKiratField = computed(() => props.form.markaz_type === 'কিরাআত');
 
 function onNocFileSelect(e) {
-    const file = e?.files?.[0] || null
-    if (file) {
-        emit('file-upload', file, 'noc')
+    if (e?.files?.[0]) {
+        emit('file-upload', { files: [e.files[0]] }, 'noc')
     }
 }
 
 function onResolutionFileSelect(e) {
-    const file = e?.files?.[0] || null
-    if (file) {
-        emit('file-upload', file, 'resolution')
+    if (e?.files?.[0]) {
+        emit('file-upload', { files: [e.files[0]] }, 'resolution')
     }
 }
 

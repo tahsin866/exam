@@ -26,6 +26,13 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         const app = createApp({ render: () => h(App, props) });
 
+        // Global error handler for better debugging
+        app.config.errorHandler = (error, instance, info) => {
+            console.error('Vue Global Error:', error);
+            console.error('Component Instance:', instance);
+            console.error('Error Info:', info);
+        };
+
         app.use(plugin)
         .use(ZiggyVue)
         .use(MotionPlugin)

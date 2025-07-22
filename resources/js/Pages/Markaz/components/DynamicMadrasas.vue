@@ -216,7 +216,7 @@
                                     accept="application/pdf,image/*"
                                     :auto="true"
                                     chooseLabel="ফাইল নির্বাচন করুন"
-                                    @select="e => $emit('file-upload', e.files[0], 'noc', index)"
+                                    @select="(e) => handleFileSelect(e, 'noc', index)"
                                     class="w-full"
                                 />
                                 <div v-if="!row.files.noc && row.madrasa_id" class="text-sm text-red-500 mt-1">
@@ -248,7 +248,7 @@
                                     accept="application/pdf,image/*"
                                     :auto="true"
                                     chooseLabel="ফাইল নির্বাচন করুন"
-                                    @select="e => $emit('file-upload', e.files[0], 'resolution', index)"
+                                    @select="(e) => handleFileSelect(e, 'resolution', index)"
                                     class="w-full"
                                 />
                                 <div v-if="!row.files.resolution && row.madrasa_id" class="text-sm text-red-500 mt-1">
@@ -273,7 +273,7 @@
 </template>
 
 <script setup>
-import { defineProps, ref, computed } from 'vue'
+import { defineProps, ref, computed, defineEmits } from 'vue'
 import AutoComplete from 'primevue/autocomplete'
 import InputNumber from 'primevue/inputnumber'
 import FileUpload from 'primevue/fileupload'
@@ -288,6 +288,9 @@ const props = defineProps({
         default: ''
     }
 });
+
+// Define emits
+const emit = defineEmits(['add-row', 'remove-row', 'file-upload', 'remove-file', 'select-option']);
 
 // Track suggestions for each row
 const suggestionCache = ref({});
@@ -330,6 +333,62 @@ const preloadSuggestions = (row) => {
     }
     suggestionCache.value[row].suggestions = props.madrashas.slice(0, 30);
     row.isOpen = true;
+}
+
+// সম্পূর্ণ পুনর্লিখিত handleFileSelect ফাংশন
+const handleFileSelect = (event, type, index) => {
+    try {
+        // ১। সরাসরি ফাইল অবজেক্ট চেক - যদি event নিজেই File অবজেক্ট হয়
+        if (event instanceof File || event instanceof Blob) {
+            emit('file-upload', event, type, index);
+            return;
+        }
+
+        // ২। যদি event.files সরাসরি থাকে (PrimeVue FileUpload)
+        if (event && event.files && event.files.length > 0) {
+            emit('file-upload', event.files[0], type, index);
+            return;
+        }
+
+        // ৩। যদি event স্ট্যান্ডার্ড input[type="file"] থেকে আসে
+        if (event && event.target && event.target.files && event.target.files.length > 0) {
+            emit('file-upload', event.target.files[0], type, index);
+            return;
+        }
+
+        // ৪। যদি event.originalEvent থাকে (PrimeVue এবং অন্যান্য লাইব্রেরিতে থাকে)
+        if (event && event.originalEvent && event.originalEvent.target &&
+            event.originalEvent.target.files && event.originalEvent.target.files.length > 0) {
+            emit('file-upload', event.originalEvent.target.files[0], type, index);
+            return;
+        }
+
+        // ৫। যদি event অবজেক্ট এর ভিতর কোথাও File অবজেক্ট লুকিয়ে থাকে
+        if (event && typeof event === 'object') {
+            // সমস্ত properties চেক করি
+            for (const key in event) {
+                const value = event[key];
+
+                // যদি সরাসরি File অবজেক্ট হয়
+                if (value instanceof File || value instanceof Blob) {
+                    emit('file-upload', value, type, index);
+                    return;
+                }
+
+                // যদি files অ্যারে হয়
+                if (Array.isArray(value) && value.length > 0 && value[0] instanceof File) {
+                    emit('file-upload', value[0], type, index);
+                    return;
+                }
+            }
+        }
+
+        // কোন ফাইল পাওয়া যায়নি
+        console.error('ফাইল খুঁজে পাওয়া যায়নি, ইভেন্ট অবজেক্ট:', event);
+
+    } catch (error) {
+        console.error('ফাইল সিলেকশনে সমস্যা হয়েছে:', error);
+    }
 }
 
 // Computed properties to control field visibility based on markaz_type

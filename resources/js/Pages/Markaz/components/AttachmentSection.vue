@@ -158,18 +158,36 @@ const previewDialogTitle = ref('ফাইল প্রিভিউ')
 
 // Handle file selection
 const handleFileSelect = (event, type) => {
-  // Forward to parent component
-  event.preventDefault() // Prevent default behavior
-
-  // Keep the same event signature that parent component expects
-  const originalEvent = {
-    target: {
-      files: event.files
+  try {
+    // Check if event has preventDefault method before calling it
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault()
     }
-  }
 
-  // Emit the same event as before
-  emit('file-upload', originalEvent, type)
+    // Handle PrimeVue FileUpload event structure
+    // PrimeVue FileUpload sends event with files property
+    let files = []
+    
+    if (event && event.files) {
+      files = Array.isArray(event.files) ? event.files : [event.files]
+    } else if (event && event.target && event.target.files) {
+      files = Array.from(event.target.files)
+    }
+    
+    // Keep the same event signature that parent component expects
+    const originalEvent = {
+      target: {
+        files: files
+      }
+    }
+
+    // Emit the same event as before
+    emit('file-upload', originalEvent, type)
+  } catch (error) {
+    console.error('Error in handleFileSelect:', error)
+    // Still emit with empty files to prevent component breaking
+    emit('file-upload', { target: { files: [] } }, type)
+  }
 }
 
 // Detect if URL is a PDF
