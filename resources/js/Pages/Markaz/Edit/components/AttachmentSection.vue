@@ -9,14 +9,30 @@ const emit = defineEmits(['update:file'])
 const getFileName = (field) => {
   // Show uploaded file name if available, otherwise show preview file name if available from markazData
   if (props.form[field] && props.form[field].name) return props.form[field].name
+  
+  // Check for URL field first (like muhtamim_consent_url)
+  const urlField = field + '_url'
+  if (props.markazData && props.markazData[urlField]) {
+    return props.markazData[urlField].split('/').pop()
+  }
+  
+  // Fallback to direct field if exists
   if (props.markazData && props.markazData[field]) {
-    // If markazData[field] is a filename or path, extract only the filename
     const path = props.markazData[field]
     return path.split('/').pop()
   }
   return ''
 }
-const previewUrl = field => props.markazData && props.markazData[field] ? `/storage/${props.markazData[field]}` : null
+
+const previewUrl = field => {
+  // Check for URL fields first (from Controller's Storage::url())
+  const urlField = field + '_url'
+  if (props.markazData && props.markazData[urlField]) {
+    return props.markazData[urlField]
+  }
+  // Fallback to direct file path if URL field doesn't exist
+  return props.markazData && props.markazData[field] ? `/storage/${props.markazData[field]}` : null
+}
 
 const handleFileChange = (field, files) => {
   // PrimeVue's FileUpload passes an array of files

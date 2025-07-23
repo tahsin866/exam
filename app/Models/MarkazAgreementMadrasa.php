@@ -6,16 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class MarkazAgreementMadrasa extends Model
 {
-    // protected $fillable = [
+    protected $fillable = [
+        'markaz_agreement_id',
+        'madrasa_id',
+        'madrasa_Name',
+        'fazilat',
+        'sanabiya_ulya',
+        'sanabiya',
+        'mutawassita',
+        'ibtedaiyyah',
+        'hifzul_quran',
+        'qirat',
+        'noc_file',
+        'resolution_file'
+    ];
 
-    //     'fazilat',
-    //     'sanabiya_ulya',
-    //     'sanabiya',
-    //     'mutawassita',
-    //     'ibtedaiyyah',
-    //     'hifzul_quran',
-
-
-
-    // ];
+    public function markazAgreement()
+    {
+        return $this->belongsTo(MarkazAgreement::class);
+    }
 }

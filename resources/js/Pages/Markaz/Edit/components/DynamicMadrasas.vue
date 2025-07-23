@@ -67,6 +67,7 @@ const addRow = () => {
     hifzul_quran: "",
     qirat: "",
     madrasa_Name: "",
+    madrasa_id: null,
     searchQuery: "",
     selectedMadrasha: null,
     files: {
@@ -271,7 +272,19 @@ const isFieldVisible = (field) => {
             <div v-else-if="row.selectedMadrasha && !row.files.noc" class="mt-1 text-sm text-red-600">
               NOC ফাইল আপলোড করুন
             </div>
-            <div v-if="row.files.nocPreview" class="mt-2">
+            
+            <!-- Show existing file from database -->
+            <div v-if="row.files.nocPreview && !row.files.noc" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
+              <i class="pi pi-file-pdf text-red-500 text-xl mr-2"></i>
+              <div>
+                <div class="font-medium">বর্তমান ফাইল:</div>
+                <a :href="row.files.nocPreview" target="_blank" class="text-blue-600 hover:underline text-sm">
+                  {{ row.files.nocPreview ? row.files.nocPreview.split('/').pop() : 'ফাইল দেখুন' }}
+                </a>
+              </div>
+            </div>
+            
+            <div v-if="row.files.nocPreview && row.files.noc && row.files.noc.type && row.files.noc.type.startsWith('image/')" class="mt-2">
               <img :src="row.files.nocPreview" alt="NOC Preview" class="max-h-20 border rounded" />
             </div>
           </div>
@@ -296,7 +309,19 @@ const isFieldVisible = (field) => {
             <div v-else-if="row.selectedMadrasha && !row.files.resolution" class="mt-1 text-sm text-red-600">
               রেজল্যুশন ফাইল আপলোড করুন
             </div>
-            <div v-if="row.files.resolutionPreview" class="mt-2">
+            
+            <!-- Show existing file from database -->
+            <div v-if="row.files.resolutionPreview && !row.files.resolution" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
+              <i class="pi pi-file-pdf text-red-500 text-xl mr-2"></i>
+              <div>
+                <div class="font-medium">বর্তমান ফাইল:</div>
+                <a :href="row.files.resolutionPreview" target="_blank" class="text-blue-600 hover:underline text-sm">
+                  {{ row.files.resolutionPreview ? row.files.resolutionPreview.split('/').pop() : 'ফাইল দেখুন' }}
+                </a>
+              </div>
+            </div>
+            
+            <div v-if="row.files.resolutionPreview && row.files.resolution && row.files.resolution.type && row.files.resolution.type.startsWith('image/')" class="mt-2">
               <img :src="row.files.resolutionPreview" alt="Resolution Preview" class="max-h-20 border rounded" />
             </div>
           </div>

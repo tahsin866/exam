@@ -3,7 +3,7 @@ import { defineProps, defineEmits, computed } from 'vue'
 import InputNumber from 'primevue/inputnumber'
 import FileUpload from 'primevue/fileupload'
 
-const props = defineProps({ form: Object })
+const props = defineProps({ form: Object, markazData: Object })
 const emit = defineEmits(['update:file'])
 
 const fieldLabels = {
@@ -107,28 +107,27 @@ const shouldDisplayField = (field) => {
             @select="onFileSelect('noc_file', $event)"
             :customUpload="true"
             class="w-full"
-            :disabled="!(form.noc_file && (typeof form.noc_file === 'string' || typeof form.noc_file === 'object'))"
           />
         </div>
 
-        <div v-if="form.noc_file && typeof form.noc_file === 'string'" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
+        <!-- Show existing file from database -->
+        <div v-if="markazData && markazData.noc_file_url" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
           <i class="pi pi-file-pdf text-red-500 text-xl mr-2"></i>
           <div>
             <div class="font-medium">বর্তমান ফাইল:</div>
-            <a :href="form.noc_file" target="_blank" class="text-blue-600 hover:underline text-sm">
-              {{ form.noc_file.split('/').pop() }}
+            <a :href="markazData.noc_file_url" target="_blank" class="text-blue-600 hover:underline text-sm">
+              {{ markazData.noc_file_url ? markazData.noc_file_url.split('/').pop() : 'ফাইল দেখুন' }}
             </a>
           </div>
         </div>
-        <div v-else-if="form.noc_file && typeof form.noc_file === 'object'" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
+        
+        <!-- Show newly uploaded file -->
+        <div v-if="form.noc_file && typeof form.noc_file === 'object'" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
           <i class="pi pi-upload text-green-500 text-xl mr-2"></i>
           <div>
             <div class="font-medium">নতুন ফাইল:</div>
             <span class="text-sm">{{ form.noc_file.name }}</span>
           </div>
-        </div>
-        <div v-else class="mt-1 text-sm text-red-600">
-          এনওসি ফাইল ডাটা নেই
         </div>
       </div>
 
@@ -146,28 +145,27 @@ const shouldDisplayField = (field) => {
             @select="onFileSelect('resolution_file', $event)"
             :customUpload="true"
             class="w-full"
-            :disabled="!(form.resolution_file && (typeof form.resolution_file === 'string' || typeof form.resolution_file === 'object'))"
           />
         </div>
 
-        <div v-if="form.resolution_file && typeof form.resolution_file === 'string'" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
+        <!-- Show existing file from database -->
+        <div v-if="markazData && markazData.resolution_file_url" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
           <i class="pi pi-file-pdf text-red-500 text-xl mr-2"></i>
           <div>
             <div class="font-medium">বর্তমান ফাইল:</div>
-            <a :href="form.resolution_file" target="_blank" class="text-blue-600 hover:underline text-sm">
-              {{ form.resolution_file.split('/').pop() }}
+            <a :href="markazData.resolution_file_url" target="_blank" class="text-blue-600 hover:underline text-sm">
+              {{ markazData.resolution_file_url ? markazData.resolution_file_url.split('/').pop() : 'ফাইল দেখুন' }}
             </a>
           </div>
         </div>
-        <div v-else-if="form.resolution_file && typeof form.resolution_file === 'object'" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
+        
+        <!-- Show newly uploaded file -->
+        <div v-if="form.resolution_file && typeof form.resolution_file === 'object'" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
           <i class="pi pi-upload text-green-500 text-xl mr-2"></i>
           <div>
             <div class="font-medium">নতুন ফাইল:</div>
             <span class="text-sm">{{ form.resolution_file.name }}</span>
           </div>
-        </div>
-        <div v-else class="mt-1 text-sm text-red-600">
-          রেজল্যুশন ফাইল ডাটা নেই
         </div>
       </div>
     </div>

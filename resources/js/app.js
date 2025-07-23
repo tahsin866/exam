@@ -4,7 +4,7 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
-import Toaster from "@meforma/vue-toaster";
+
 import PrimeVue from 'primevue/config';
 import Aura from '@primeuix/themes/aura';
 import ToastService from 'primevue/toastservice';
@@ -36,7 +36,7 @@ createInertiaApp({
         app.use(plugin)
         .use(ZiggyVue)
         .use(MotionPlugin)
-        .use(Toaster)
+
         .use(ToastService)
         .use(ConfirmationService)
         .directive('tooltip', Tooltip)

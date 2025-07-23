@@ -37,11 +37,11 @@ const form = useForm({
   hifzul_quran: props.markazData.hifzul_quran || "",
   qirat: props.markazData.qirat || "",
   requirements: props.markazData.requirements || "",
-  noc_file: null,
-  resolution_file: null,
-  muhtamim_consent: null,
-  president_consent: null,
-  committee_resolution: null,
+  noc_file: props.markazData.noc_file || null,
+  resolution_file: props.markazData.resolution_file || null,
+  muhtamim_consent: props.markazData.muhtamim_consent || null,
+  president_consent: props.markazData.president_consent || null,
+  committee_resolution: props.markazData.committee_resolution || null,
   associated_madrasas: []
 });
 
@@ -56,13 +56,14 @@ const rows = ref(
     hifzul_quran: madrasa.hifzul_quran || "",
     qirat: madrasa.qirat || "",
     madrasa_Name: madrasa.madrasa_Name || "",
+    madrasa_id: madrasa.madrasa_id || null,
     searchQuery: madrasa.madrasa_Name || "",
     selectedMadrasha: null,
     files: {
       noc: null,
-      nocPreview: madrasa.noc_file ? `/storage/${madrasa.noc_file}` : null,
+      nocPreview: madrasa.noc_file_url || null,
       resolution: null,
-      resolutionPreview: madrasa.resolution_file ? `/storage/${madrasa.resolution_file}` : null
+      resolutionPreview: madrasa.resolution_file_url || null
     }
   }))
 );
@@ -71,6 +72,7 @@ const submitForm = () => {
   form.associated_madrasas = rows.value.map(row => ({
     id: row.id || null,
     madrasa_Name: row.madrasa_Name,
+    madrasa_id: row.madrasa_id || null,
     fazilat: row.fazilat,
     sanabiya_ulya: row.sanabiya_ulya,
     sanabiya: row.sanabiya,
@@ -98,7 +100,7 @@ const submitForm = () => {
         </div>
 
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <MainMadrasaInfo :form="form" @update:file="(field, file) => { form[field] = file }" />
+          <MainMadrasaInfo :form="form" :markazData="props.markazData" @update:file="(field, file) => { form[field] = file }" />
         </div>
 
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">

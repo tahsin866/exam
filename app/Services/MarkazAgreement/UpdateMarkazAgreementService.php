@@ -1,72 +1,28 @@
 <?php
 
 namespace App\Services\MarkazAgreement;
-use App\Models\admin\marhala_for_admin\ExamSetup;
-use App\Models\{MarkazAgreement, MarkazAgreementMadrasa, MarkazAgreementLog};
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+
+use App\Models\MarkazAgreement;
+use App\Models\MarkazAgreementMadrasa;
 use Illuminate\Support\Facades\Auth;
 
-class StoreMarkazAgreementService
+class UpdateMarkazAgreementService
 {
-    protected $statusService;
-
-    public function __construct(MarkazStatusService $statusService)
+    public function update($request, $id)
     {
-        $this->statusService = $statusService;
-    }
+        $markazAgreement = MarkazAgreement::findOrFail($id);
 
-    public function execute(Request $request, $user)
-    {
-        // Wrap in transaction for safety
-        return DB::transaction(function () use ($request, $user) {
-            // Step 1: Get Exam Setup Data
-            $examSetup = $this->getExamSetup();
+        // Basic information
+        $markazAgreement->madrasha_id = Auth::user()->madrasha_id;
+        $markazAgreement->application_type = $request->application_type;
+        $markazAgreement->markaz_name = $request->markaz_name;
+        $markazAgreement->establishment_date = $request->establishment_date;
+        $markazAgreement->total_students = $request->total_students;
 
-            // Step 2: Create Main Agreement
-            $markazAgreement = $this->createMarkazAgreement($request, $user, $examSetup);
-
-            // Step 3: Handle Associated Madrasas
-            $this->handleAssociatedMadrasas($request, $markazAgreement);
-
-            // Step 4: Create initial log entry
-            MarkazAgreementLog::create([
-                'markaz_agreement_id' => $markazAgreement->id,
-                'user_id' => $user->id,
-                'previous_status' => null,
-                'new_status' => MarkazAgreementLog::STATUS_PENDING,
-                'action_type' => MarkazAgreementLog::ACTION_CREATED,
-                'comments' => 'মারকায চুক্তির আবেদন তৈরি করা হয়েছে',
-            ]);
-
-            return $markazAgreement;
-        });
-    }
-
-    private function getExamSetup()
-    {
-        return ExamSetup::select('id')->latest()->first();
-    }
-
-    private function createMarkazAgreement($request, $user, $examSetup)
-    {
-        $markazAgreement = new MarkazAgreement();
-
-        // User and Exam related data
-        $markazAgreement->user_id = $user->id;
-        $markazAgreement->exam_id = $examSetup?->id;
-        $markazAgreement->madrasha_code = $user->custom_code ?? null;
-        $markazAgreement->madrasha_id = $user->madrasha_id; // Direct from user table
-
-        // Markaz type and student counts
-        $markazAgreement->markaz_type = $request->markaz_type;
-        $markazAgreement->fazilat = $request->fazilat ?? 0;
-        $markazAgreement->sanabiya_ulya = $request->sanabiya_ulya ?? 0;
-        $markazAgreement->sanabiya = $request->sanabiya ?? 0;
-        $markazAgreement->mutawassita = $request->mutawassita ?? 0;
-        $markazAgreement->ibtedaiyyah = $request->ibtedaiyyah ?? 0;
-        $markazAgreement->hifzul_quran = $request->hifzul_quran ?? 0;
-        $markazAgreement->qirat = $request->qirat ?? 0;
+        // Address
+        $markazAgreement->address = $request->address;
+        $markazAgreement->district = $request->district;
+        $markazAgreement->thana = $request->thana;
 
         // File handling for main files
         if ($request->hasFile('noc_file') && $request->file('noc_file') instanceof \Illuminate\Http\UploadedFile) {
@@ -93,17 +49,20 @@ class StoreMarkazAgreementService
             $markazAgreement->committee_resolution = $request->file('committee_resolution')->store('markaz/consent', 'public');
         }
 
-        // Set status and created_by
-        $markazAgreement->status = MarkazAgreementLog::STATUS_PENDING;
-        $markazAgreement->created_by = $user->id;
-
         $markazAgreement->save();
+
+        // Handle associated madrasas
+        $this->updateAssociatedMadrasas($request, $markazAgreement);
 
         return $markazAgreement;
     }
 
-    private function handleAssociatedMadrasas($request, $markazAgreement)
+    private function updateAssociatedMadrasas($request, $markazAgreement)
     {
+        // Delete existing associated madrasas
+        $markazAgreement->associatedMadrasas()->delete();
+
+        // Add new ones
         if ($request->has('associated_madrasas') && is_array($request->associated_madrasas)) {
             foreach ($request->associated_madrasas as $madrasaData) {
                 $this->createAssociatedMadrasa($markazAgreement->id, $madrasaData);

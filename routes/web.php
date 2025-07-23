@@ -179,6 +179,17 @@ Route::get('/test-bangla-pdf', function () {
 });
 
 
+// Storage file serving route
+Route::get('/storage/{path}', function ($path) {
+    $fullPath = storage_path('app/public/' . $path);
+    
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+    
+    return response()->file($fullPath);
+})->where('path', '.*');
+
 require __DIR__ . '/auth.php';
 require __DIR__ . '/admin_auth.php';
 

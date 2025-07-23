@@ -17,9 +17,13 @@ use App\Models\activity_log;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\UploadedFile;
 use Inertia\Inertia;
 use App\Services\MarkazAgreement\StoreMarkazAgreementService;
+use App\Services\MarkazAgreement\UpdateMarkazAgreementService;
+use App\Services\MarkazAgreement\MarkazStatusService;
+use App\Models\MarkazAgreementLog;
 use Illuminate\Contracts\Cache\Store;
 
 class markazApplicationController extends Controller
@@ -185,9 +189,44 @@ class markazApplicationController extends Controller
         // Get the main agreement with associated madrasas
         $markazAgreement = MarkazAgreement::with('associatedMadrasas')->findOrFail($id);
 
+        // Add file URLs to main agreement
+        $markazData = $markazAgreement->toArray();
+        $markazData['noc_file_url'] = $markazAgreement->noc_file ? url('/storage/' . $markazAgreement->noc_file) : null;
+        $markazData['resolution_file_url'] = $markazAgreement->resolution_file ? url('/storage/' . $markazAgreement->resolution_file) : null;
+        $markazData['muhtamim_consent_url'] = $markazAgreement->muhtamim_consent ? url('/storage/' . $markazAgreement->muhtamim_consent) : null;
+        $markazData['president_consent_url'] = $markazAgreement->president_consent ? url('/storage/' . $markazAgreement->president_consent) : null;
+        $markazData['committee_resolution_url'] = $markazAgreement->committee_resolution ? url('/storage/' . $markazAgreement->committee_resolution) : null;
+        
+        // Also include the file paths for form initialization
+        $markazData['noc_file'] = $markazAgreement->noc_file;
+        $markazData['resolution_file'] = $markazAgreement->resolution_file;
+        $markazData['muhtamim_consent'] = $markazAgreement->muhtamim_consent;
+        $markazData['president_consent'] = $markazAgreement->president_consent;
+        $markazData['committee_resolution'] = $markazAgreement->committee_resolution;
+
+        // Add file URLs to associated madrasas
+        $associatedMadrasas = $markazAgreement->associatedMadrasas->map(function ($madrasa) {
+            return [
+                'id' => $madrasa->id,
+                'madrasa_Name' => $madrasa->madrasa_Name,
+                'madrasa_id' => $madrasa->madrasa_id,
+                'fazilat' => $madrasa->fazilat,
+                'sanabiya_ulya' => $madrasa->sanabiya_ulya,
+                'sanabiya' => $madrasa->sanabiya,
+                'mutawassita' => $madrasa->mutawassita,
+                'ibtedaiyyah' => $madrasa->ibtedaiyyah,
+                'hifzul_quran' => $madrasa->hifzul_quran,
+                'qirat' => $madrasa->qirat,
+                'noc_file' => $madrasa->noc_file,
+                'noc_file_url' => $madrasa->noc_file ? url('/storage/' . $madrasa->noc_file) : null,
+                'resolution_file' => $madrasa->resolution_file,
+                'resolution_file_url' => $madrasa->resolution_file ? url('/storage/' . $madrasa->resolution_file) : null,
+            ];
+        });
+
         return Inertia::render('Markaz/markaz_apply_edit', [
-            'markazData' => $markazAgreement,
-            'associatedMadrasas' => $markazAgreement->associatedMadrasas
+            'markazData' => $markazData,
+            'associatedMadrasas' => $associatedMadrasas
         ]);
     }
 
@@ -199,8 +238,7 @@ class markazApplicationController extends Controller
 
         // Update main agreement data
         $markazAgreement->update([
-            'madrasa_Name' => $request->madrasa_Name,
-            'markaz_type' => $request->markaz_type,
+            'madrasha_Name' => $request->madrasha_Name,
             'markaz_type' => $request->markaz_type,
             'fazilat' => $request->fazilat,
             'sanabiya_ulya' => $request->sanabiya_ulya,
@@ -226,7 +264,7 @@ class markazApplicationController extends Controller
                 if ($markazAgreement->$field) {
                     Storage::delete($markazAgreement->$field);
                 }
-                $markazAgreement->$field = $request->file($field)->store($path);
+                $markazAgreement->$field = $request->file($field)->store($path, 'public');
             }
         }
 
@@ -252,6 +290,7 @@ class markazApplicationController extends Controller
                 $associatedMadrasa->markaz_agreement_id = $id;
             }
             $associatedMadrasa->madrasa_Name = $madrasaData['madrasa_Name'];
+            $associatedMadrasa->madrasa_id = $madrasaData['madrasa_id'] ?? null;
             $associatedMadrasa->fazilat = $madrasaData['fazilat'];
             $associatedMadrasa->sanabiya_ulya = $madrasaData['sanabiya_ulya'];
             $associatedMadrasa->sanabiya = $madrasaData['sanabiya'];
@@ -265,17 +304,22 @@ class markazApplicationController extends Controller
                 if ($associatedMadrasa->noc_file) {
                     Storage::delete($associatedMadrasa->noc_file);
                 }
-                $associatedMadrasa->noc_file = $madrasaData['noc_file']->store('markaz/associated/noc');
+                $associatedMadrasa->noc_file = $madrasaData['noc_file']->store('markaz/associated/noc', 'public');
             }
 
             if (isset($madrasaData['resolution_file']) && $madrasaData['resolution_file'] instanceof UploadedFile) {
                 if ($associatedMadrasa->resolution_file) {
                     Storage::delete($associatedMadrasa->resolution_file);
                 }
-                $associatedMadrasa->resolution_file = $madrasaData['resolution_file']->store('markaz/associated/resolution');
+                $associatedMadrasa->resolution_file = $madrasaData['resolution_file']->store('markaz/associated/resolution', 'public');
             }
 
             $associatedMadrasa->save();
+
+            // Add the ID to updated list (for new records, add after save)
+            if (!isset($madrasaData['id'])) {
+                $updatedMadrasaIds[] = $associatedMadrasa->id;
+            }
         }
 
         // Delete madrasas that are no longer in the request
@@ -299,7 +343,12 @@ class markazApplicationController extends Controller
             return back()->withErrors(['error' => 'আবেদন পাওয়া যায়নি!']);
         }
 
-        // 2️⃣ Now check schedule timing before anything else
+        // 2️⃣ Check if already submitted to avoid duplicate submissions
+        if ($agreement->status === MarkazAgreementLog::STATUS_BOARD_SUBMITTED) {
+            return back()->withErrors(['error' => 'আবেদন ইতিমধ্যে বোর্ডে দাখিল করা হয়েছে!']);
+        }
+
+        // 3️⃣ Now check schedule timing before anything else
         $schedule = schedule_setups::where('exam_setup_id', $agreement->exam_id)
             ->where('schedule_type', 'মারকায আবেদন')
             ->where('is_active', true)
@@ -321,24 +370,16 @@ class markazApplicationController extends Controller
             return back()->withErrors(['error' => 'আবেদনের সময় শেষ! আগামী বছর আবার চেষ্টা করুন।']);
         }
 
-
-
-        // 4️⃣ If all checks pass, then create activity log
-        activity_log::create([
-            'markaz_agreement_id' => $agreement->id,
-            'user_id' => Auth::user()->id,
-            'status' => 'বোর্ড দাখিল',
-            'actor_type' => 'user',
-            'user_name' => Auth::user()->name,
-            'user_position' => Auth::user()->admin_Designation,
-            'admin_position' => null,
-            'admin_message' => null,
-            'admin_feedback_image' => null,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        return back()->with('success', 'আবেদন সফলভাবে সাবমিট হয়েছে!');
+        // 4️⃣ Submit to board using the status service
+        try {
+            $statusService = new MarkazStatusService();
+            $statusService->submitToBoard($agreement->id, Auth::user()->id);
+            
+            return back()->with('success', 'আবেদন সফলভাবে বোর্ডে দাখিল হয়েছে!');
+        } catch (\Exception $e) {
+            Log::error('Markaz Submit Error: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'আবেদন দাখিলে সমস্যা হয়েছে! আবার চেষ্টা করুন। ' . $e->getMessage()]);
+        }
     }
 
 
