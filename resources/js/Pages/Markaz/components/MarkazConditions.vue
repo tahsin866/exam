@@ -87,10 +87,7 @@
       </div>
 
       <div class="flex justify-between items-center">
-        <div class="signature-line">
-          <div class="mb-2 text-center">মুহতামিমের নাম, সিল ও স্বাক্ষর</div>
-          <div class="text-center">তাং: {{ getCurrentDateTime().split(' ')[0] }}</div>
-        </div>
+
 
         <div class="agreement-checkbox">
           <Checkbox v-model="agreed" :binary="true" id="agree" />

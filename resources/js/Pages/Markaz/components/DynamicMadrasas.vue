@@ -85,7 +85,7 @@
 
                         <div v-if="showDarsiyatFields" class="flex flex-col">
                             <label class="block font-medium text-sm text-gray-700 mb-2">
-                                সানাবিয়া
+                                সানাবিয়া <span class="text-red-500">*</span>
                             </label>
                             <InputNumber
                                 v-model="row.sanabiya"
@@ -98,11 +98,14 @@
                                 inputClass="w-full h-10 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm"
                                 class="w-full"
                             />
+                            <p v-if="isRequiredFieldEmpty(row, 'sanabiya')" class="text-sm text-red-500 mt-1">
+                                এই ফিল্ডটি পূরণ করা আবশ্যক
+                            </p>
                         </div>
 
                         <div v-if="showDarsiyatFields" class="flex flex-col">
                             <label class="block font-medium text-sm text-gray-700 mb-2">
-                                মুতাওয়াসসিতা
+                                মুতাওয়াসসিতা <span class="text-red-500">*</span>
                             </label>
                             <InputNumber
                                 v-model="row.mutawassita"
@@ -115,11 +118,14 @@
                                 inputClass="w-full h-10 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm"
                                 class="w-full"
                             />
+                            <p v-if="isRequiredFieldEmpty(row, 'mutawassita')" class="text-sm text-red-500 mt-1">
+                                এই ফিল্ডটি পূরণ করা আবশ্যক
+                            </p>
                         </div>
 
                         <div v-if="showDarsiyatFields" class="flex flex-col">
                             <label class="block font-medium text-sm text-gray-700 mb-2">
-                                ইবতেদাইয়্যাহ
+                                ইবতেদাইয়্যাহ <span class="text-red-500">*</span>
                             </label>
                             <InputNumber
                                 v-model="row.ibtedaiyyah"
@@ -132,6 +138,9 @@
                                 inputClass="w-full h-10 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm"
                                 class="w-full"
                             />
+                            <p v-if="isRequiredFieldEmpty(row, 'ibtedaiyyah')" class="text-sm text-red-500 mt-1">
+                                এই ফিল্ডটি পূরণ করা আবশ্যক
+                            </p>
                         </div>
 
                         <!-- Hifzul Quran Field -->
@@ -395,6 +404,33 @@ const handleFileSelect = (event, type, index) => {
 const showDarsiyatFields = computed(() => props.markazType === 'দরসিয়াত');
 const showHifzField = computed(() => props.markazType === 'তাহফিজুল কোরআন');
 const showKiratField = computed(() => props.markazType === 'কিরাআত');
+
+// Check if the required fields are filled based on markaz type
+const isRequiredFieldEmpty = (row, field) => {
+  if (!row.selectedMadrasha) return false; // Don't show error until madrasa is selected
+
+  const markazType = props.markazType;
+
+  // For দরসিয়াত type, these fields are required
+  if (markazType === 'দরসিয়াত') {
+    const requiredFields = ['fazilat', 'sanabiya_ulya', 'sanabiya', 'mutawassita', 'ibtedaiyyah'];
+    if (requiredFields.includes(field)) {
+      return !row[field] || row[field] === 0;
+    }
+  }
+
+  // For তাহফিজুল কোরআন type
+  if (markazType === 'তাহফিজুল কোরআন' && field === 'hifzul_quran') {
+    return !row[field] || row[field] === 0;
+  }
+
+  // For কিরাআত type
+  if (markazType === 'কিরাআত' && field === 'qirat') {
+    return !row[field] || row[field] === 0;
+  }
+
+  return false;
+};
 </script>
 
 <style scoped>

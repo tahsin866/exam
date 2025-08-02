@@ -23,13 +23,13 @@ function onFileSelect(field, event) {
 
 // Check if the field has a value from the database
 const hasValueFromDatabase = (field) => {
-  return props.form && props.form[field] !== undefined && props.form[field] !== null && props.form[field] !== '';
+  const value = props.markazData && props.markazData[field];
+  return value !== undefined && value !== null && value !== '' && value !== 0 && value !== '0';
 }
 
-// Determine if a field is editable based on whether it has a database value
-// Only fields with existing data from the database can be edited
+// Determine if a field is editable based on whether it's displayed
 const isFieldEditable = (field) => {
-  return hasValueFromDatabase(field);
+  return shouldDisplayField(field);
 }
 
 // Get required fields based on markaz_type
@@ -37,7 +37,7 @@ const requiredFields = computed(() => {
   const markazType = props.form.markaz_type;
 
   if (markazType === 'দরসিয়াত') {
-    return ['fazilat', 'sanabiya_ulya'];
+    return ['fazilat', 'sanabiya_ulya', 'sanabiya', 'mutawassita', 'ibtedaiyyah'];
   } else if (markazType === 'তাহফিজুল কোরআন') {
     return ['hifzul_quran'];
   } else if (markazType === 'কিরাআত') {
@@ -54,7 +54,18 @@ const isRequired = (field) => {
 
 // Check if field should be visible based on its relevance to markaz type
 const shouldDisplayField = (field) => {
-  return true; // Display all fields in edit form for consistency
+  const markazType = props.form.markaz_type;
+  
+  // Show fields based on markaz type only (ignore database values for conditional display)
+  if (markazType === 'দরসিয়াত') {
+    return ['fazilat', 'sanabiya_ulya', 'sanabiya', 'mutawassita', 'ibtedaiyyah'].includes(field);
+  } else if (markazType === 'তাহফিজুল কোরআন') {
+    return field === 'hifzul_quran';
+  } else if (markazType === 'কিরাআত') {
+    return field === 'qirat';
+  }
+  
+  return false; // Don't show if no markaz type selected
 }
 </script>
 
@@ -66,6 +77,7 @@ const shouldDisplayField = (field) => {
         v-for="field in Object.keys(fieldLabels)"
         :key="field"
         class="flex-1 min-w-[150px]"
+        v-show="shouldDisplayField(field)"
       >
         <label :for="field" class="block text-lg font-medium text-slate-700 mb-2">
           {{ fieldLabels[field] }}
@@ -120,7 +132,7 @@ const shouldDisplayField = (field) => {
             </a>
           </div>
         </div>
-        
+
         <!-- Show newly uploaded file -->
         <div v-if="form.noc_file && typeof form.noc_file === 'object'" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
           <i class="pi pi-upload text-green-500 text-xl mr-2"></i>
@@ -158,7 +170,7 @@ const shouldDisplayField = (field) => {
             </a>
           </div>
         </div>
-        
+
         <!-- Show newly uploaded file -->
         <div v-if="form.resolution_file && typeof form.resolution_file === 'object'" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
           <i class="pi pi-upload text-green-500 text-xl mr-2"></i>

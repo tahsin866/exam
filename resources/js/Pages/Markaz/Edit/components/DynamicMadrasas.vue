@@ -21,16 +21,6 @@ const emit = defineEmits(['update:rows'])
 // For instant suggestion, keep a cache for current search
 const suggestionCache = ref({})
 
-// Computed properties to control field visibility based on markaz_type
-const showDarsiyatFields = computed(() => props.markazType === 'দরসিয়াত');
-const showHifzField = computed(() => props.markazType === 'তাহফিজুল কোরআন');
-const showKiratField = computed(() => props.markazType === 'কিরাআত');
-
-// Watch for madrashas data update, clear cache
-watch(() => props.madrashas, () => {
-  suggestionCache.value = {}
-})
-
 // Field label mapping
 const fieldLabels = {
   fazilat: 'ফযীলত',
@@ -42,7 +32,7 @@ const fieldLabels = {
   qirat: 'ইলমুল কিরাআত'
 }
 
-// Fast suggestion: filter instantly and cache by query for session performance
+// Suggestions
 const getSuggestions = (query) => {
   if (!props.madrashas || !Array.isArray(props.madrashas) || !query) return [];
   const q = query.toLowerCase().trim();
@@ -57,6 +47,7 @@ const getSuggestions = (query) => {
   return filtered;
 };
 
+// Add and remove row
 const addRow = () => {
   const newRow = {
     fazilat: "",
@@ -79,7 +70,6 @@ const addRow = () => {
   }
   emit('update:rows', [...props.rows, newRow])
 }
-
 const removeRow = idx => {
   if (props.rows.length > 1) {
     const newRows = [...props.rows]
@@ -88,13 +78,15 @@ const removeRow = idx => {
   }
 }
 
+// Madrasha select
 const onMadrashaSelect = (madrasha, row) => {
   row.selectedMadrasha = madrasha
   row.madrasa_Name = madrasha.name
-  row.madrasa_id = madrasha.id // Make sure to set the madrasa_id for the backend
+  row.madrasa_id = madrasha.id // Backend এর জন্য
   row.searchQuery = `${madrasha.name} (ইলহাক: ${madrasha.ElhaqNo})`
 }
 
+// File select
 const onFileSelect = (field, row, event) => {
   const file = event.files && event.files.length > 0 ? event.files[0] : null
   row.files[field] = file
@@ -110,17 +102,53 @@ const onFileSelect = (field, row, event) => {
   }
 }
 
-// Helper function to check if a field has a value
-const hasValue = (row, field) => {
-  return row && row[field] !== undefined && row[field] !== null && row[field] !== '';
+// Helper: Check if any row has value in a field (for DB values)
+const hasValueInAnyRow = (field) => {
+  return props.rows.some(row => {
+    const value = row[field];
+    return value !== undefined && value !== null && value !== '' && value !== 0 && value !== '0';
+  });
 }
 
-// Check if the required fields are filled based on markaz type
+// Visible field logic: show based on markaz type only
+const isFieldVisible = (field) => {
+  if (props.markazType === 'দরসিয়াত') {
+    return ['fazilat', 'sanabiya_ulya', 'sanabiya', 'mutawassita', 'ibtedaiyyah'].includes(field);
+  }
+  if (props.markazType === 'তাহফিজুল কোরআন') {
+    return field === 'hifzul_quran';
+  }
+  if (props.markazType === 'কিরাআত') {
+    return field === 'qirat';
+  }
+  return false;
+}
+
+// Required field logic
+const isFieldRequired = (field) => {
+  if (props.markazType === 'দরসিয়াত') {
+    return ['fazilat', 'sanabiya_ulya', 'sanabiya', 'mutawassita', 'ibtedaiyyah'].includes(field);
+  } else if (props.markazType === 'তাহফিজুল কোরআন') {
+    return field === 'hifzul_quran';
+  } else if (props.markazType === 'কিরাআত') {
+    return field === 'qirat';
+  }
+  return false;
+}
+
+// Row-level: Has value
+const hasValue = (row, field) => {
+  if (!row) return false;
+  const value = row[field];
+  return value !== undefined && value !== null && value !== '' && value !== 0 && value !== '0';
+}
+
+// Row-level: Required and empty
 const isRequiredFieldEmpty = (row, field) => {
   if (!row.selectedMadrasha) return false; // Don't show error until madrasa is selected
 
   if (props.markazType === 'দরসিয়াত') {
-    if ((field === 'fazilat' || field === 'sanabiya_ulya') && !hasValue(row, field)) {
+    if ((field === 'fazilat' || field === 'sanabiya_ulya' || field === 'sanabiya' || field === 'mutawassita' || field === 'ibtedaiyyah') && !hasValue(row, field)) {
       return true;
     }
   } else if (props.markazType === 'তাহফিজুল কোরআন') {
@@ -133,35 +161,6 @@ const isRequiredFieldEmpty = (row, field) => {
     }
   }
   return false;
-}
-
-// Check if a field is required based on markaz type
-const isFieldRequired = (field) => {
-  if (props.markazType === 'দরসিয়াত') {
-    return field === 'fazilat' || field === 'sanabiya_ulya';
-  } else if (props.markazType === 'তাহফিজুল কোরআন') {
-    return field === 'hifzul_quran';
-  } else if (props.markazType === 'কিরাআত') {
-    return field === 'qirat';
-  }
-  return false;
-}
-
-// Check if a field should be visible based on markaz type
-const isFieldVisible = (field) => {
-  // For fields that have existing data, always show them
-  if (props.rows.some(row => hasValue(row, field))) {
-    return true;
-  }
-
-  if (props.markazType === 'দরসিয়াত') {
-    return ['fazilat', 'sanabiya_ulya', 'sanabiya', 'mutawassita', 'ibtedaiyyah'].includes(field);
-  } else if (props.markazType === 'তাহফিজুল কোরআন') {
-    return field === 'hifzul_quran';
-  } else if (props.markazType === 'কিরাআত') {
-    return field === 'qirat';
-  }
-  return true; // Default show all if no type selected
 }
 </script>
 
@@ -215,7 +214,6 @@ const isFieldVisible = (field) => {
 
         <!-- Student numbers - Conditional display based on markaz type -->
         <div class="flex flex-wrap gap-6 items-end">
-          <!-- Display fields based on markaz type -->
           <div
             v-for="field in Object.keys(fieldLabels)"
             :key="field"
@@ -272,8 +270,6 @@ const isFieldVisible = (field) => {
             <div v-else-if="row.selectedMadrasha && !row.files.noc" class="mt-1 text-sm text-red-600">
               NOC ফাইল আপলোড করুন
             </div>
-            
-            <!-- Show existing file from database -->
             <div v-if="row.files.nocPreview && !row.files.noc" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
               <i class="pi pi-file-pdf text-red-500 text-xl mr-2"></i>
               <div>
@@ -283,12 +279,10 @@ const isFieldVisible = (field) => {
                 </a>
               </div>
             </div>
-            
             <div v-if="row.files.nocPreview && row.files.noc && row.files.noc.type && row.files.noc.type.startsWith('image/')" class="mt-2">
               <img :src="row.files.nocPreview" alt="NOC Preview" class="max-h-20 border rounded" />
             </div>
           </div>
-
           <!-- Resolution File Upload -->
           <div>
             <label class="block text-lg font-medium text-slate-700 mb-2">
@@ -309,8 +303,6 @@ const isFieldVisible = (field) => {
             <div v-else-if="row.selectedMadrasha && !row.files.resolution" class="mt-1 text-sm text-red-600">
               রেজল্যুশন ফাইল আপলোড করুন
             </div>
-            
-            <!-- Show existing file from database -->
             <div v-if="row.files.resolutionPreview && !row.files.resolution" class="mt-3 p-3 bg-gray-50 border rounded-md flex items-center">
               <i class="pi pi-file-pdf text-red-500 text-xl mr-2"></i>
               <div>
@@ -320,7 +312,6 @@ const isFieldVisible = (field) => {
                 </a>
               </div>
             </div>
-            
             <div v-if="row.files.resolutionPreview && row.files.resolution && row.files.resolution.type && row.files.resolution.type.startsWith('image/')" class="mt-2">
               <img :src="row.files.resolutionPreview" alt="Resolution Preview" class="max-h-20 border rounded" />
             </div>
@@ -341,24 +332,19 @@ const isFieldVisible = (field) => {
 :deep(.p-inputnumber) {
   width: 100%;
 }
-
 :deep(.p-inputnumber-input) {
   width: 100% !important;
 }
-
 :deep(.p-autocomplete-input) {
   width: 100%;
   padding: 0.5rem;
 }
-
 :deep(.p-fileupload-buttonbar) {
   padding: 0;
 }
-
 :deep(.p-fileupload-content) {
   display: none;
 }
-
 :deep(.p-button.p-component.p-fileupload-choose) {
   width: 100%;
 }

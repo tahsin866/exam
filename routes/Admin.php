@@ -9,6 +9,7 @@ use App\Http\Controllers\MadrashaController;
 use App\Http\Controllers\MarhalaController;
 use App\Http\Controllers\StudentRegistrationController;
 use App\Http\Controllers\Admin\auth\AdminRegisteredUserController;
+use App\Http\Controllers\admin\markaz\AdminMakazController;
 use App\Http\Controllers\ExamSetupController;
 use App\Http\Controllers\MarkazAgreementController;
 use App\Http\Controllers\BoardApplicationController;
@@ -91,9 +92,9 @@ Route::get('Bill_setup_admin/mumtahin_bill', function () {
 })->name('Bill_setup_admin.mumtahin_bill');
 
 // ============= মারকাজ ফর অ্যাডমিন =============
-Route::get('/markaz-setup', function () {
-    return Inertia::render('markaz_for_admin/markaz_setup');
-})->name('markaz_for_admin.markaz_setup');
+Route::get('/markaz/list', function () {
+    return Inertia::render('admin/markaz/markaz_setup');
+})->name('admin.markaz.markaz_setup');
 
 Route::get('/all-markaz-list', function () {
     return Inertia::render('markaz_for_admin/all_markaz_list');
@@ -107,6 +108,9 @@ Route::get('/markaz-change-apply-list', function () {
     return Inertia::render('markaz_for_admin/markaz_change_apply_list');
 })->name('markaz_for_admin.markaz_change_apply_list');
 
+// ============= মারকায আবেদন প্রক্রিয়াকরণ =============
+Route::get('/markaz/view/{id}', [AdminMakazController::class, 'viewDetails'])->name('AdminMarkaz.view');
+
 // ============= মাদরাসা ডাটা =============
 Route::get('/madrasha_list', function () {
     return Inertia::render('madrasha_data_for_admin/madrasha_list');
@@ -117,9 +121,9 @@ Route::get('/nibondon-markaz-list', function () {
     return Inertia::render('nibondon_for_admin/nibondon_Markaz_list');
 })->name('nibondon_for_admin.nibondon_Markaz_list');
 
-Route::get('/abandon-stu-list', function () {
-    return Inertia::render('nibondon_for_admin/abandon_stu_list');
-})->name('nibondon_for_admin.abandon_stu_list');
+// Route::get('/abandon-stu-list', function () {
+//     return Inertia::render('nibondon_for_admin/abandon_stu_list');
+// })->name('nibondon_for_admin.abandon_stu_list');
 
 Route::get('nibondon_for_admin/madrashaWari_stu_nibond_list', function () {
     return Inertia::render('nibondon_for_admin/madrashaWari_stu_nibond_list');
@@ -171,10 +175,7 @@ Route::get('/central-exam-setup/{id}/edit', [ExamSetupController::class, 'edit']
 // Route::get('/central-exam-setup', [ExamSetupController::class, 'index'])
 //     ->name('central_Exam_setup.index');
 
-// MarkazAgreementController
-Route::get('/markaz-apply-details-view/{id}', [MarkazAgreementController::class, 'viewDetails_for_admin'])->name('AdminMarkaz.view');
-Route::post('/markaz/approve/{id}', [MarkazAgreementController::class, 'approveApplication'])->name('markaz.approve');
-Route::post('/markaz/reject/{id}', [MarkazAgreementController::class, 'return'])->name('markaz.reject');
+// MarkazAgreementController - moved to admin group below
 
 // ScheduleSetupController
 Route::get('/schedule-setups', [ScheduleSetupController::class, 'index'])->name('schedule-setups.index');
@@ -251,24 +252,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         return Inertia::render('admin/admin_Dashboard');
     })->name('dashboard');
 
-    // // Debug route
-    // Route::get('/debug-permissions', function () {
-    //     return response()->json([
-    //         'roles' => \Spatie\Permission\Models\Role::all(),
-    //         'permissions' => \Spatie\Permission\Models\Permission::all()
-    //     ]);
-    // });
 
-    // Debug user route (without middleware)
-    // Route::get('/debug-user', function () {
-    //     $user = auth()->user();
-    //     return response()->json([
-    //         'user' => $user,
-    //         'isAdmin' => $user ? $user->isAdmin() : false,
-    //         'userType' => $user ? $user->user_type : 'not logged in',
-    //         'session_id' => session()->getId()
-    //     ]);
-    // });
 
 Route::get('/students/registration/edit', [studentLogicController::class, 'editStudentRegistration'])->name('students_registration.old_stu_reg_edit');
 
@@ -278,6 +262,12 @@ Route::get('/students/registration/edit', [studentLogicController::class, 'editS
 
     // Role Management
     Route::resource('roles', RoleController::class);
+
+    // MarkazAgreementController
+    Route::get('/markaz/details/{id}', [AdminMakazController::class, 'viewDetails'])->name('markaz.view');
+    Route::post('/markaz/processing/{id}', [AdminMakazController::class, 'in_processing'])->name('markaz.processing');
+    Route::post('/markaz/approve/{id}', [AdminMakazController::class, 'approveApplication'])->name('markaz.approve');
+    Route::post('/markaz/reject/{id}', [AdminMakazController::class, 'return'])->name('markaz.return');
 
     // Admin Logout
     Route::post('/logout', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'adminDestroy'])->name('logout');

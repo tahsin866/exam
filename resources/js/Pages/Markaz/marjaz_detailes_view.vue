@@ -1,39 +1,39 @@
 <script setup>
-import { ref } from "vue";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head } from '@inertiajs/vue3';
-import moment from 'moment/moment';
+import { useMarkazDetails } from "@/composables/useMarkazDetails";
 
-defineProps({
+const props = defineProps({
     markazDetails: {
         type: Object,
         required: true
     }
 });
 
-const formatDate = (timestamp) => {
-    return moment(timestamp).format('DD/MM/YYYY');
-};
+const { formatDate, getStatusSeverity, getUserIcon } = useMarkazDetails();
 
-const getStatusSeverity = (status) => {
+// Debug: Log status_logs to verify structure and data
+console.log('status_logs:', props.markazDetails.status_logs);
+
+// Add getStatusClass for status badge coloring
+function getStatusClass(status) {
   switch (status) {
-    case 'অনুমোদন':
-      return 'success';
-    case 'বোর্ড দাখিল':
-      return 'warning';
-    case 'বোর্ড ফেরত':
-      return 'danger';
+    case 'অনুমোদিত':
+      return 'bg-green-100 text-green-800';
+    case 'পেন্ডিং':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'স্থগিত':
+      return 'bg-orange-100 text-orange-800';
     case 'বাতিল':
-      return 'danger';
+      return 'bg-red-100 text-red-800';
+    case 'বোর্ড ফেরত':
+      return 'bg-pink-100 text-pink-800';
+    case 'বোর্ড দাখিল':
+      return 'bg-blue-100 text-blue-800';
     default:
-      return 'info';
+      return 'bg-gray-100 text-gray-800';
   }
-};
-
-// Get user icon
-const getUserIcon = (activity) => {
-  return activity.admin_name ? 'user-edit' : 'user';
-};
+}
 </script>
 
 <template>
@@ -51,7 +51,7 @@ const getUserIcon = (activity) => {
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <!-- Basic Info -->
                     <div class="p-6 bg-white border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">
+                        <h3 class="text-lg font-xl font-semibold text-gray-900 mb-4">
                             মূল মাদরাসার তথ্য
                         </h3>
                         <div class="overflow-x-auto">
@@ -59,15 +59,17 @@ const getUserIcon = (activity) => {
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap bg-gray-50 w-1/4">
-                                            <div class="text-sm font-medium text-gray-900">মাদরাসার নাম</div>
+                                            <div class="text-sm font-xl font-semibold text-gray-900">মাদরাসার নাম</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">{{ markazDetails.madrasha_Name }}</div>
+                                            <div class="text-sm font-medium text-gray-900">
+                                                {{ markazDetails.main_madrasa_name || markazDetails.madrasha_Name }}
+                                            </div>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap bg-gray-50">
-                                            <div class="text-sm font-medium text-gray-900">আবেদনের তারিখ</div>
+                                            <div class="font-xl font-semibold text-gray-900">আবেদনের তারিখ</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900">{{ formatDate(markazDetails.created_at) }}</div>
@@ -80,7 +82,7 @@ const getUserIcon = (activity) => {
 
                     <!-- Student Statistics -->
                     <div class="p-6 bg-white border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">
+                        <h3 class="text-lg font-xl font-semibold  text-gray-900 mb-4">
                             মূল মাদরাসার শ্রেণিভিত্তিক ছাত্র সংখ্যা
                         </h3>
                         <div class="overflow-x-auto">
@@ -147,7 +149,9 @@ const getUserIcon = (activity) => {
                                             <div class="text-sm font-medium text-gray-900">পরীক্ষার নাম</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap" colspan="6">
-                                            <div class="text-sm font-medium text-gray-900">{{ markazDetails.exam_name }}</div>
+                                            <div class="text-sm font-medium text-gray-900">
+                                                {{ markazDetails.exam_name || markazDetails.examName }}
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -157,7 +161,7 @@ const getUserIcon = (activity) => {
 
                     <!-- Documents -->
                     <div class="p-6 bg-white border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">
+                        <h3 class="text-lg font-semibold  text-gray-900 mb-4">
                             সংযুক্ত ডকুমেন্টস
                         </h3>
                         <div class="overflow-x-auto">
@@ -440,103 +444,77 @@ const getUserIcon = (activity) => {
                     <!-- Registration Status -->
                     <div class="p-6 bg-white">
                         <h3 class="text-lg font-medium text-gray-900 mb-4">
-                            নিবন্ধন অবস্থা পর্যবেক্ষণ
+                            আবেদন অবস্থা পর্যবেক্ষণ
                         </h3>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3 text-left text-md font-semibold text-gray-500 uppercase tracking-wider">
                                             সিদ্ধান্ত গ্রহণকারী
                                         </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3 text-left text-md font-semibold text-gray-500 uppercase tracking-wider">
                                             পদবি
                                         </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3 text-left text-md font-semibold text-gray-500 uppercase tracking-wider">
                                             তারিখ ও সময়
                                         </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3 text-left text-md font-semibold text-gray-500 uppercase tracking-wider">
                                             অবস্থা
                                         </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3 text-left text-md font-semibold text-gray-500 uppercase tracking-wider">
                                             মন্তব্য
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-md font-semibold text-gray-500 uppercase tracking-wider">
+                                            ফিডব্যাক ইমেজ
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    <tr v-for="activity in markazDetails.activity_logs" :key="activity.id" class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-center">
-                                                <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-gray-100">
-                                                    <svg v-if="getUserIcon(activity) === 'user-edit'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                    </svg>
-                                                </div>
-                                                <div class="ml-4">
-                                                    <div class="text-sm font-medium text-gray-900">
-                                                        {{ activity.admin_name || activity.user_name }}
-                                                    </div>
-                                                </div>
+                                    <tr v-for="(activity, idx) in markazDetails.status_logs" :key="idx" class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                            <div class="text-sm font-medium text-gray-900">{{ activity.name }}</div>
+                                            <span v-if="activity.user_type"
+                                              :class="activity.user_type === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'"
+                                          class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium">
+                                            {{ activity.user_type === 'admin' ? 'এডমিন' : 'মাদরাসা' }}
+                                            </span>
                                             </div>
                                         </td>
-                                      <td class="px-6 py-4 whitespace-nowrap">
-    <span v-if="activity.admin_position_text === 'সুপার এডমিন'"
-          class="px-2 py-1 inline-flex items-center text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-        <svg class="h-3.5 w-3.5 mr-1 text-purple-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-        </svg>
-        {{ activity.admin_position_text }}
-    </span>
-    <span v-else
-          class="px-2 py-1 inline-flex items-center text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-        <svg class="h-3.5 w-3.5 mr-1 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-        </svg>
-        {{ activity.user_position }}
-    </span>
-</td>
-
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span :class="activity.user_type === 'admin' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'"
+                                                  class="px-2 py-1 inline-flex items-center text-xs leading-5 font-semibold rounded-full">
+                                                {{ activity.designation || 'N/A' }}
+                                            </span>
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center text-sm text-gray-500">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                 </svg>
-                                                {{ formatDate(activity.created_at) }}
+                                                {{ activity.created_at }}
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span v-if="activity.status === 'অনুমোদন'" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                {{ activity.status }}
-                                            </span>
-                                            <span v-else-if="activity.status === 'বোর্ড দাখিল'" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                                {{ activity.status }}
-                                            </span>
-                                            <span v-else-if="activity.status === 'বোর্ড ফেরত' || activity.status === 'বাতিল'" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                                {{ activity.status }}
-                                            </span>
-                                       <span v-else class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            <span :class="getStatusClass(activity.status)"
+                                                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
                                                 {{ activity.status }}
                                             </span>
                                         </td>
-<td class="px-6 py-4">
-    <div class="flex items-start">
-        <svg v-if="activity.admin_message" class="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
-        </svg>
-        <div v-if="activity.admin_message" class="text-sm text-red-600 max-h-24 overflow-y-auto pr-4">
-            {{ activity.admin_message }}
-        </div>
-        <div v-else class="text-sm text-gray-500 italic">
-            কোন মন্তব্য নাই
-        </div>
-    </div>
-</td>
-
-
-
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm text-gray-700 max-h-24 overflow-y-auto pr-4">
+                                                {{ activity.comments || 'কোন মন্তব্য নাই' }}
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div v-if="activity.feedback_image">
+                                                <a :href="activity.feedback_image" target="_blank">
+                                                    <img :src="activity.feedback_image" alt="Feedback Image" class="h-12 rounded shadow" />
+                                                </a>
+                                            </div>
+                                            <div v-else class="text-xs text-gray-400">N/A</div>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>

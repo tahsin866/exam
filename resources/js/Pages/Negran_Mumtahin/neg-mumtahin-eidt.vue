@@ -277,7 +277,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { createToaster } from "@meforma/vue-toaster";
+
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
@@ -285,9 +285,9 @@ import Card from 'primevue/card';
 import Editor from 'primevue/editor';
 import Button from 'primevue/button';
 
-const toaster = createToaster({
-    position: "top-right"
-});
+// const toaster = createToaster({
+//     position: "top-right"
+// });
 
 // Get ID from query string
 const urlParams = new URLSearchParams(window.location.search);

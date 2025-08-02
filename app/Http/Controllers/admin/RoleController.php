@@ -50,7 +50,7 @@ class RoleController extends Controller
         }
 
         activity()
-            ->causedBy(auth()->user())
+            ->causedBy(request()->user())
             ->performedOn($role)
             ->log('New role created');
 
@@ -61,7 +61,7 @@ class RoleController extends Controller
     public function show(Role $role)
     {
         $role->load('permissions');
-        
+
         return Inertia::render('admin/Roles/Show', [
             'role' => $role
         ]);
@@ -94,7 +94,7 @@ class RoleController extends Controller
         $role->syncPermissions($request->permissions ?? []);
 
         activity()
-            ->causedBy(auth()->user())
+            ->causedBy(request()->user())
             ->performedOn($role)
             ->log('Role updated');
 
@@ -116,7 +116,7 @@ class RoleController extends Controller
         }
 
         activity()
-            ->causedBy(auth()->user())
+            ->causedBy(request()->user())
             ->performedOn($role)
             ->log('Role deleted');
 

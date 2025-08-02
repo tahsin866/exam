@@ -76,7 +76,7 @@ Route::prefix('api')->group(function () {
     Route::get('/madrasha/students/{madrasha_id}', [StudentRegistrationController::class, 'getMadrashaStudents'])
     ->name('nibondon_for_admin.madrashaWari_stu_nibond_list');
 
-    Route::get('/nibondon/abandon-stu-list/{markaz_id}', [StudentRegistrationController::class, 'abandonStuList'])
+    Route::get('/nibondon/abandon-stu-list/{markaz_id?}', [StudentRegistrationController::class, 'abandonStuList'])
     ->name('nibondon_for_admin.abandon_stu_list');
 
 
@@ -144,7 +144,7 @@ Route::get('/test-bangla-pdf', function () {
 
     // Test with mPDF
     $htmlContent = view('markazApplication.markaz_application_pdf_mpdf', ['application' => (object)$testData])->render();
-    
+
     $mpdf = new \Mpdf\Mpdf([
         'mode' => 'utf-8',
         'format' => 'A4',
@@ -164,15 +164,15 @@ Route::get('/test-bangla-pdf', function () {
         'autoScriptToLang' => true,
         'autoLangToFont' => true,
     ]);
-    
+
     // Configure for better Bangla rendering
     $mpdf->useSubstitutions = false;
     $mpdf->simpleTables = true;
     $mpdf->SetDirectionality('ltr');
     $mpdf->SetDefaultFont('solaimanlipi');
-    
+
     $mpdf->WriteHTML($htmlContent);
-    
+
     return response($mpdf->Output('test_bangla_markaz.pdf', 'D'))
         ->header('Content-Type', 'application/pdf')
         ->header('Content-Disposition', 'attachment; filename="test_bangla_markaz.pdf"');
@@ -182,11 +182,11 @@ Route::get('/test-bangla-pdf', function () {
 // Storage file serving route
 Route::get('/storage/{path}', function ($path) {
     $fullPath = storage_path('app/public/' . $path);
-    
+
     if (!file_exists($fullPath)) {
         abort(404);
     }
-    
+
     return response()->file($fullPath);
 })->where('path', '.*');
 

@@ -30,6 +30,7 @@ class MarkazAgreementLog extends Model
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_BOARD_RETURNED = 'board_returned';
     const STATUS_BOARD_SUBMITTED = 'board_submitted';
+    const STATUS_IN_PROCESSING = 'in_processing';
 
     // Action type constants
     const ACTION_CREATED = 'created';
@@ -38,6 +39,7 @@ class MarkazAgreementLog extends Model
     const ACTION_SUSPENDED = 'suspended';
     const ACTION_CANCELLED = 'cancelled';
     const ACTION_BOARD_RETURNED = 'board_returned';
+    const ACTION_IN_PROCESSING = 'in_processing';
 
     /**
      * Relationship with MarkazAgreement
@@ -67,6 +69,7 @@ class MarkazAgreementLog extends Model
             self::STATUS_CANCELLED => 'বাতিল',
             self::STATUS_BOARD_RETURNED => 'বোর্ড ফেরত',
             self::STATUS_BOARD_SUBMITTED => 'বোর্ড দাখিল',
+            self::STATUS_IN_PROCESSING => 'প্রক্রিয়াধীন',
             default => 'অজানা'
         };
     }
@@ -83,6 +86,7 @@ class MarkazAgreementLog extends Model
             self::ACTION_SUSPENDED => 'স্থগিত',
             self::ACTION_CANCELLED => 'বাতিল',
             self::ACTION_BOARD_RETURNED => 'বোর্ড ফেরত',
+            self::ACTION_IN_PROCESSING => 'প্রক্রিয়াধীন',
             default => 'অজানা'
         };
     }

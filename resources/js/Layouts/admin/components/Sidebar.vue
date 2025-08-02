@@ -357,7 +357,7 @@ function setSelected(item, parentDropdown = null) {
                 </div>
                 <transition name="sidebar-dropdown">
                     <div v-if="dropdownOpen.markaz" :class="sidebarDropdownBg + ' rounded-md ml-3 my-1 py-1'">
-                        <Link v-if="hasPermission('markaz.application_list') || isSuperAdmin()" :href="route('markaz_for_admin.markaz_setup')" class="flex items-center gap-2 px-5 py-2 rounded text-base cursor-pointer transition-all" :class="selectedItem === 'markaz_application_list' ? sidebarSelected : sidebarHover" @click="setSelected('markaz_application_list', 'markaz')">
+                        <Link v-if="hasPermission('markaz.application_list') || isSuperAdmin()" :href="route('admin.markaz.markaz_setup')" class="flex items-center gap-2 px-5 py-2 rounded text-base cursor-pointer transition-all" :class="selectedItem === 'markaz_application_list' ? sidebarSelected : sidebarHover" @click="setSelected('markaz_application_list', 'markaz')">
                             <i class="pi pi-list text-base"/>
                             <span>মারকায আবেদন তালিকা</span>
                         </Link>

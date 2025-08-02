@@ -140,7 +140,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { ref, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import { createToaster } from "@meforma/vue-toaster";
+
 
 import OldStudentPersonalInfo from '@/Pages/students_registration/components/OldStudentPersonalInfo.vue';
 import OldStudentExamInfo from '@/Pages/students_registration/components/OldStudentExamInfo.vue';
@@ -154,10 +154,10 @@ const props = defineProps({
   modelValue: Object
 });
 
-const toaster = createToaster({
-  position: "top-right",
-  duration: 3000
-});
+// const toaster = createToaster({
+//   position: "top-right",
+//   duration: 3000
+// });
 
 const examName = ref('');
 const marhalaName = ref('');

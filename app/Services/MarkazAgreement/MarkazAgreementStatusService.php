@@ -115,6 +115,38 @@ class MarkazAgreementStatusService
     }
 
     /**
+     * Set agreement to in processing
+     */
+    public function inProcessing(MarkazAgreement $agreement, string $comment = null): bool
+    {
+        return DB::transaction(function() use ($agreement, $comment) {
+            $previousStatus = $agreement->status;
+            $userId = Auth::id();
+            $user = Auth::user();
+
+            // Update agreement status
+            $agreement->status = MarkazAgreement::STATUS_IN_PROCESSING;
+            $agreement->processed_at = now();
+            $agreement->admin_name = $user->name;
+            $agreement->status_comment = $comment;
+
+            $agreement->save();
+
+            // Create log entry
+            $this->createStatusLog(
+                $agreement->id,
+                $userId,
+                $previousStatus,
+                MarkazAgreement::STATUS_IN_PROCESSING,
+                MarkazAgreementLog::ACTION_IN_PROCESSING,
+                $comment ?: 'মারকায চুক্তি প্রক্রিয়াধীন করা হয়েছে'
+            );
+
+            return true;
+        });
+    }
+
+    /**
      * Get status statistics
      */
     public function getStatusStatistics(): array
@@ -185,6 +217,7 @@ class MarkazAgreementStatusService
             MarkazAgreement::STATUS_SUSPENDED => MarkazAgreementLog::ACTION_SUSPENDED,
             MarkazAgreement::STATUS_CANCELLED => MarkazAgreementLog::ACTION_CANCELLED,
             MarkazAgreement::STATUS_BOARD_RETURNED => MarkazAgreementLog::ACTION_BOARD_RETURNED,
+            MarkazAgreement::STATUS_IN_PROCESSING => MarkazAgreementLog::ACTION_IN_PROCESSING,
             default => 'unknown'
         };
     }

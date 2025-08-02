@@ -90,7 +90,7 @@ const isImageFile = (file) => {
 
                 <div v-if="showDarsiyatFields" class="flex flex-col">
                     <label class="block font-medium text-sm text-gray-700 mb-2">
-                        সানাবিয়া
+                        সানাবিয়া <span class="text-red-500">*</span>
                     </label>
                     <div class="flex items-center w-full">
                         <InputNumber
@@ -105,11 +105,12 @@ const isImageFile = (file) => {
                             class="w-full"
                         />
                     </div>
+                    <p v-if="errors.sanabiya" class="text-sm text-red-500 mt-1">{{ errors.sanabiya }}</p>
                 </div>
 
                 <div v-if="showDarsiyatFields" class="flex flex-col">
                     <label class="block font-medium text-sm text-gray-700 mb-2">
-                        মুতাওয়াসসিতা
+                        মুতাওয়াসসিতা <span class="text-red-500">*</span>
                     </label>
                     <div class="flex items-center w-full">
                         <InputNumber
@@ -124,11 +125,12 @@ const isImageFile = (file) => {
                             class="w-full"
                         />
                     </div>
+                    <p v-if="errors.mutawassita" class="text-sm text-red-500 mt-1">{{ errors.mutawassita }}</p>
                 </div>
 
                 <div v-if="showDarsiyatFields" class="flex flex-col">
                     <label class="block font-medium text-sm text-gray-700 mb-2">
-                        ইবতেদাইয়্যাহ
+                        ইবতেদাইয়্যাহ <span class="text-red-500">*</span>
                     </label>
                     <div class="flex items-center w-full">
                         <InputNumber
@@ -143,6 +145,7 @@ const isImageFile = (file) => {
                             class="w-full"
                         />
                     </div>
+                    <p v-if="errors.ibtedaiyyah" class="text-sm text-red-500 mt-1">{{ errors.ibtedaiyyah }}</p>
                 </div>
 
                 <!-- Hifzul Quran Field -->

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\MarhalaController;
 use App\Http\Controllers\ExamRegistrationController;
+use App\Http\Controllers\madrasha\OldStudent\OldstudentRegistrationController;
 use App\Http\Controllers\MarkazAgreementController;
 use App\Http\Controllers\markaz\markazApllyController;
 use App\Http\Controllers\markaz\markazApplicationController;
@@ -32,7 +33,7 @@ Route::get('/subjectSettings-for-madrasha', fn() => Inertia::render('Markaz/subj
 Route::get('/subjectSetting-list', fn() => Inertia::render('Markaz/subjectSetting_list'))->name('Markaz.subjectSetting_list');
 
 // Markaz Application
-Route::get('/markaz/makaj-apply', [markazApplicationController::class, 'getTableData'])->name('markaz.makaj_apply.index');
+
 Route::resource('markaz-agreements', markazApplicationController::class); // resourceful markazApplication routes (may conflict with above!)
 Route::get('/marjaz-detailes-view/{id}', [markazApplicationController::class, 'viewDetails'])->name('Markaz.view');
 Route::get('/markaz/application/{id}', [markazApplicationController::class, 'Edit'])->name('Markaz.edit');
@@ -62,8 +63,8 @@ Route::get('students_registration/student_registration_edit', fn() => Inertia::r
 Route::get('students_registration/student_registraion_view', fn() => Inertia::render('students_registration/student_registraion_view'))->name('students_registration.student_registraion_view');
 
 // Student Registration Controller Actions
-Route::get('/students/registration/edit', [ExamRegistrationController::class, 'editStudentRegistration'])->name('students_registration.old_stu_reg_edit');
-Route::get('/get-student-for-edit', [ExamRegistrationController::class, 'getStudentForEdit']);
+Route::get('/students/registration/edit', [OldstudentRegistrationController::class, 'editStudentRegistration'])->name('students_registration.old_stu_reg_edit');
+// Route::get('/get-student-for-edit', [ExamRegistrationController::class, 'getStudentForEdit']);
 Route::get('/students-registration/{id}/edit', [StudentRegistrationController::class, 'editStudentRegistration'])->name('students_registration.student_registration_edit');
 Route::put('/students-registration/{id}', [StudentRegistrationController::class, 'updateStudentRegistration'])->name('students_registration.student_registration_update');
 Route::get('/students/registration/{id}', [StudentRegistrationController::class, 'studentRegistrationView'])->name('students_registration.student_registraion_view');

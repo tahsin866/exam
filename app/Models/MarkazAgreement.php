@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class MarkazAgreement extends Model
 {
-    //
     protected $fillable = [
         'fazilat',
         'user_id',
@@ -53,20 +52,20 @@ class MarkazAgreement extends Model
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_BOARD_RETURNED = 'board_returned';
     const STATUS_BOARD_SUBMITTED = 'board_submitted';
+    const STATUS_IN_PROCESSING = 'in_processing';
 
-    // public function associatedMadrasas()
-    // {
-    //     return $this->hasMany(MarkazAgreementMadrasa::class);
-    // }
-
-
-
+    /**
+     * Associated madrasas for this agreement
+     */
     public function associatedMadrasas()
     {
         return $this->hasMany(MarkazAgreementMadrasa::class, 'markaz_agreement_id', 'id');
     }
 
-    public function user()  // Changed from users() to user()
+    /**
+     * User who owns this agreement
+     */
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
@@ -88,7 +87,7 @@ class MarkazAgreement extends Model
     }
 
     /**
-     * Status logs for this agreement
+     * Status logs for this agreement (ordered descending)
      */
     public function statusLogs()
     {
@@ -107,43 +106,74 @@ class MarkazAgreement extends Model
             self::STATUS_CANCELLED => 'বাতিল',
             self::STATUS_BOARD_RETURNED => 'বোর্ড ফেরত',
             self::STATUS_BOARD_SUBMITTED => 'বোর্ড দাখিল',
+            self::STATUS_IN_PROCESSING => 'প্রক্রিয়াধীন',
             default => 'অজানা'
         };
     }
 
-
+    /**
+     * Activity logs for this agreement
+     */
     public function activityLogs()
     {
-        return $this->hasMany(activity_log::class, 'markaz_agreement_id'); // Assuming the foreign key is 'markaz_agreement_id'
+        return $this->hasMany(activity_log::class, 'markaz_agreement_id');
     }
 
+    /**
+     * General logs for this agreement
+     */
     public function logs()
     {
         return $this->hasMany(MarkazAgreementLog::class);
     }
 
+    /**
+     * Alias for created_by user relation
+     */
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * Alias for approved_by user relation
+     */
     public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
 
+    /**
+     * Main madrasha relation
+     */
+  public function mainMadrasa()
+{
+    return $this->belongsTo(madrasha::class, 'madrasha_id');
+}
 
-    public function schedule_setups()
+    /**
+     * Exam setup relation
+     */
+    public function examSetup()
     {
-        return $this->belongsTo(schedule_setups::class, 'exam_setup_id'); // Assuming the foreign key is 'markaz_agreement_id'
+        return $this->belongsTo(\App\Models\admin\marhala_for_admin\ExamSetup::class, 'exam_id');
     }
 
+    /**
+     * Schedule setup relation
+     */
+    public function schedule_setups()
+    {
+        return $this->belongsTo(schedule_setups::class, 'exam_setup_id');
+    }
 
+    /**
+     * Registered student information relation
+     */
     public function regStuInformations()
     {
         return $this->hasMany(reg_stu_information::class, 'markaz_agreement_id');
     }
-
 
 
 }

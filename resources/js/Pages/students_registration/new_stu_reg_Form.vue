@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { ref, onMounted } from 'vue'
-import { createToaster } from "@meforma/vue-toaster"
+
 import PersonalInfo from '@/Pages/students_registration/components/PersonalInfoStep.vue'
 import AddressInfo from '@/Pages/students_registration/components/AddressInfoStep.vue'
 import AttachmentsInfo from '@/Pages/students_registration/components/AttachmentsInfo.vue'
@@ -15,10 +15,6 @@ const props = defineProps({
   modelValue: Object
 })
 
-const toaster = createToaster({
-  position: "top-right",
-  duration: 3000
-})
 
 const currentStep = ref(1)
 const examName = ref('')

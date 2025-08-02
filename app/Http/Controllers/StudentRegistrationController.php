@@ -460,7 +460,7 @@ public function getMarkazMadrasaList($markaz_id)
 
 
 
-    public function abandonStuList($markaz_id)
+    public function abandonStuList($markaz_id = null)
     {
         // Just render the view, data will be fetched on the client side
         return Inertia::render('nibondon_for_admin/abandon_stu_list', [

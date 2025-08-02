@@ -15,6 +15,9 @@ use App\Http\Controllers\teacherController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\markaz\markazApplicationController;
 use App\Http\Controllers\BoardApplicationController;
+use App\Http\Controllers\madrasha\ExamFeeController;
+use App\Http\Controllers\madrasha\OldStudent\ExamDataController;
+use App\Http\Controllers\madrasha\OldStudent\OldstudentRegistrationController;
 use App\Http\Controllers\markaz\getMadrashaController;
 
 // Marhala Controller Routes
@@ -54,10 +57,9 @@ Route::prefix('api')->group(function () {
     // MarkazAgreementController Routes
     Route::get('/madrashas/list', [getMadrashaController::class, 'getMadrashas'])->name('madrashas.list');
     Route::get('/exam-setups/latest', [markazApplicationController::class, 'getLatestExam'])->name('exam-setups.latest');
-    Route::get('/markaz/get-table-data', [MarkazAgreementController::class, 'getTableData']);
+    Route::get('/markaz/get-table-data', [markazApplicationController::class, 'getTableData']);
     Route::get('/markaz-agreements', [markazApplicationController::class, 'fatch']);
 
-    Route::get('/markaz-madrashas/list', [MarkazAgreementController::class, 'getMadrashas'])->name('markaz.madrashas.list');
 
 
 
@@ -76,12 +78,12 @@ Route::prefix('api')->group(function () {
 
 
     // ExamRegistrationController Routes
-    Route::get('/exam-fees', [ExamRegistrationController::class, 'examFeeList']);
-    Route::get('/student-registration/{marhalaId}', [ExamRegistrationController::class, 'getRegistrationData']);
+    Route::get('/exam-fees', [ExamFeeController::class, 'examFeeList']);
+    Route::get('/student-registration/{marhalaId}', [ExamDataController::class, 'getRegistrationData']);
     Route::get('/student-registration_old/{marhalaId}', [ExamRegistrationController::class, 'getRegistrationDataforold']);
     Route::get('/student-years', [ExamRegistrationController::class, 'getStudentYears']);
-    Route::get('/search-students', [ExamRegistrationController::class, 'searchStudents']);
-    Route::get('/get-student-for-edit', [ExamRegistrationController::class, 'getStudentForEdit']);
+    Route::get('/search-students', [OldstudentRegistrationController::class, 'searchStudents']);
+    Route::get('/get-student-for-edit', [OldstudentRegistrationController::class, 'getStudentForEdit']);
     Route::post('/save-student-info/{marhalaId}', [ExamRegistrationController::class, 'saveStudentInfo']);
     Route::post('/save-student-info_1/{marhalaId}', [ExamRegistrationController::class, 'NewSaveStudentInfo']);
 
@@ -94,7 +96,7 @@ Route::prefix('api')->group(function () {
     Route::get('/students-registration', [StudentRegistrationController::class, 'getStudents']);
     Route::get('/markaz-students', [StudentRegistrationController::class, 'getMarkazStudents']);
     Route::get('/markaz-madrasa-list/{markaz_id}', [StudentRegistrationController::class, 'getMarkazMadrasaList'])->name('api.markaz_madrasa_list');
-    Route::get('/abandon-stu-list/{markaz_id}', [StudentRegistrationController::class, 'abandonStuList'])->name('nibondon_for_admin.abandon_stu_list');
+    Route::get('/abandon-stu-list/{markaz_id}', [StudentRegistrationController::class, 'abandonStuList'])->name('api.abandon_stu_list');
 
     // DashboardController Routes
     Route::get('/dashboard/student-stats', [dashboardController::class, 'getStudentStats']);
