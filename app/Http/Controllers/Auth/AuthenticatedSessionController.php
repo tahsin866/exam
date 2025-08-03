@@ -42,7 +42,7 @@ class AuthenticatedSessionController extends Controller
 
         // Redirect based on user type
         if ($user->user_type === 'admin') {
-            return redirect()->intended(route('admin.dashboard', absolute: false));
+            return redirect()->intended(route('admin.admin_Dashboard', absolute: false));
         } else {
             return redirect()->intended(route('dashboard', absolute: false));
         }
@@ -68,9 +68,9 @@ class AuthenticatedSessionController extends Controller
     public function adminDestroy(Request $request): RedirectResponse
     {
         $user = Auth::user();
-        
+
         // Log the activity
-        if ($user) {
+        if ($user && $user instanceof \Illuminate\Database\Eloquent\Model) {
             activity()
                 ->causedBy($user)
                 ->log('Admin logged out');

@@ -204,7 +204,7 @@ function setSelected(item, parentDropdown = null) {
         <nav class="h-[calc(100vh-4rem)] overflow-y-auto custom-scrollbar px-0 py-2">
             <!-- ড্যাশবোর্ড -->
             <Link
-                :href="route('admin.dashboard')"
+                :href="route('admin.admin_Dashboard')"
                 class="flex items-center gap-3 px-5 py-2 rounded transition-all cursor-pointer text-base font-medium"
                 :class="[
                   selectedItem === 'dashboard' ? sidebarSelected + ' border-l-4 border-emerald-400' : sidebarHover + ' border-l-4 border-transparent'

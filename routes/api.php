@@ -142,4 +142,8 @@ Route::post('/markaz-changes/{id}/approve', [MarkazChangeController::class, 'app
 Route::post('/submit-all-applications', [App\Http\Controllers\StudentRegistrationController::class, 'submitAllApplications'])->name('submit.all.applications');
 
 
+
+Route::get('api/madrashas-under-markaz/{markazId}', [MadrashaController::class, 'getMadrashasUnderMarkaz']);
+
+
 });

@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
-class EnsureUserIsAdmin
+class EnsureUserIsMadrasa
 {
     /**
      * Handle an incoming request.
@@ -24,10 +24,10 @@ class EnsureUserIsAdmin
 
         $user = Auth::user();
 
-        // Check if user is admin
-        if (!$user->isAdmin()) {
+        // Check if user is madrasa type
+        if (!$user->isMadrasaUser()) {
             // Log unauthorized access attempt
-            Log::warning('Madrasa user attempted to access admin route', [
+            Log::warning('Admin user attempted to access madrasa route', [
                 'user_id' => $user->id,
                 'user_type' => $user->user_type,
                 'route' => $request->route()->getName(),
@@ -40,8 +40,8 @@ class EnsureUserIsAdmin
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Access denied. This area is restricted to admin users only.',
-                    'redirect' => route('dashboard')
+                    'message' => 'Access denied. This area is restricted to madrasa users only.',
+                    'redirect' => route('admin.dashboard')
                 ], 403);
             }
 

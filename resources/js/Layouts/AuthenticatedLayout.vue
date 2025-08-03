@@ -783,12 +783,55 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, usePage, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import 'primeicons/primeicons.css'
 
 // Sidebar state
 const showSidebar = ref(false);
+
+// Security check for madrasa layout
+const page = usePage();
+const auth = computed(() => page.props.auth);
+
+// Security check with watcher for auth data (temporarily disabled for debugging)
+// Will re-enable after confirming basic functionality works
+/*
+const hasCheckedSecurity = ref(false);
+
+watch(auth, (newAuth) => {
+    // Only run security check once and if auth data is available
+    if (newAuth && typeof newAuth === 'object' && !hasCheckedSecurity.value) {
+        hasCheckedSecurity.value = true;
+        
+        // Check if user is logged in and is madrasa user
+        if (!newAuth.user) {
+            // Not logged in - redirect to login (but not if already on login page)
+            if (!window.location.pathname.includes('/login')) {
+                router.visit('/login');
+            }
+            return;
+        }
+        
+        if (newAuth.user && newAuth.userType && !newAuth.isMadrasa) {
+            // Not madrasa user - log security violation and redirect to appropriate dashboard
+            console.error('Security Violation: Non-madrasa user attempted to access madrasa layout', {
+                user: newAuth.user,
+                userType: newAuth.userType,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Redirect based on user type (but not if already on correct page)
+            if (newAuth.isAdmin && !window.location.pathname.includes('/admin')) {
+                router.visit('/admin/dashboard');
+            } else if (!newAuth.isAdmin && !window.location.pathname.includes('/login')) {
+                router.visit('/login');
+            }
+            return;
+        }
+    }
+}, { immediate: true });
+*/
 
 // Dropdown states with single active management
 const activeDropdown = ref(null);
@@ -827,7 +870,7 @@ const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value;
 };
 
-const page = usePage();
+// const page = usePage(); // Already declared above
 const centers = ref([]);
 const error = ref(null);
 

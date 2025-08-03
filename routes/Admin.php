@@ -96,13 +96,7 @@ Route::get('/markaz/list', function () {
     return Inertia::render('admin/markaz/markaz_setup');
 })->name('admin.markaz.markaz_setup');
 
-Route::get('/all-markaz-list', function () {
-    return Inertia::render('markaz_for_admin/all_markaz_list');
-})->name('markaz_for_admin.all_markaz_list');
-
-Route::get('/madrasha-list-underMarkaz', function () {
-    return Inertia::render('markaz_for_admin/madrasha_list_underMarkaz');
-})->name('markaz_for_admin.madrasha_list_underMarkaz');
+Route::get('/all-markaz-list', [MadrashaController::class, 'allMarkazListPage'])->name('markaz_for_admin.all_markaz_list');
 
 Route::get('/markaz-change-apply-list', function () {
     return Inertia::render('markaz_for_admin/markaz_change_apply_list');
@@ -187,9 +181,9 @@ Route::controller(MadrashaController::class)->group(function () {
     Route::post('/madrasah-search', 'search')->name('admin.madrasah.search');
     Route::get('/districts/{division}', 'getDistricts')->name('admin.locations.districts');
     Route::get('/thanas/{district}', 'getThanas')->name('admin.locations.thanas');
+    Route::get('/markaz/{id}/madrashas-page', 'madrashaListUnderMarkazPage')->name('markaz_for_admin.madrasha_list_underMarkaz');
+    Route::get('/api/markaz/{id}/madrashas', 'madrashaListUnderMarkaz')->name('api.markaz.madrashas');
 });
-Route::get('/markaz/{id}/madrashas', [MadrashaController::class, 'madrashaListUnderMarkaz'])
-    ->name('markaz_for_admin.madrasha_list_underMarkaz');
 
 // MarhalaListController
 Route::post('/save-subject-selection', [MarhalaListController::class, 'saveSubjectSelection'])->name('api.save-subject-selection');
@@ -250,7 +244,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Admin Dashboard
     Route::get('/dashboard', function () {
         return Inertia::render('admin/admin_Dashboard');
-    })->name('dashboard');
+    })->name('admin_Dashboard');
 
 
 

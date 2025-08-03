@@ -13,6 +13,15 @@ use Inertia\Inertia;
 
 /**
  * --------------------------------------------------------------------------
+ * Madrasa Protected Routes
+ * All routes in this file require madrasa user authentication
+ * --------------------------------------------------------------------------
+ */
+
+Route::middleware(['auth', 'madrasa'])->group(function () {
+
+/**
+ * --------------------------------------------------------------------------
  * Markaz Routes
  * --------------------------------------------------------------------------
  */
@@ -130,3 +139,5 @@ Route::put('/marhalas/{id}', [MarhalaController::class, 'update'])->name('marhal
  * End of File
  * --------------------------------------------------------------------------
  */
+
+}); // End of madrasa middleware group

@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use App\Models\reg_stu_information;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class MadrashaController extends Controller
 {
@@ -60,7 +61,7 @@ class MadrashaController extends Controller
 
     public function getMadrashaList(Request $request)
     {
-        $perPage = $request->input('per_page', 10);
+        $perPage = $request->input('per_page', 50);
         $page = $request->input('page', 1);
 
         $applications = Madrasha::with(['division', 'district', 'thana'])
@@ -100,51 +101,154 @@ class MadrashaController extends Controller
 
 
 
-// markaz data fatch
+// Page method for all markaz list
+public function allMarkazListPage(Request $request)
+{
+    try {
+        // Get initial markaz data with dynamic per_page
+        $perPage = $request->input('per_page', 10);
+        $query = DB::table('madrasha_centers as mc')
+            ->join('schools as s', 'mc.madrasha_id', '=', 's.madrasha_id')
+            ->leftJoin('division as d', 's.DID', '=', 'd.id')
+            ->leftJoin('district as dt', 's.DES_ID', '=', 'dt.DesID')
+            ->leftJoin('thana as t', 's.TID', '=', 't.Thana_ID')
+            ->select(
+                'mc.id as center_id',
+                'mc.center_id as center_type_id',
+                'mc.serial_number',
+                's.MName as name',
+                's.ElhaqNo as Elhaq_no',
+                's.MType',
+                's.Mobile as mobile_no',
+                's.DID',
+                's.DES_ID as DISID',
+                's.TID',
+                'd.Division as division_name',
+                'dt.District as district_name',
+                't.Thana as thana_name'
+            )
+            ->orderBy('mc.id', 'desc');
 
+        $initialApplications = $query->paginate($perPage);
 
+        // Transform data
+        $initialApplications->getCollection()->transform(function ($item) {
+            $item->MType = $item->MType == 0 ? 'ছাত্রী' : 'ছাত্র';
+            return $item;
+        });
+
+        // Get divisions for dropdowns
+        $divisions = Division::select('id', 'Division as Division')->get();
+
+        return Inertia::render('markaz_for_admin/all_markaz_list', [
+            'initialApplications' => $initialApplications,
+            'initialDivisions' => $divisions,
+            'initialDistricts' => [],
+            'initialThanas' => [],
+        ]);
+    } catch (\Exception $e) {
+        // Fallback with empty data
+        return Inertia::render('markaz_for_admin/all_markaz_list', [
+            'initialApplications' => [
+                'data' => [],
+                'current_page' => 1,
+                'last_page' => 1,
+                'total' => 0,
+                'from' => 0,
+                'to' => 0
+            ],
+            'initialDivisions' => [],
+            'initialDistricts' => [],
+            'initialThanas' => [],
+        ]);
+    }
+}
+
+// API method for markaz list
 public function getMarkazList(Request $request)
 {
     $perPage = $request->input('per_page', 10);
     $page = $request->input('page', 1);
 
-    $applications = madrasha::with(['division', 'district', 'thana'])
+    Log::info('API getMarkazList called', [
+        'per_page' => $perPage,
+        'page' => $page,
+        'filters' => $request->all()
+    ]);
+
+    $query = DB::table('madrasha_centers as mc')
+        ->join('schools as s', 'mc.madrasha_id', '=', 's.madrasha_id')
+        ->leftJoin('division as d', 's.DID', '=', 'd.id')
+        ->leftJoin('district as dt', 's.DES_ID', '=', 'dt.DesID')
+        ->leftJoin('thana as t', 's.TID', '=', 't.Thana_ID')
         ->select(
-            'id',
-            'MName as name',
-            'ElhaqNo as Elhaq_no',
-            'MType',
-            'markaz_serial',
-            'Mobile as mobile_no',
-            'DID',
-            'DISID',
-            'TID'
-        )
-        ->whereNotNull('markaz_serial') // শুধু যেখানে markaz_serial আছে
-        ->where('markaz_serial', '!=', '') // খালি স্ট্রিং বাদ দেওয়া (যদি প্রয়োজন হয়)
-        ->paginate($perPage);
+            'mc.id as center_id',
+            'mc.center_id as center_type_id',
+            'mc.serial_number',
+            's.MName as name',
+            's.ElhaqNo as Elhaq_no',
+            's.MType',
+            's.Mobile as mobile_no',
+            's.DID',
+            's.DES_ID as DISID',
+            's.TID',
+            'd.Division as division_name',
+            'dt.District as district_name',
+            't.Thana as thana_name'
+        );
 
-    // Calculate proper from-to values
-    $applications->from = ($page - 1) * $perPage + 1;
-    $applications->to = min($page * $perPage, $applications->total());
+    // Apply filters
+    if ($request->filled('madrasahName')) {
+        $searchTerm = $request->madrasahName;
+        $query->where(function ($q) use ($searchTerm) {
+            $q->where('s.MName', 'like', '%' . $searchTerm . '%')
+              ->orWhere('s.ElhaqNo', 'like', '%' . $searchTerm . '%');
+        });
+    }
 
-    $applications->getCollection()->transform(function ($app) {
-        $app->MType = $app->MType == 0 ? 'ছাত্রী' : 'ছাত্র';
-        $app->division_name = $app->division ? $app->division->Division : null;
-        $app->district_name = $app->district ? $app->district->District : null;
-        $app->thana_name = $app->thana ? $app->thana->Thana : null;
+    // মাদরাসার ধরন ফিল্টার
+    if ($request->filled('type')) {
+        if ($request->type === 'ছাত্র') {
+            $query->where('s.MType', 1);
+        } elseif ($request->type === 'ছাত্রী') {
+            $query->where('s.MType', 0);
+        }
+    }
 
-        // রিলেশনশিপ অবজেক্টগুলো অপসারণ করে শুধু নামগুলো রাখা
-        unset($app->division);
-        unset($app->district);
-        unset($app->thana);
+    // বিভাগ ফিল্টার
+    if ($request->filled('division')) {
+        $query->where('s.DID', $request->division);
+    }
 
-        return $app;
+    // জেলা ফিল্টার
+    if ($request->filled('district')) {
+        $query->where('s.DES_ID', $request->district);
+    }
+
+    // থানা ফিল্টার
+    if ($request->filled('thana')) {
+        $query->where('s.TID', $request->thana);
+    }
+
+    $query->orderBy('mc.id', 'desc');
+
+    $data = $query->paginate($perPage, ['*'], 'page', $page);
+
+    // Transform data
+    $data->getCollection()->transform(function ($item) {
+        $item->MType = $item->MType == 0 ? 'ছাত্রী' : 'ছাত্র';
+        return $item;
     });
 
-    return response()->json($applications);
-}
+    Log::info('API response data', [
+        'total' => $data->total(),
+        'per_page' => $data->perPage(),
+        'current_page' => $data->currentPage(),
+        'data_count' => $data->count()
+    ]);
 
+    return response()->json($data);
+}
 
 
 // এডমিনের মারকায ফিল্টার
@@ -369,23 +473,70 @@ public function filterMarkazStudents(Request $request)
 
 
 
-public function madrashaListUnderMarkaz($markazId)
+// Page render method
+public function madrashaListUnderMarkazPage($markazId)
 {
-    // Get all MRID values from stu_rledger_p table where MDID matches the markaz ID
-    $mridValues = DB::table('stu_rledger_p')
-        ->where('MDID', $markazId)
-        ->pluck('MRID')
-        ->unique()
-        ->toArray();
-
-    // Get only the names of madrashas where id matches any of the MRID values
-    $madrashas = Madrasha::whereIn('id', $mridValues)
-        ->select('id', 'MName as name','ElhaqNo as Elhaq_no','Mobile as Mobile_no')
+    // madrasha_under_centers থেকে নির্দিষ্ট markazId অনুযায়ী চাইল্ড মাদরাসা গুলো আনবে
+    $madrashaList = DB::table('madrasha_under_centers as muc')
+        ->join('schools as s', 'muc.child_madrasha_id', '=', 's.madrasha_id')
+        ->join('centers as c', 'muc.center_id', '=', 'c.id')
+        ->where('muc.parent_madrasha_id', $markazId)
+        ->select(
+            's.madrasha_id as id',
+            's.MNName as name',
+            's.ElhaqNo as elhaq_no',
+            's.mobile as mobile_no',
+            'c.name as center_name'
+        )
         ->get();
 
-    return Inertia::render('markaz_for_admin/madrasha_list_underMarkaz', [
-        'madrashas' => $madrashas,
-        'markazId' => $markazId
+    return response()->json([
+        'markaz_id' => $markazId,
+        'total' => $madrashaList->count(),
+        'madrashas' => $madrashaList
+    ]);
+}
+
+
+// API method for AJAX calls
+public function getMadrashasUnderMarkaz($markazId)
+{
+    Log::info('getMadrashasUnderMarkaz called with markazId: ' . $markazId);
+
+    // First check if the tables exist and have data
+    $mucCount = DB::table('madrasha_under_centers')->count();
+    $schoolsCount = DB::table('schools')->count();
+    $centersCount = DB::table('centers')->count();
+
+    Log::info('Table counts - madrasha_under_centers: ' . $mucCount . ', schools: ' . $schoolsCount . ', centers: ' . $centersCount);
+
+    // Check if there are any records for this markaz
+    $specificMucCount = DB::table('madrasha_under_centers')
+        ->where('parent_madrasha_id', $markazId)
+        ->count();
+
+    Log::info('Records for markaz ' . $markazId . ': ' . $specificMucCount);
+
+    $madrashaList = DB::table('madrasha_under_centers as muc')
+        ->join('schools as s', 'muc.child_madrasha_id', '=', 's.madrasha_id')
+        ->join('centers as c', 'muc.center_id', '=', 'c.id')
+        ->where('muc.parent_madrasha_id', $markazId)
+        ->select(
+            's.madrasha_id as id',
+            's.MName as name',
+            's.ElhaqNo as Elhaq_no',
+            's.Mobile as Mobile_no',
+            'c.name as center_name'
+        )
+        ->get();
+
+    Log::info('Query result count: ' . $madrashaList->count());
+    Log::info('Query result: ' . json_encode($madrashaList));
+
+    return response()->json([
+        'madrashas' => $madrashaList,
+        'markaz_id' => $markazId,
+        'total' => $madrashaList->count()
     ]);
 }
 

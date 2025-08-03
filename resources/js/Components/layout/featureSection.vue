@@ -186,6 +186,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
+// import { Swiper } from 'swiper/bundle'; // Temporarily disabled
 
 
 
@@ -330,18 +331,11 @@ const swiperContainer = ref(null);
 let swiper = null;
 
 onMounted(() => {
-  // Initialize Swiper slider for testimonials
-  swiper = new Swiper(swiperContainer.value, {
-    loop: true,
-    autoplay: {
-      delay: 5000,
-      disableOnInteraction: false,
-    },
-    pagination: {
-      el: '.swiper-pagination',
-      clickable: true,
-    },
-  });
+  // Swiper temporarily disabled for debugging
+  console.log('FeatureSection mounted successfully');
+  
+  // TODO: Re-implement testimonials slider without Swiper dependency
+  // For now, testimonials will be displayed as static cards
 });
 </script>
 

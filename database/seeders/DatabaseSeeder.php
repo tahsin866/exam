@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DefaultRolesAndPermissionsSeeder::class,
             DefaultAdminSeeder::class,
+            CenterSeeder::class,
         ]);
     }
 }

@@ -1,7 +1,7 @@
 <template>
   <AuthenticatedLayout>
     <div class="py-8 px-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-      <div class=" mx-auto">
+      <div class="mx-auto">
         <!-- Header Section with Stats -->
         <div class="mb-8 flex flex-col md:flex-row justify-between gap-6">
           <div class="flex items-center">
@@ -52,15 +52,13 @@
               অনুসন্ধান ফিল্টার
             </h2>
             <div class="flex gap-2">
-              <button @click="resetFilters"
-                      class="text-white hover:text-emerald-200 transition-colors duration-200 flex items-center gap-1 px-3 py-1.5 rounded-md hover:bg-emerald-800/30">
+              <button @click="resetFilters" class="text-white hover:text-emerald-200 transition-colors duration-200 flex items-center gap-1 px-3 py-1.5 rounded-md hover:bg-emerald-800/30">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 রিসেট
               </button>
-              <button @click="exportData"
-                      class="text-white hover:text-emerald-200 transition-colors duration-200 flex items-center gap-1 px-3 py-1.5 rounded-md hover:bg-emerald-800/30">
+              <button @click="exportData" class="text-white hover:text-emerald-200 transition-colors duration-200 flex items-center gap-1 px-3 py-1.5 rounded-md hover:bg-emerald-800/30">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
@@ -80,12 +78,7 @@
                   মারকাযের নাম
                 </label>
                 <div class="relative">
-                  <input
-                    type="text"
-                    v-model="searchFilters.madrasahName"
-                    placeholder="মারকাযের নাম লিখুন..."
-                    class="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200"
-                  />
+                  <input type="text" v-model="searchFilters.madrasahName" placeholder="মারকাযের নাম লিখুন..." class="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200" />
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -103,10 +96,7 @@
                   মাদ্রাসার ধরন
                 </label>
                 <div class="relative">
-                  <select
-                    v-model="searchFilters.type"
-                    class="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-300 rounded-md appearance-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200"
-                  >
+                  <select v-model="searchFilters.type" class="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-300 rounded-md appearance-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200">
                     <option value="">সকল</option>
                     <option value="ছাত্র">ছাত্র</option>
                     <option value="ছাত্রী">ছাত্রী</option>
@@ -134,10 +124,7 @@
                   মাদরাসার স্তর
                 </label>
                 <div class="relative">
-                  <select
-                    v-model="searchFilters.level"
-                    class="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-300 rounded-md appearance-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200"
-                  >
+                  <select v-model="searchFilters.level" class="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-300 rounded-md appearance-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200">
                     <option value="">সকল</option>
                     <option value="takmil">তাকমিল</option>
                     <option value="fazilat">ফযিলত</option>
@@ -170,10 +157,7 @@
                   মারকাযের ধরন
                 </label>
                 <div class="relative">
-                  <select
-                    v-model="searchFilters.status"
-                    class="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-300 rounded-md appearance-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200"
-                  >
+                  <select v-model="searchFilters.status" class="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-300 rounded-md appearance-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200">
                     <option value="">সকল</option>
                     <option value="darsiyat">দরসিয়াত</option>
                     <option value="hifzul_quran">হিফজুল কুরআন</option>
@@ -233,10 +217,7 @@
 
             <!-- Search Button -->
             <div class="mt-5 flex justify-end">
-              <button
-                @click="search"
-                class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md shadow-sm hover:shadow transition-all duration-200 flex items-center gap-2"
-              >
+              <button @click="search" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md shadow-sm hover:shadow transition-all duration-200 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -264,28 +245,7 @@
           </div>
 
           <div class="p-0">
-            <DataTable
-              :value="applications.data"
-              v-model:filters="filters"
-              filterDisplay="menu"
-              :loading="loading"
-              dataKey="id"
-              paginator
-              :rows="perPage"
-              :rowsPerPageOptions="[10, 20, 50, 100]"
-              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-              currentPageReportTemplate="দেখানো হচ্ছে {first} থেকে {last} মোট {totalRecords} এর মধ্যে"
-              responsiveLayout="stack"
-              breakpoint="960px"
-              class="p-datatable-sm p-datatable-gridlines"
-              :scrollable="true"
-              scrollHeight="flex"
-              :resizableColumns="true"
-              columnResizeMode="fit"
-              showGridlines
-              stripedRows
-              :globalFilterFields="['name', 'Elhaq_no', 'MType', 'markaz_serial', 'id', 'mobile_no', 'division_name', 'district_name', 'thana_name']"
-            >
+            <DataTable :value="applications.data" v-model:filters="filters" filterDisplay="menu" :loading="loading" dataKey="id" paginator :rows="perPage" :totalRecords="applications.total" :first="first" :rowsPerPageOptions="[10, 20, 50, 100]" paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" currentPageReportTemplate="দেখানো হচ্ছে {first} থেকে {last} মোট {totalRecords} এর মধ্যে" responsiveLayout="stack" breakpoint="960px" class="p-datatable-sm p-datatable-gridlines" :scrollable="true" scrollHeight="flex" :resizableColumns="true" columnResizeMode="fit" showGridlines @page="onPageChange" @rows-per-page-change="onRowsPerPageChange" stripedRows :globalFilterFields="['name', 'Elhaq_no', 'MType', 'id', 'mobile_no', 'division_name', 'district_name', 'thana_name']">
               <template #header>
                 <div class="flex justify-between items-center flex-wrap p-2">
                   <div class="flex flex-wrap items-center gap-3">
@@ -297,8 +257,7 @@
                     </span>
 
                     <div class="flex items-center">
-                      <button @click="showAllColumns = !showAllColumns"
-                              class="flex items-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm transition-colors">
+                      <button @click="showAllColumns = !showAllColumns" class="flex items-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                         </svg>
@@ -333,10 +292,7 @@
                   <InputText v-model="filterModel.value" @input="filterCallback()" placeholder="সার্চ করুন..." class="w-full p-2" />
                 </template>
                 <template #body="{ data }">
-                  <Link :href="route('markaz_for_admin.madrasha_list_underMarkaz', data.id)"
-                    class="text-blue-600 hover:text-blue-800 font-medium hover:underline flex items-center"
-                    title="বিস্তারিত দেখুন"
-                  >
+                  <Link :href="route('markaz_for_admin.madrasha_list_underMarkaz', data.center_id)" class="text-blue-600 hover:text-blue-800 font-medium hover:underline flex items-center" title="বিস্তারিত দেখুন">
                     <span>{{ data.name }}</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -361,18 +317,9 @@
                   <InputText v-model="filterModel.value" @input="filterCallback()" placeholder="সার্চ করুন..." class="w-full p-2" />
                 </template>
                 <template #body="{ data }">
-                  <span :class="[
-                    'px-2.5 py-1 rounded-full text-xs font-medium',
-                    data.MType === 'ছাত্র' ? 'bg-blue-50 text-blue-700' : 'bg-pink-50 text-pink-700'
-                  ]">
+                  <span :class="['px-2.5 py-1 rounded-full text-xs font-medium', data.MType === 'ছাত্র' ? 'bg-blue-50 text-blue-700' : 'bg-pink-50 text-pink-700']">
                     {{ data.MType || 'N/A' }}
                   </span>
-                </template>
-              </Column>
-
-              <Column field="markaz_serial" header="মারকাজ সিরিয়াল" sortable style="min-width: 10rem" :visible="showAllColumns">
-                <template #filter="{ filterModel, filterCallback }">
-                  <InputText v-model="filterModel.value" @input="filterCallback()" placeholder="সার্চ করুন..." class="w-full p-2" />
                 </template>
               </Column>
 
@@ -392,71 +339,39 @@
 
               <Column field="division_name" header="বিভাগ" sortable style="min-width: 10rem" :visible="showAllColumns">
                 <template #filter="{ filterModel }">
-                  <Dropdown
-                    v-model="filterModel.value"
-                    :options="divisions"
-                    optionLabel="Division"
-                    optionValue="Division"
-                    placeholder="বিভাগ নির্বাচন করুন"
-                    class="w-full"
-                    @change="handleTableDivisionChange($event, filterModel)"
-                  />
+                  <Dropdown v-model="filterModel.value" :options="divisions" optionLabel="Division" optionValue="Division" placeholder="বিভাগ নির্বাচন করুন" class="w-full" @change="handleTableDivisionChange($event, filterModel)" />
                 </template>
               </Column>
 
               <Column field="district_name" header="জেলা" sortable style="min-width: 10rem" :visible="showAllColumns">
                 <template #filter="{ filterModel }">
-                  <Dropdown
-                    v-model="filterModel.value"
-                    :options="tableFilterDistricts"
-                    optionLabel="District"
-                    optionValue="District"
-                    placeholder="জেলা নির্বাচন করুন"
-                    class="w-full"
-                    @change="handleTableDistrictChange($event, filterModel)"
-                  />
+                  <Dropdown v-model="filterModel.value" :options="tableFilterDistricts" optionLabel="District" optionValue="District" placeholder="জেলা নির্বাচন করুন" class="w-full" @change="handleTableDistrictChange($event, filterModel)" />
                 </template>
               </Column>
 
               <Column field="thana_name" header="থানা/উপজেলা" sortable style="min-width: 10rem" :visible="showAllColumns">
                 <template #filter="{ filterModel }">
-                  <Dropdown
-                    v-model="filterModel.value"
-                    :options="tableFilterThanas"
-                    optionLabel="Thana"
-                    optionValue="Thana"
-                    placeholder="থানা নির্বাচন করুন"
-                    class="w-full"
-                  />
+                  <Dropdown v-model="filterModel.value" :options="tableFilterThanas" optionLabel="Thana" optionValue="Thana" placeholder="থানা নির্বাচন করুন" class="w-full" />
                 </template>
               </Column>
 
               <Column header="করনীয়" style="min-width: 10rem; text-align: center;">
                 <template #body="{ data }">
                   <div class="flex justify-center gap-3">
-                    <button @click="viewApplication(data)"
-                      class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-800 rounded-lg transition-colors duration-200"
-                      title="বিস্তারিত দেখুন"
-                    >
+                    <button @click="viewApplication(data)" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-800 rounded-lg transition-colors duration-200" title="বিস্তারিত দেখুন">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     </button>
 
-                    <button @click="editApplication(data)"
-                      class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-600 hover:text-amber-800 rounded-lg transition-colors duration-200"
-                      title="সম্পাদনা করুন"
-                    >
+                    <button @click="editApplication(data)" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-600 hover:text-amber-800 rounded-lg transition-colors duration-200" title="সম্পাদনা করুন">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </button>
 
-                    <button @click="sendMessage(data)"
-                      class="p-2 bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 rounded-lg transition-colors duration-200"
-                      title="বার্তা পাঠান"
-                    >
+                    <button @click="sendMessage(data)" class="p-2 bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 rounded-lg transition-colors duration-200" title="বার্তা পাঠান">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
@@ -490,7 +405,7 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/admin/AuthenticatedLayout.vue';
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, watch } from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputText from 'primevue/inputtext';
@@ -498,7 +413,6 @@ import Dropdown from 'primevue/dropdown';
 import axios from 'axios';
 import { Link } from '@inertiajs/vue3';
 
-// Define FilterMatchMode constants
 const FilterMatchMode = {
   STARTS_WITH: 'startswith',
   CONTAINS: 'contains',
@@ -506,7 +420,6 @@ const FilterMatchMode = {
   DATE_IS: 'dateIs'
 };
 
-// Props
 const props = defineProps({
   initialApplications: Object,
   initialDivisions: Array,
@@ -514,7 +427,6 @@ const props = defineProps({
   initialThanas: Array,
 });
 
-// State Management
 const applications = ref(props.initialApplications || {
   data: [],
   current_page: 1,
@@ -525,24 +437,22 @@ const applications = ref(props.initialApplications || {
 });
 const loading = ref(false);
 const perPage = ref(10);
+const first = ref(0);
 const divisions = ref(props.initialDivisions || []);
 const districts = ref(props.initialDistricts || []);
 const thanas = ref(props.initialThanas || []);
 const showAllColumns = ref(true);
 
-// For table column filters
 const tableFilterDistricts = ref([]);
 const tableFilterThanas = ref([]);
 const selectedTableDivision = ref(null);
 const selectedTableDistrict = ref(null);
 
-// Filters
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   name: { value: null, matchMode: FilterMatchMode.CONTAINS },
   Elhaq_no: { value: null, matchMode: FilterMatchMode.CONTAINS },
   MType: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  markaz_serial: { value: null, matchMode: FilterMatchMode.CONTAINS },
   id: { value: null, matchMode: FilterMatchMode.CONTAINS },
   mobile_no: { value: null, matchMode: FilterMatchMode.CONTAINS },
   division_name: { value: null, matchMode: FilterMatchMode.EQUALS },
@@ -550,7 +460,6 @@ const filters = ref({
   thana_name: { value: null, matchMode: FilterMatchMode.EQUALS },
 });
 
-// Search filters for the top filter section
 const searchFilters = reactive({
   madrasahName: '',
   type: '',
@@ -561,17 +470,14 @@ const searchFilters = reactive({
   thana: ''
 });
 
-// Check if any filters are active
 const hasActiveFilters = computed(() => {
   return Object.values(searchFilters).some(value => value !== '');
 });
 
-// Get count of active markaz
 const getActiveCount = () => {
   return applications.value?.data?.length || 0;
 };
 
-// Get current date time
 const getCurrentDateTime = () => {
   return new Date().toLocaleString('bn-BD', {
     day: '2-digit',
@@ -582,7 +488,6 @@ const getCurrentDateTime = () => {
   });
 };
 
-// Format level name
 const getLevelName = (level) => {
   const levelMap = {
     'takmil': 'তাকমিল',
@@ -597,7 +502,6 @@ const getLevelName = (level) => {
   return levelMap[level] || level;
 };
 
-// Format markaz type name
 const getMarkazTypeName = (type) => {
   const typeMap = {
     'darsiyat': 'দরসিয়াত',
@@ -608,7 +512,6 @@ const getMarkazTypeName = (type) => {
   return typeMap[type] || type;
 };
 
-// API Functions
 const loadDivisions = async () => {
   try {
     const response = await axios.get('/api/divisions');
@@ -646,7 +549,6 @@ const handleDistrictChange = async () => {
   }
 };
 
-// Table column filter handlers
 const handleTableDivisionChange = async (event, filterModel) => {
   selectedTableDivision.value = event.value;
   tableFilterDistricts.value = [];
@@ -654,7 +556,6 @@ const handleTableDivisionChange = async (event, filterModel) => {
 
   if (event.value) {
     try {
-      // Find division ID from name
       const division = divisions.value.find(d => d.Division === event.value);
       if (division) {
         const response = await axios.get(`/api/districts/${division.id}`);
@@ -674,7 +575,6 @@ const handleTableDistrictChange = async (event, filterModel) => {
 
   if (event.value) {
     try {
-      // Find district ID from name
       const district = tableFilterDistricts.value.find(d => d.District === event.value);
       if (district) {
         const response = await axios.get(`/api/thanas/${district.DesID}`);
@@ -690,15 +590,48 @@ const handleTableDistrictChange = async (event, filterModel) => {
 
 const fetchMadrasaData = async () => {
   loading.value = true;
+  console.log('Fetching data with pagination:', {
+    page: Math.floor(first.value / perPage.value) + 1,
+    per_page: perPage.value,
+    first: first.value
+  });
+
   try {
     const response = await axios.get('/api/markaz-list', {
       params: {
-        page: applications.value.current_page,
+        page: Math.floor(first.value / perPage.value) + 1,
         per_page: perPage.value,
-        ...searchFilters
       }
     });
-    applications.value = response.data;
+
+    console.log('API Response received:', response.data);
+
+    let formattedData = response.data.data || [];
+    formattedData = formattedData.map(item => ({
+      id: item.center_id || item.id,
+      center_id: item.center_id || item.id,
+      name: item.name || item.MName,
+      Elhaq_no: item.Elhaq_no || item.ElhaqNo,
+      MType: item.MType,
+      mobile_no: item.mobile_no || item.Mobile || item.MobileNo,
+      division_name: item.division_name,
+      district_name: item.district_name,
+      thana_name: item.thana_name,
+    }));
+
+    applications.value = {
+      ...response.data,
+      data: formattedData
+    };
+
+    console.log('Updated applications state:', {
+      total: applications.value.total,
+      current_page: applications.value.current_page,
+      per_page: applications.value.per_page,
+      data_count: applications.value.data?.length
+    });
+
+    first.value = ((response.data.current_page || 1) - 1) * perPage.value;
   } catch (error) {
     console.error('Error fetching data:', error);
   } finally {
@@ -706,102 +639,111 @@ const fetchMadrasaData = async () => {
   }
 };
 
-// Search with filters
-const search = () => {
+const onPageChange = (event) => {
+  console.log('Page change event:', event);
+  first.value = event.first;
+  perPage.value = event.rows;
+  console.log('Updated pagination state - first:', first.value, 'perPage:', perPage.value);
+  fetchMadrasaData();
+};
+
+const onRowsPerPageChange = (event) => {
+  console.log('Rows per page change event:', event);
+  console.log('New rows value:', event.value || event);
+  perPage.value = event.value || event;
+  first.value = 0;
+  console.log('Updated pagination state - first:', first.value, 'perPage:', perPage.value);
+  fetchMadrasaData();
+};
+
+watch(() => props.initialApplications, (newVal) => {
+  applications.value = newVal;
+  first.value = ((applications.value.current_page || 1) - 1) * perPage.value;
+});
+
+watch(perPage, () => {
+  first.value = 0;
+  fetchMadrasaData();
+});
+
+const search = async () => {
   loading.value = true;
-  // Trim search term
+  console.log('Search called with filters:', searchFilters);
+  
   if (searchFilters.madrasahName) {
     searchFilters.madrasahName = searchFilters.madrasahName.trim();
   }
-
-  axios.get('/api/madrashas/filter', {
-    params: searchFilters
-  })
-  .then(response => {
-    const data = response.data;
-    // Data mapping and suggestion logic
-    let formattedData = data;
-
-    // Sort suggestions if search term exists
-    if (searchFilters.madrasahName && formattedData.length > 0) {
-      const searchTerm = searchFilters.madrasahName.toLowerCase();
-
-      formattedData.sort((a, b) => {
-        const aName = ((a.name || a.MName) || '').toLowerCase();
-        const bName = ((b.name || b.MName) || '').toLowerCase();
-
-        // Exact match first
-        if (aName === searchTerm && bName !== searchTerm) return -1;
-        if (bName === searchTerm && aName !== searchTerm) return 1;
-
-        // Starts with match second priority
-        if (aName.startsWith(searchTerm) && !bName.startsWith(searchTerm)) return -1;
-        if (bName.startsWith(searchTerm) && !aName.startsWith(searchTerm)) return 1;
-
-        // Contains match third priority
-        if (aName.includes(searchTerm) && !bName.includes(searchTerm)) return -1;
-        if (bName.includes(searchTerm) && !aName.includes(searchTerm)) return 1;
-
-        // Alphabetical sort otherwise
-        return aName.localeCompare(bName);
-      });
-    }
-
-    // Data mapping - ensure correct field names
-    formattedData = formattedData.map(item => {
-      return {
-        id: item.id,
-        name: item.name || item.MName,
-        Elhaq_no: item.Elhaq_no || item.ElhaqNo,
-        MType: item.type || item.MType,
-        markaz_serial: item.markaz_serial || item.CenterSL,
-        mobile_no: item.mobile_no || item.Mobile || item.MobileNo,
-        division_name: item.division_name,
-        district_name: item.district_name,
-        thana_name: item.thana_name,
-      };
+  
+  const hasFilters = Object.values(searchFilters).some(value => value !== '');
+  
+  try {
+    // Use the same API endpoint as fetchMadrasaData but with filters
+    const response = await axios.get('/api/markaz-list', {
+      params: {
+        ...searchFilters,
+        page: Math.floor(first.value / perPage.value) + 1,
+        per_page: perPage.value,
+      }
     });
-
+    
+    console.log('Search API Response:', response.data);
+    
+    let formattedData = response.data.data || response.data;
+    formattedData = formattedData.map(item => ({
+      id: item.center_id || item.id,
+      center_id: item.center_id || item.id,
+      name: item.name || item.MName,
+      Elhaq_no: item.Elhaq_no || item.ElhaqNo,
+      MType: item.MType,
+      mobile_no: item.mobile_no || item.Mobile || item.MobileNo,
+      division_name: item.division_name,
+      district_name: item.district_name,
+      thana_name: item.thana_name,
+    }));
+    
     applications.value = {
-      data: formattedData,
-      total: formattedData.length
+      ...response.data,
+      data: formattedData
     };
-  })
-  .catch(error => {
-    console.error('Error filtering madrasas:', error);
-  })
-  .finally(() => {
+    
+    first.value = ((response.data.current_page || 1) - 1) * perPage.value;
+    
+    console.log('Search completed, applications updated:', {
+      total: applications.value.total,
+      data_count: applications.value.data?.length
+    });
+    
+  } catch (error) {
+    console.error('Error searching markaz:', error);
+  } finally {
     loading.value = false;
-  });
+  }
 };
 
 const resetFilters = () => {
   Object.keys(searchFilters).forEach(key => {
     searchFilters[key] = '';
   });
-
-  // Reset DataTable filters
   filters.value = {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     Elhaq_no: { value: null, matchMode: FilterMatchMode.CONTAINS },
     MType: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    markaz_serial: { value: null, matchMode: FilterMatchMode.CONTAINS },
     id: { value: null, matchMode: FilterMatchMode.CONTAINS },
     mobile_no: { value: null, matchMode: FilterMatchMode.CONTAINS },
     division_name: { value: null, matchMode: FilterMatchMode.EQUALS },
     district_name: { value: null, matchMode: FilterMatchMode.EQUALS },
     thana_name: { value: null, matchMode: FilterMatchMode.EQUALS },
   };
-
   districts.value = [];
   thanas.value = [];
   tableFilterDistricts.value = [];
   tableFilterThanas.value = [];
   selectedTableDivision.value = null;
   selectedTableDistrict.value = null;
-
-  search();
+  perPage.value = 10;
+  first.value = 0;
+  fetchMadrasaData();
 };
 
 const exportData = async () => {
@@ -840,7 +782,6 @@ const editApplication = async (application) => {
 
 const sendMessage = async (application) => {
   alert(`${application.name} কে বার্তা পাঠানো হচ্ছে...`);
-  // Implement your message sending functionality here
 };
 
 onMounted(() => {

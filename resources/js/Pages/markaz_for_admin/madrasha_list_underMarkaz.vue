@@ -1,8 +1,7 @@
 <template>
   <AuthenticatedLayout>
-    <div class="py-12">
-      <div class="sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+    <div class="py-12 sm:px-6 lg:p">
+      <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
           <div class="p-6 text-gray-900">
             <!-- Header Section -->
             <div class="mb-6">
@@ -18,7 +17,12 @@
                   <i class="fas fa-list"></i>
                   মাদরাসা তালিকা
                 </h2>
-                <div class="text-gray-600">মোট উপাত্ত: {{ madrashas?.length || 0 }}</div>
+                <div class="text-gray-600">
+                  মোট উপাত্ত: {{ madrashas?.length || 0 }}
+                  <span v-if="loading" class="ml-2 text-blue-600">
+                    <i class="fas fa-spinner fa-spin"></i> লোড হচ্ছে...
+                  </span>
+                </div>
               </div>
 
               <div class="p-4">
@@ -26,6 +30,7 @@
                   :value="madrashas"
                   v-model:filters="filters"
                   filterDisplay="menu"
+                  :loading="loading"
                   :paginator="true"
                   :rows="10"
                   :rowsPerPageOptions="[10, 20, 50, 100]"
@@ -36,7 +41,7 @@
                   class="p-datatable-sm"
                   showGridlines
                   stripedRows
-                  :globalFilterFields="['name', 'Elhaq_no', 'id', 'Mobile_no']"
+                                    :globalFilterFields="['name', 'Elhaq_no', 'Mobile_no', 'center_name']"
                   dataKey="id"
                 >
                   <template #header>
@@ -62,7 +67,7 @@
                   <Column field="Elhaq_no" header="এলহাক নম্বর" sortable style="min-width: 10rem">
                   </Column>
 
-                  <Column field="id" header="আইডি" sortable style="min-width: 8rem">
+                  <Column field="center_name" header="মারকাযের ধরণ" sortable style="min-width: 10rem">
                   </Column>
 
                   <Column field="Mobile_no" header="মোবাইল নম্বর" sortable style="min-width: 10rem">
@@ -99,7 +104,7 @@
           </div>
         </div>
       </div>
-    </div>
+
   </AuthenticatedLayout>
 </template>
 
@@ -110,6 +115,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputText from 'primevue/inputtext';
 import SplitButton from 'primevue/splitbutton';
+import axios from 'axios';
 
 const FilterMatchMode = {
   STARTS_WITH: 'startswith',
@@ -128,18 +134,50 @@ const tableHeaders = [
   { id: 1, label: "ক্রমিক" },
   { id: 2, label: "মাদরাসার নাম" },
   { id: 3, label: "এলহাক নম্বর" },
-  { id: 6, label: "আইডি" },
-  { id: 7, label: "মোবাইল নম্বর" },
-  { id: 11, label: "অ্যাকশন" }
+  { id: 4, label: "মারকাযের ধরণ" },
+  { id: 5, label: "মোবাইল নম্বর" },
+  { id: 6, label: "অ্যাকশন" }
 ];
 
 // Props
 const props = defineProps({
   madrashas: {
     type: Array,
-    required: true
+    required: false,
+    default: () => []
   },
-  markazId: Number
+  markazId: [Number, String]
+});
+
+// Reactive state
+const madrashas = ref(props.madrashas || []);
+const loading = ref(false);
+
+// Load madrashas from API
+const loadMadrashas = async () => {
+  if (!props.markazId) {
+    console.log('No markazId provided');
+    return;
+  }
+
+  console.log('Loading madrashas for markaz:', props.markazId);
+  loading.value = true;
+  try {
+    const response = await axios.get(`/api/markaz/${props.markazId}/madrashas`);
+    console.log('API Response:', response.data);
+    madrashas.value = response.data.madrashas || [];
+    console.log('Madrashas loaded:', madrashas.value);
+  } catch (error) {
+    console.error('Error loading madrashas:', error);
+    madrashas.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Load data on mount
+onMounted(() => {
+  loadMadrashas();
 });
 
 const getActionOptions = (data) => {

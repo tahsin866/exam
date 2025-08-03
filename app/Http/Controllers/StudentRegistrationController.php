@@ -311,32 +311,32 @@ public function submitAllApplications(){
 
         $students = reg_stu_information::select(
             'reg_stu_informations.markaz_id as id',
-            'madrasha.MName as madrasha_Name',
-            'madrasha.ElhaqNo as Elhaq_no',
-            'madrasha.Mobile as Mobile',
-            'madrasha.DID',
-            'madrasha.DISID',
-            'madrasha.TID',
+            'madrashas.MName as madrasha_Name',
+            'madrashas.ElhaqNo as Elhaq_no',
+            'madrashas.Mobile as Mobile',
+            'madrashas.DID',
+            'madrashas.DISID',
+            'madrashas.TID',
             'division.Division as division_name',
             'district.District as district_name',
             'thana.Thana as thana_name',
             'reg_stu_informations.exam_name_Bn'
         )
         ->selectRaw('COUNT(reg_stu_informations.id) as student_count')
-        ->leftJoin('madrasha', 'reg_stu_informations.markaz_id', '=', 'madrasha.id')
-        ->leftJoin('division', 'madrasha.DID', '=', 'division.id')
-        ->leftJoin('district', 'madrasha.DISID', '=', 'district.DesID')
-        ->leftJoin('thana', 'madrasha.TID', '=', 'thana.Thana_ID')
+        ->leftJoin('madrashas', 'reg_stu_informations.markaz_id', '=', 'madrashas.id')
+        ->leftJoin('division', 'madrashas.DID', '=', 'division.id')
+        ->leftJoin('district', 'madrashas.DISID', '=', 'district.DesID')
+        ->leftJoin('thana', 'madrashas.TID', '=', 'thana.Thana_ID')
         ->whereNotNull('reg_stu_informations.markaz_id')
         ->groupBy(
             'reg_stu_informations.markaz_id',
             'reg_stu_informations.exam_name_Bn',
-            'madrasha.MName',
-            'madrasha.ElhaqNo',
-            'madrasha.Mobile',
-            'madrasha.DID',
-            'madrasha.DISID',
-            'madrasha.TID',
+            'madrashas.MName',
+            'madrashas.ElhaqNo',
+            'madrashas.Mobile',
+            'madrashas.DID',
+            'madrashas.DISID',
+            'madrashas.TID',
             'division.Division',
             'district.District',
             'thana.Thana'
@@ -417,7 +417,7 @@ public function getMarkazMadrasaList($markaz_id)
         ->toArray();
 
     // Get madrashas where id matches any of the MRID values
-    $madrashaList = DB::table('madrasha')
+    $madrashaList = DB::table('madrashas')
         ->whereIn('id', $mridValues)
         ->select('id', 'MName as name', 'ElhaqNo as Elhaq_no', 'Mobile as mobile_no')
         ->get();
@@ -430,7 +430,7 @@ public function getMarkazMadrasaList($markaz_id)
     }
 
     // Get the markaz name
-    $markazName = DB::table('madrasha')
+    $markazName = DB::table('madrashas')
         ->where('id', $markaz_id)
         ->value('MName');
 
