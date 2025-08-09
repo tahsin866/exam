@@ -501,6 +501,7 @@ public function getStudentList(Request $request)
     {
         $query = students::query();
 
+
         // Filter by year if provided
         if ($request->filled('year')) {
             $query->where('years', $request->year);
@@ -509,6 +510,11 @@ public function getStudentList(Request $request)
         // Filter by class if provided
         if ($request->filled('class')) {
             $query->where('Class', $request->class);
+        }
+
+        // Filter by SRType if provided
+        if ($request->filled('srtype')) {
+            $query->where('SRType', $request->srtype);
         }
 
         // Global search functionality
@@ -526,7 +532,7 @@ public function getStudentList(Request $request)
         $allowedSortFields = ['Roll', 'Name', 'Father', 'DateofBirth', 'Madrasha', 'Class', 'years'];
         $sortBy = $request->get('sortBy', 'Roll');
         $sortDirection = $request->get('sortDirection', 'asc');
-        
+
         // Validate sort field
         if (in_array($sortBy, $allowedSortFields)) {
             $query->orderBy($sortBy, $sortDirection);
@@ -538,7 +544,17 @@ public function getStudentList(Request $request)
         $perPage = min($request->get('per_page', 10), 100);
         $students = $query->paginate($perPage);
 
-        return response()->json($students);
+        // ইউনিক years, CID (class), SRType ডাটা
+        $years = students::select('years')->distinct()->orderBy('years', 'desc')->pluck('years');
+        $classes = students::select('CID')->distinct()->orderBy('CID')->pluck('CID');
+        $srtypes = students::select('SRType')->distinct()->pluck('SRType');
+
+        return response()->json([
+            'students' => $students,
+            'years' => $years,
+            'classes' => $classes,
+            'srtypes' => $srtypes
+        ]);
     }
 
 }

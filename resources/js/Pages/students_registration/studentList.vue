@@ -2,7 +2,7 @@
   <AuthenticatedLayout>
   <div class="p-6">
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">ছাত্র তথ্য ব্যবস্থাপনা</h2>
-    
+
     <!-- Filter Section -->
     <div class="bg-white rounded-lg shadow mb-6 p-4">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
@@ -13,24 +13,24 @@
                 <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
               </svg>
             </div>
-            <input 
-              type="text" 
+            <input
+              type="text"
               class="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
-              placeholder="গ্লোবাল সার্চ..." 
+              placeholder="গ্লোবাল সার্চ..."
               v-model="filters.globalSearch"
               @input="applyFilters"
             />
           </div>
         </div>
-        
+
         <div class="md:col-span-3">
           <div class="flex">
             <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
               বছর
             </span>
-            <select 
+            <select
               class="block w-full rounded-r-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
-              v-model="filters.year" 
+              v-model="filters.year"
               @change="applyFilters"
             >
               <option value="">সকল বছর</option>
@@ -38,15 +38,15 @@
             </select>
           </div>
         </div>
-        
+
         <div class="md:col-span-3">
           <div class="flex">
             <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
               শ্রেণী
             </span>
-            <select 
+            <select
               class="block w-full rounded-r-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
-              v-model="filters.class" 
+              v-model="filters.class"
               @change="applyFilters"
             >
               <option value="">সকল শ্রেণী</option>
@@ -54,9 +54,28 @@
             </select>
           </div>
         </div>
-        
+
+        <!-- শিক্ষার্থী টাইপ ফিল্টার -->
+        <div class="md:col-span-2">
+          <div class="flex">
+            <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+              শিক্ষার্থী টাইপ
+            </span>
+            <select
+              class="block w-full rounded-r-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
+              v-model="filters.srtype"
+              @change="applyFilters"
+            >
+              <option value="">সব</option>
+              <option v-for="type in srTypeOptions" :key="type" :value="type">
+                {{ type == 1 ? 'ছাত্র' : (type == 0 ? 'ছাত্রী' : type) }}
+              </option>
+            </select>
+          </div>
+        </div>
+
         <div class="md:col-span-1">
-          <button 
+          <button
             class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
             @click="resetFilters"
           >
@@ -65,7 +84,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Data Table -->
     <div class="bg-white rounded-lg shadow">
       <div class="p-4 flex flex-col sm:flex-row justify-between items-center border-b">
@@ -74,8 +93,8 @@
         </div>
         <div class="flex items-center">
           <span class="mr-2 text-sm text-gray-600">দেখানো</span>
-          <select 
-            class="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50" 
+          <select
+            class="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
             v-model="itemsPerPage"
             @change="changeItemsPerPage"
           >
@@ -84,13 +103,13 @@
           <span class="ml-2 text-sm text-gray-600">এন্ট্রি</span>
         </div>
       </div>
-      
+
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th 
-                @click="sortBy('Roll')" 
+              <th
+                @click="sortBy('Roll')"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
               >
                 <div class="flex items-center">
@@ -101,8 +120,8 @@
                   </svg>
                 </div>
               </th>
-              <th 
-                @click="sortBy('Name')" 
+              <th
+                @click="sortBy('Name')"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
               >
                 <div class="flex items-center">
@@ -113,8 +132,8 @@
                   </svg>
                 </div>
               </th>
-              <th 
-                @click="sortBy('Father')" 
+              <th
+                @click="sortBy('Father')"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
               >
                 <div class="flex items-center">
@@ -125,8 +144,8 @@
                   </svg>
                 </div>
               </th>
-              <th 
-                @click="sortBy('DateofBirth')" 
+              <th
+                @click="sortBy('DateofBirth')"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
               >
                 <div class="flex items-center">
@@ -137,8 +156,8 @@
                   </svg>
                 </div>
               </th>
-              <th 
-                @click="sortBy('Madrasha')" 
+              <th
+                @click="sortBy('Madrasha')"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
               >
                 <div class="flex items-center">
@@ -149,8 +168,8 @@
                   </svg>
                 </div>
               </th>
-              <th 
-                @click="sortBy('Class')" 
+              <th
+                @click="sortBy('Class')"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
               >
                 <div class="flex items-center">
@@ -209,7 +228,7 @@
           </tbody>
         </table>
       </div>
-      
+
       <!-- Pagination -->
       <div class="px-4 py-3 border-t border-gray-200 flex flex-col md:flex-row items-center justify-between">
         <div class="text-sm text-gray-700 mb-4 md:mb-0">
@@ -217,7 +236,7 @@
         </div>
         <div>
           <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-            <button 
+            <button
               @click="changePage(1)"
               :disabled="!pagination.prev_page_url"
               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium"
@@ -228,7 +247,7 @@
                 <path fill-rule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414zm-6 0a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L5.414 10l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
               </svg>
             </button>
-            <button 
+            <button
               @click="changePage(pagination.current_page - 1)"
               :disabled="!pagination.prev_page_url"
               class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium"
@@ -239,7 +258,7 @@
                 <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
               </svg>
             </button>
-            
+
             <!-- Page numbers -->
             <template v-for="page in displayedPages" :key="page">
               <button
@@ -250,8 +269,8 @@
                 {{ page }}
               </button>
             </template>
-            
-            <button 
+
+            <button
               @click="changePage(pagination.current_page + 1)"
               :disabled="!pagination.next_page_url"
               class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium"
@@ -262,7 +281,7 @@
                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
               </svg>
             </button>
-            <button 
+            <button
               @click="changePage(pagination.last_page)"
               :disabled="!pagination.next_page_url"
               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium"
@@ -381,52 +400,28 @@ const sampleData = [
 ];
 
 // Computed properties
-const yearOptions = computed(() => {
-  // Extract unique years from the data or predefined range
-  if (students.value && students.value.data && students.value.data.length > 0) {
-    const years = new Set(students.value.data.map(s => {
-      if (s.years) return s.years;
-      if (s.DateofBirth) {
-        const date = new Date(s.DateofBirth);
-        return date.getFullYear();
-      }
-      return null;
-    }).filter(Boolean));
-    return Array.from(years).sort((a, b) => b - a); // Descending order
-  }
-  // Fallback to a predefined range
-  const currentYear = new Date().getFullYear();
-  return Array.from({ length: 10 }, (_, i) => currentYear - i);
-});
-
-const classOptions = computed(() => {
-  // Extract unique classes from the data
-  if (students.value && students.value.data && students.value.data.length > 0) {
-    const classes = new Set(students.value.data.map(student => student.Class).filter(Boolean));
-    return Array.from(classes).sort();
-  }
-  return [];
-});
+const yearOptions = ref([]);
+const classOptions = ref([]);
 
 const displayedPages = computed(() => {
   if (!pagination.value) return [];
-  
+
   const totalPages = pagination.value.last_page;
   const currentPage = pagination.value.current_page;
   const maxDisplayPages = 5;
-  
+
   let startPage = Math.max(1, currentPage - Math.floor(maxDisplayPages / 2));
   let endPage = Math.min(totalPages, startPage + maxDisplayPages - 1);
-  
+
   if (endPage - startPage < maxDisplayPages - 1) {
     startPage = Math.max(1, endPage - maxDisplayPages + 1);
   }
-  
+
   const pages = [];
   for (let i = startPage; i <= endPage; i++) {
     pages.push(i);
   }
-  
+
   return pages;
 });
 
@@ -449,19 +444,22 @@ const fetchStudents = async () => {
     // Make API call to your Laravel controller
     const response = await fetch(`/getStudentList?${params.toString()}`);
     const data = await response.json();
-    
-    students.value = data;
+
+    // students, years, classes
+    students.value = data.students;
+    yearOptions.value = data.years;
+    classOptions.value = data.classes;
     pagination.value = {
-      current_page: data.current_page,
-      from: data.from,
-      last_page: data.last_page,
-      links: data.links,
-      next_page_url: data.next_page_url,
-      path: data.path,
-      per_page: data.per_page,
-      prev_page_url: data.prev_page_url,
-      to: data.to,
-      total: data.total
+      current_page: data.students.current_page,
+      from: data.students.from,
+      last_page: data.students.last_page,
+      links: data.students.links,
+      next_page_url: data.students.next_page_url,
+      path: data.students.path,
+      per_page: data.students.per_page,
+      prev_page_url: data.students.prev_page_url,
+      to: data.students.to,
+      total: data.students.total
     };
   } catch (error) {
     console.error('Error fetching students:', error);
@@ -496,7 +494,7 @@ const resetFilters = () => {
 
 const changePage = (page) => {
   if (page < 1 || (pagination.value && page > pagination.value.last_page)) return;
-  
+
   const params = new URLSearchParams();
   params.append('page', page);
   if (filters.value.globalSearch) params.append('search', filters.value.globalSearch);
@@ -507,12 +505,12 @@ const changePage = (page) => {
     params.append('sortDirection', sortConfig.value.direction);
   }
   params.append('perPage', itemsPerPage.value);
-  
+
   const url = `/api/students?${params.toString()}`;
   axios.get(url)
     .then(response => {
       students.value = response.data;
-      
+
       // Update pagination
       pagination.value = {
         current_page: response.data.current_page,
@@ -529,13 +527,13 @@ const changePage = (page) => {
     })
     .catch(error => {
       console.error('Error changing page:', error);
-      
+
       // For development/testing without backend
       if (process.env.NODE_ENV === 'development') {
         // Mock changing page
         const mockPage = {
           data: Array(10).fill().map((_, i) => ({
-            ...sampleData[0], 
+            ...sampleData[0],
             IDs: 209738 + (page - 1) * 10 + i,
             Roll: 18 + (page - 1) * 10 + i,
             Name: `ছাত্র ${(page - 1) * 10 + i + 1}`,
@@ -553,7 +551,7 @@ const changePage = (page) => {
           to: Math.min(page * 10, 50),
           total: 50
         };
-        
+
         students.value = mockPage;
         pagination.value = {
           current_page: mockPage.current_page,
@@ -578,7 +576,7 @@ const changeItemsPerPage = () => {
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
-  
+
   // Format with Intl API if available for Bangla
   try {
     return new Intl.DateTimeFormat('bn-BD', {
