@@ -451,9 +451,9 @@ function setSelected(item, parentDropdown = null) {
                             <i class="pi pi-refresh text-base"/>
                             <span>বোর্ড ফেরত তালিকা</span>
                         </Link>
-                        <Link v-if="hasPermission('registration.card_create') || isSuperAdmin()" :href="route('students_registration.studentList')" class="flex items-center gap-2 px-5 py-2 rounded text-base cursor-pointer transition-all" :class="selectedItem === 'registration_card_create' ? sidebarSelected : sidebarHover" @click="setSelected('registration_card_create', 'registration')">
+                        <Link v-if="hasPermission('registration.card_create') || isSuperAdmin()" href="#" class="flex items-center gap-2 px-5 py-2 rounded text-base cursor-pointer transition-all" :class="selectedItem === 'registration_card_create' ? sidebarSelected : sidebarHover" @click="setSelected('registration_card_create', 'registration')">
                             <i class="pi pi-id-card text-base"/>
-                            <span>Student List</span>
+                            <span>নিবন্ধন পত্র তৈরি</span>
                         </Link>
                     </div>
                 </transition>

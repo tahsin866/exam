@@ -1,161 +1,179 @@
 <template>
   <AuthenticatedLayout>
-    <div class="py-12">
-      <div class=" sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-t-4 border-indigo-600">
-          <div class="p-6">
+    <div class="py-10  bg-gray-50">
+      <div class=" mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white shadow-xl rounded-xl border-t-4 border-indigo-700">
+          <div class="px-8 py-10">
             <!-- Header -->
-            <div class="mb-6 text-center relative">
-              <div class="absolute inset-0 bg-gray-100 opacity-25"></div>
-              <h2 class="text-2xl font-bold text-gray-800 py-3 relative z-10">বিষয় তথ্য সংযোজন</h2>
+            <div class="mb-10">
+              <div class="flex items-center justify-center relative">
+                <span class="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-100 to-white opacity-30"></span>
+                <h2 class="relative z-10 text-3xl font-extrabold text-gray-900 tracking-tight">
+                  বিষয় তথ্য সংযোজন
+                </h2>
+              </div>
             </div>
-
             <!-- Success Message -->
-            <div v-if="successMessage" class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-              <span class="block sm:inline">{{ successMessage }}</span>
-              <span class="absolute top-0 bottom-0 right-0 px-4 py-3" @click="successMessage = ''">
-                <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                  <title>Close</title>
-                  <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
-                </svg>
-              </span>
-            </div>
-
+            <transition name="fade">
+              <div
+                v-if="successMessage"
+                class="mb-6 flex items-center justify-between rounded-lg border border-green-400 bg-green-50 px-6 py-4 text-green-900 shadow"
+              >
+                <span class="font-semibold">{{ successMessage }}</span>
+                <button
+                  type="button"
+                  @click="successMessage = ''"
+                  class="ml-4 rounded-full p-1 hover:bg-green-100 transition"
+                >
+                  <svg class="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+            </transition>
             <!-- Error Message -->
-            <div v-if="errorMessage" class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-              <span class="block sm:inline">{{ errorMessage }}</span>
-              <span class="absolute top-0 bottom-0 right-0 px-4 py-3" @click="errorMessage = ''">
-                <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                  <title>Close</title>
-                  <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
-                </svg>
-              </span>
-            </div>
-
-            <form @submit.prevent="submit" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <!-- মারহালার নাম -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">মারহালার নাম</label>
-                <input
-                  type="text"
-                  :value="marhalaName"
-                  readonly
-                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md bg-gray-100"
-                />
-              </div>
-
-              <!-- বিষয় -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">বিষয় নির্বাচন করুন *</label>
-                <select
-                  v-model="form.subject_id"
-                  class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            <transition name="fade">
+              <div
+                v-if="errorMessage"
+                class="mb-6 flex items-center justify-between rounded-lg border border-red-400 bg-red-50 px-6 py-4 text-red-900 shadow"
+              >
+                <span class="font-semibold">{{ errorMessage }}</span>
+                <button
+                  type="button"
+                  @click="errorMessage = ''"
+                  class="ml-4 rounded-full p-1 hover:bg-red-100 transition"
                 >
-                  <option value="" disabled>নির্বাচন করুন</option>
-                  <option v-for="subject in subjects" :key="subject.id" :value="subject.id">
-                    {{ subject.name_bangla }}
-                  </option>
-                </select>
+                  <svg class="h-6 w-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
               </div>
+            </transition>
+            <form @submit.prevent="submit" autocomplete="off">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- মারহালার নাম -->
+                <div>
+                  <label class="block text-base font-semibold text-gray-700 mb-2">মারহালার নাম</label>
+                  <input
+                    type="text"
+                    :value="marhalaName"
+                    readonly
+                    class="w-full bg-gray-100 border border-gray-300 rounded-lg text-gray-700 py-2 px-3 shadow-inner cursor-not-allowed"
+                  />
+                </div>
 
-              <!-- সিলেবাসের ধরন -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">সিলেবাসের ধরন *</label>
-                <select
-                  v-model="form.syllabus_type"
-                  class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option value="" disabled>নির্বাচন করুন</option>
-                  <option v-for="type in syllabusTypes" :key="type.value" :value="type.value">
-                    {{ type.name }}
-                  </option>
-                </select>
+                <!-- বিষয় -->
+                <div>
+                  <label class="block text-base font-semibold text-gray-700 mb-2">বিষয় নির্বাচন করুন <span class="text-red-500">*</span></label>
+                  <select
+                    v-model="form.subject_id"
+                    class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 transition"
+                  >
+                    <option value="" disabled>নির্বাচন করুন</option>
+                    <option v-for="subject in subjects" :key="subject.id" :value="subject.id">
+                      {{ subject.name_bangla }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- সিলেবাসের ধরন -->
+                <div>
+                  <label class="block text-base font-semibold text-gray-700 mb-2">সিলেবাসের ধরন <span class="text-red-500">*</span></label>
+                  <select
+                    v-model="form.syllabus_type"
+                    class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 transition"
+                  >
+                    <option value="" disabled>নির্বাচন করুন</option>
+                    <option v-for="type in syllabusTypes" :key="type.value" :value="type.value">
+                      {{ type.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- মারকাযের ধরন -->
+                <div>
+                  <label class="block text-base font-semibold text-gray-700 mb-2">মারকাযের ধরন <span class="text-red-500">*</span></label>
+                  <select
+                    v-model="form.markaz_type"
+                    class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 transition"
+                  >
+                    <option value="" disabled>নির্বাচন করুন</option>
+                    <option v-for="type in markazTypes" :key="type.value" :value="type.value">
+                      {{ type.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- বিষয়ের ধরন -->
+                <div>
+                  <label class="block text-base font-semibold text-gray-700 mb-2">বিষয়ের ধরন <span class="text-red-500">*</span></label>
+                  <select
+                    v-model="form.subject_type"
+                    class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 transition"
+                  >
+                    <option value="" disabled>নির্বাচন করুন</option>
+                    <option v-for="type in subjectTypes" :key="type.value" :value="type.value">
+                      {{ type.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- ছাত্র/ছাত্রীর ধরন -->
+                <div>
+                  <label class="block text-base font-semibold text-gray-700 mb-2">ছাত্র/ছাত্রীর ধরন <span class="text-red-500">*</span></label>
+                  <select
+                    v-model="form.student_type"
+                    class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 transition"
+                  >
+                    <option value="" disabled>নির্বাচন করুন</option>
+                    <option v-for="type in studentTypes" :key="type.value" :value="type.value">
+                      {{ type.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- মোট মার্ক -->
+                <div>
+                  <label class="block text-base font-semibold text-gray-700 mb-2">মোট মার্ক <span class="text-red-500">*</span></label>
+                  <input
+                    type="number"
+                    v-model="form.total_marks"
+                    class="w-full py-2 px-3 border border-gray-300 rounded-lg shadow focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 transition"
+                  />
+                </div>
+
+                <!-- পাশ মার্ক -->
+                <div>
+                  <label class="block text-base font-semibold text-gray-700 mb-2">পাশ মার্ক <span class="text-red-500">*</span></label>
+                  <input
+                    type="number"
+                    v-model="form.pass_marks"
+                    class="w-full py-2 px-3 border border-gray-300 rounded-lg shadow focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 transition"
+                  />
+                </div>
+
+                <!-- স্ট্যাটাস -->
+                <div>
+                  <label class="block text-base font-semibold text-gray-700 mb-2">স্ট্যাটাস <span class="text-red-500">*</span></label>
+                  <select
+                    v-model="form.status"
+                    class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-lg shadow focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 transition"
+                  >
+                    <option v-for="option in statusOptions" :key="option.value" :value="option.value">
+                      {{ option.name }}
+                    </option>
+                  </select>
+                </div>
               </div>
-
-              <!-- মারকাযের ধরন -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">মারকাযের ধরন *</label>
-                <select
-                  v-model="form.markaz_type"
-                  class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option value="" disabled>নির্বাচন করুন</option>
-                  <option v-for="type in markazTypes" :key="type.value" :value="type.value">
-                    {{ type.name }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- বিষয়ের ধরন -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">বিষয়ের ধরন *</label>
-                <select
-                  v-model="form.subject_type"
-                  class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option value="" disabled>নির্বাচন করুন</option>
-                  <option v-for="type in subjectTypes" :key="type.value" :value="type.value">
-                    {{ type.name }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- ছাত্র/ছাত্রীর ধরন -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">ছাত্র/ছাত্রীর ধরন *</label>
-                <select
-                  v-model="form.student_type"
-                  class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option value="" disabled>নির্বাচন করুন</option>
-                  <option v-for="type in studentTypes" :key="type.value" :value="type.value">
-                    {{ type.name }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- মোট মার্ক -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">মোট মার্ক *</label>
-                <input
-                  type="number"
-                  v-model="form.total_marks"
-                  class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                />
-              </div>
-
-              <!-- পাশ মার্ক -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">পাশ মার্ক *</label>
-                <input
-                  type="number"
-                  v-model="form.pass_marks"
-                  class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                />
-              </div>
-
-              <!-- স্ট্যাটাস -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">স্ট্যাটাস *</label>
-                <select
-                  v-model="form.status"
-                  class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option v-for="option in statusOptions" :key="option.value" :value="option.value">
-                    {{ option.name }}
-                  </option>
-                </select>
-              </div>
-
               <!-- Submit Button -->
-              <div class="col-span-1 md:col-span-2 lg:col-span-4 flex justify-end mt-4">
+              <div class="flex justify-end mt-10">
                 <button
                   type="submit"
                   :disabled="form.processing"
-                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  class="inline-flex items-center px-6 py-2 border border-transparent text-base font-bold rounded-lg shadow text-white bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
                 >
                   <svg v-if="form.processing" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   <svg v-else class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,7 +238,6 @@ const fetchData = async (marhalaId) => {
     subjects.value = response.data.subjects;
     form.Marhala_type = response.data.marhala.marhala_name_bn;
   } catch (error) {
-    console.error('Error fetching data:', error);
     errorMessage.value = 'তথ্য লোড করতে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।';
   }
 };
@@ -247,28 +264,20 @@ const submit = async () => {
       const marhalaId = form.marhala_id;
       form.reset();
       form.marhala_id = marhalaId;
-      // Show success message
       successMessage.value = response.data.message;
-      // Hide success message after 3 seconds
       setTimeout(() => {
         successMessage.value = '';
       }, 3000);
-      // Refresh data
       await fetchData(marhalaId);
     }
   } catch (error) {
     if (error.response?.data?.errors) {
-      // Handle validation errors
-      console.error('Validation errors:', error.response.data.errors);
       errorMessage.value = 'ফর্ম সংরক্ষণ করা যায়নি। অনুগ্রহ করে সকল তথ্য সঠিকভাবে পূরণ করুন।';
-      // Hide error message after 5 seconds
       setTimeout(() => {
         errorMessage.value = '';
       }, 5000);
     } else {
-      console.error('Error saving data:', error);
       errorMessage.value = 'একটি ত্রুটি ঘটেছে। পরে আবার চেষ্টা করুন।';
-      // Hide error message after 5 seconds
       setTimeout(() => {
         errorMessage.value = '';
       }, 5000);
@@ -292,3 +301,12 @@ onMounted(() => {
   fetchData(marhalaId)
 })
 </script>
+
+<style>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .2s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+</style>

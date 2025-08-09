@@ -497,48 +497,10 @@ public function submitedToBoard($id)
 }
 
 
-public function getStudentList(Request $request)
-    {
-        $query = students::query();
-
-        // Filter by year if provided
-        if ($request->filled('year')) {
-            $query->where('years', $request->year);
-        }
-
-        // Filter by class if provided
-        if ($request->filled('class')) {
-            $query->where('Class', $request->class);
-        }
-
-        // Global search functionality
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('Name', 'like', '%' . $search . '%')
-                  ->orWhere('Roll', 'like', '%' . $search . '%')
-                  ->orWhere('Father', 'like', '%' . $search . '%')
-                  ->orWhere('Madrasha', 'like', '%' . $search . '%');
-            });
-        }
-
-        // Sorting functionality with validation
-        $allowedSortFields = ['Roll', 'Name', 'Father', 'DateofBirth', 'Madrasha', 'Class', 'years'];
-        $sortBy = $request->get('sortBy', 'Roll');
-        $sortDirection = $request->get('sortDirection', 'asc');
-        
-        // Validate sort field
-        if (in_array($sortBy, $allowedSortFields)) {
-            $query->orderBy($sortBy, $sortDirection);
-        } else {
-            $query->orderBy('Roll', 'asc');
-        }
-
-        // Paginate with custom per_page parameter (default 10, max 100)
-        $perPage = min($request->get('per_page', 10), 100);
-        $students = $query->paginate($perPage);
-
-        return response()->json($students);
-    }
+public function getStudentList()
+{
+    $students = students::paginate(10); // 10 items per page
+    return response()->json($students);
+}
 
 }

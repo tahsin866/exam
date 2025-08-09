@@ -198,3 +198,4 @@ require __DIR__ . '/Madrasha.php';
 
 require __DIR__ . '/Admin.php';
 require __DIR__ . '/api.php';
+Route::get('/getStudentList', [App\Http\Controllers\teacherController::class, 'getStudentList']);

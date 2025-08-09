@@ -15,8 +15,8 @@ const stats = ref([
     title: 'মোট মাদরাসা',
     value: '১৫,৪৮৯',
     change: '+৩.৫%',
-    icon: 'university',
-    color: 'bg-blue-500',
+    icon: 'building',
+    color: 'indigo',
     trend: getRandomData(20, 15000, 200),
     trendUp: true,
     tooltip: 'দেশব্যাপী অনুমোদিত কওমী মাদরাসা'
@@ -26,7 +26,7 @@ const stats = ref([
     value: '৮৭,৩৪৫',
     change: '+৫.২%',
     icon: 'users',
-    color: 'bg-green-500',
+    color: 'blue',
     trend: getRandomData(20, 80000, 800),
     trendUp: true,
     tooltip: 'সর্বমোট ছাত্র সংখ্যা'
@@ -36,7 +36,7 @@ const stats = ref([
     value: '৭৫,৬৭৮',
     change: '+৪.৮%',
     icon: 'user-graduate',
-    color: 'bg-purple-500',
+    color: 'slate',
     trend: getRandomData(20, 70000, 600),
     trendUp: true,
     tooltip: 'চলতি বছর পরীক্ষার্থী সংখ্যা'
@@ -45,8 +45,8 @@ const stats = ref([
     title: 'মোট মারকায',
     value: '৩৪৫',
     change: '+২.১%',
-    icon: 'mosque',
-    color: 'bg-orange-500',
+    icon: 'landmark',
+    color: 'gray',
     trend: getRandomData(20, 320, 8),
     trendUp: true,
     tooltip: 'বিভিন্ন বিভাগীয় মারকাযের সংখ্যা'
@@ -58,100 +58,183 @@ const tooltipIndex = ref(null);
 const showTooltip = (idx) => tooltipIndex.value = idx;
 const hideTooltip = () => tooltipIndex.value = null;
 
-function getTrendColor(trendUp) {
-  return trendUp ? 'text-green-500' : 'text-red-500';
-}
+// Map colors to Tailwind classes
+const getColorClasses = (color) => {
+  const colorMap = {
+    indigo: {
+      bg: 'bg-indigo-500',
+      bgLight: 'bg-indigo-50',
+      text: 'text-indigo-700',
+      textLight: 'text-indigo-500',
+      stroke: 'stroke-indigo-500',
+      fill: 'fill-indigo-500'
+    },
+    blue: {
+      bg: 'bg-blue-500',
+      bgLight: 'bg-blue-50',
+      text: 'text-blue-700',
+      textLight: 'text-blue-500',
+      stroke: 'stroke-blue-500',
+      fill: 'fill-blue-500'
+    },
+    slate: {
+      bg: 'bg-slate-600',
+      bgLight: 'bg-slate-50',
+      text: 'text-slate-700',
+      textLight: 'text-slate-500',
+      stroke: 'stroke-slate-500',
+      fill: 'fill-slate-500'
+    },
+    gray: {
+      bg: 'bg-gray-600',
+      bgLight: 'bg-gray-50',
+      text: 'text-gray-700',
+      textLight: 'text-gray-500',
+      stroke: 'stroke-gray-500',
+      fill: 'fill-gray-500'
+    }
+  };
+  
+  return colorMap[color] || colorMap.indigo;
+};
+
+// Date and user info
+const dateTime = '2025-08-07 06:45:45';
+const userName = 'tahsin866';
 </script>
 
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
     <div
       v-for="(stat, index) in stats"
       :key="index"
-      class="relative group bg-white rounded-2xl shadow-xl border border-emerald-100 hover:shadow-2xl hover:-translate-y-1 transition-transform duration-300 p-6 overflow-hidden"
+      class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 hover:shadow-md transition-shadow duration-200"
     >
-      <!-- Floating colored glow -->
-      <div
-        :class="`${stat.color}`"
-        class="absolute -top-8 -right-10 w-28 h-28 rounded-full opacity-15 blur-2xl z-0"
-      ></div>
-      <div class="flex items-center justify-between z-10 relative">
-        <div>
-          <div class="flex items-center gap-1 mb-1">
-            <p class="text-emerald-700 text-sm font-semibold tracking-wide">{{ stat.title }}</p>
-            <button
-              @mouseenter="showTooltip(index)"
-              @mouseleave="hideTooltip"
-              @focus="showTooltip(index)"
-              @blur="hideTooltip"
-              class="ml-1 focus:outline-none"
-              tabindex="0"
-              aria-label="Help"
-            >
-              <i class="fas fa-info-circle text-emerald-400 text-xs"></i>
-            </button>
-            <span
-              v-if="tooltipIndex === index"
-              class="absolute z-20 left-1/2 transform -translate-x-1/2 top-10 min-w-[180px] bg-white border border-emerald-100 shadow-md px-3 py-1.5 rounded text-emerald-700 text-xs"
-            >
-              {{ stat.tooltip }}
-            </span>
+      <!-- Header with title and info -->
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-sm font-medium text-gray-500">{{ stat.title }}</h3>
+        <div class="relative">
+          <button
+            @mouseenter="showTooltip(index)"
+            @mouseleave="hideTooltip"
+            @focus="showTooltip(index)"
+            @blur="hideTooltip"
+            class="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 rounded-full p-1"
+            aria-label="Help"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <div 
+            v-if="tooltipIndex === index" 
+            class="absolute z-10 right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 p-2 text-xs text-gray-600"
+          >
+            {{ stat.tooltip }}
           </div>
-          <div class="flex items-end gap-2">
-            <h3 class="text-3xl md:text-4xl font-extrabold text-emerald-900">{{ stat.value }}</h3>
-            <span
-              class="ml-2 text-xs font-semibold px-3 py-0.5 rounded-full transition"
-              :class="stat.change.includes('+') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
-            >
-              <span class="inline-block align-middle">
-                <svg v-if="stat.change.includes('+')" class="h-3 w-3 inline" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-                </svg>
-                <svg v-else class="h-3 w-3 inline" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-                </svg>
-              </span>
-              {{ stat.change }}
-            </span>
-          </div>
-          <p class="text-emerald-500 text-xs mt-1 font-medium">গত মাসের তুলনায়</p>
-        </div>
-        <div :class="`${stat.color} text-white p-3 rounded-full shadow-md border-2 border-white flex items-center justify-center text-xl transition-transform duration-300 group-hover:scale-110`">
-          <i :class="`fas fa-${stat.icon}`"></i>
         </div>
       </div>
-      <!-- Analytics Sparkline (inline SVG) -->
-      <div class="mt-4 h-10 flex items-center z-10 relative">
-        <svg
-          :key="index"
-          viewBox="0 0 80 28"
-          class="w-full h-10"
-          preserveAspectRatio="none"
-        >
-          <polyline
-            :points="stat.trend.map((v,i) => `${i * 4},${28-(v-stat.trend.reduce((a,b)=>Math.min(a,b),Infinity))/(Math.max(...stat.trend)-Math.min(...stat.trend)||1)*22-3}`).join(' ')"
-            fill="none"
-            :stroke="stat.color.replace('bg-', 'text-').replace('-500', '-600')"
-            stroke-width="2"
-            class="transition-all duration-300"
-          />
-          <circle
-            :cx="76"
-            :cy="28-(stat.trend[stat.trend.length-1]-Math.min(...stat.trend))/(Math.max(...stat.trend)-Math.min(...stat.trend)||1)*22-3"
-            r="2.5"
-            :fill="stat.color.replace('bg-', '').replace('-500', '')"
-            fill-opacity="0.85"
-          />
-        </svg>
+
+      <!-- Main metric -->
+      <div class="flex flex-col mb-3">
+        <div class="flex items-baseline">
+          <span class="text-2xl font-semibold text-gray-900">{{ stat.value }}</span>
+          <span 
+            class="ml-2 px-2 py-0.5 text-xs rounded-full flex items-center"
+            :class="stat.trendUp ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'"
+          >
+            <svg 
+              v-if="stat.trendUp"
+              class="h-3 w-3 mr-1" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            <svg 
+              v-else
+              class="h-3 w-3 mr-1" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
+            </svg>
+            {{ stat.change }}
+          </span>
+        </div>
+        <span class="text-xs text-gray-500 mt-1">গত মাসের তুলনায়</span>
+      </div>
+
+      <!-- Chart and icon area -->
+      <div class="flex items-center gap-3">
+        <!-- Sparkline chart -->
+        <div class="flex-1 h-12">
+          <svg
+            viewBox="0 0 100 30"
+            class="w-full h-full overflow-visible"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <linearGradient :id="`gradient-${index}`" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" :class="`${getColorClasses(stat.color).textLight}`" stop-opacity="0.2" />
+                <stop offset="100%" :class="`${getColorClasses(stat.color).textLight}`" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <!-- Area fill -->
+            <path
+              :d="`M0,30 ${stat.trend.map((v,i) => `L${i * (100/(stat.trend.length-1))},${30-(v-Math.min(...stat.trend))/(Math.max(...stat.trend)-Math.min(...stat.trend)||1)*20}`).join(' ')} L100,30 Z`"
+              :fill="`url(#gradient-${index})`"
+            />
+            <!-- Line -->
+            <polyline
+              :points="stat.trend.map((v,i) => `${i * (100/(stat.trend.length-1))},${30-(v-Math.min(...stat.trend))/(Math.max(...stat.trend)-Math.min(...stat.trend)||1)*20}`).join(' ')"
+              fill="none"
+              :class="`${getColorClasses(stat.color).stroke}`"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <!-- Last point -->
+            <circle
+              :cx="100"
+              :cy="30-(stat.trend[stat.trend.length-1]-Math.min(...stat.trend))/(Math.max(...stat.trend)-Math.min(...stat.trend)||1)*20"
+              r="2"
+              :class="`${getColorClasses(stat.color).fill}`"
+              stroke-width="1"
+              stroke="#fff"
+            />
+          </svg>
+        </div>
+        
+        <!-- Icon -->
+        <div :class="`rounded-md p-3 ${getColorClasses(stat.color).bgLight}`">
+          <i :class="`fas fa-${stat.icon} ${getColorClasses(stat.color).text}`"></i>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* For tooltip fade-in */
-.group [aria-label="Help"]:focus + span,
-.group [aria-label="Help"]:hover + span {
-  display: block;
+/* Enterprise-specific styling */
+.fas {
+  font-size: 1rem;
+}
+
+/* Smooth transitions */
+.bg-white {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Tooltip animation */
+[v-if="tooltipIndex === index"] {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

@@ -145,5 +145,7 @@ Route::post('/submit-all-applications', [App\Http\Controllers\StudentRegistratio
 
 Route::get('api/madrashas-under-markaz/{markazId}', [MadrashaController::class, 'getMadrashasUnderMarkaz']);
 
+Route::get('/students', [StudentController::class, 'getStudentList']);
+
 
 });

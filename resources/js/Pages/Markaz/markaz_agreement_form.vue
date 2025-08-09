@@ -23,9 +23,7 @@ const step = ref(0)
 const toast = useToast();
 const loading = ref(false);
 const formErrors = ref([]);
-// Add validation errors object
 const validationErrors = ref({});
-// Track if user has agreed to conditions
 const conditionsAgreed = ref(false);
 
 const form = useForm({
@@ -98,12 +96,9 @@ const removeRow = (index) => {
     }
 }
 
-// সম্পূর্ণ পুনর্লিখিত handleFileUpload ফাংশন
 const handleFileUpload = (file, type, index) => {
     try {
-        // Direct check if file parameter is already a File object
         if (file instanceof File || file instanceof Blob) {
-            // Process the File object directly
             if (type === 'noc') {
                 rows.value[index].files.noc = file;
                 rows.value[index].files.nocPreview = URL.createObjectURL(file);
@@ -114,10 +109,8 @@ const handleFileUpload = (file, type, index) => {
             return;
         }
 
-        // If not a direct File object, try to extract it from event
         let extractedFile = null;
 
-        // Check various event structures
         if (file && file.files && file.files.length > 0) {
             extractedFile = file.files[0];
         } else if (file && file.target && file.target.files && file.target.files.length > 0) {
@@ -166,9 +159,7 @@ const committeePreview = ref(null)
 
 const handleFileUploadMumtahin = (event, type) => {
     try {
-        // Direct check if event is a File object
         if (event instanceof File || event instanceof Blob) {
-            // Process the File object directly
             switch (type) {
                 case 'muhtamim':
                     muhtamimFile.value = event;
@@ -186,10 +177,8 @@ const handleFileUploadMumtahin = (event, type) => {
             return;
         }
 
-        // If not a direct File object, try to extract it from event
         let file = null;
 
-        // Check various event structures
         if (event && event.files && event.files.length > 0) {
             file = event.files[0];
         } else if (event && event.target && event.target.files && event.target.files.length > 0) {
@@ -240,12 +229,9 @@ const removeFileMumtahin = (type) => {
     }
 }
 
-// সম্পূর্ণ পুনর্লিখিত handleFileUploadForMadrahsa ফাংশন
 const handleFileUploadForMadrahsa = (file, type) => {
     try {
-        // Direct check if file parameter is already a File object
         if (file instanceof File || file instanceof Blob) {
-            // Process the File object directly
             if (type === 'noc') {
                 form.noc_file = file;
                 nocFileForMadrahsa.value = file;
@@ -258,10 +244,8 @@ const handleFileUploadForMadrahsa = (file, type) => {
             return;
         }
 
-        // If not a direct File object, try to extract it from event
         let extractedFile = null;
 
-        // Check various event structures
         if (file && file.files && file.files.length > 0) {
             extractedFile = file.files[0];
         } else if (file && file.target && file.target.files && file.target.files.length > 0) {
@@ -331,7 +315,6 @@ const selectOption = (madrasha, row) => {
     row.isOpen = false;
 };
 
-// Watch for form success
 watch(
   () => form.isSuccess,
   (success) => {
@@ -347,7 +330,6 @@ watch(
   }
 );
 
-// Watch for markaz_type changes to reset irrelevant fields
 watch(() => form.markaz_type, (newType) => {
   if (newType === 'দরসিয়াত') {
     form.hifzul_quran = '';
@@ -368,7 +350,6 @@ watch(() => form.markaz_type, (newType) => {
     form.hifzul_quran = '';
   }
 
-  // Also update the dynamic rows
   rows.value.forEach(row => {
     if (newType === 'দরসিয়াত') {
       row.hifzul_quran = '';
@@ -396,7 +377,6 @@ const submitForm = () => {
   formErrors.value = [];
   validationErrors.value = {};
 
-  // Validate before submission
   if (!form.requirements) {
     loading.value = false;
     toast.add({
@@ -409,7 +389,6 @@ const submitForm = () => {
     return;
   }
 
-  // Validate markaz_type and fields
   if (!form.markaz_type) {
     loading.value = false;
     toast.add({
@@ -422,7 +401,6 @@ const submitForm = () => {
     return;
   }
 
-  // Validate fields based on markaz_type
   if (form.markaz_type === 'দরসিয়াত') {
     if (form.fazilat === '' || form.fazilat === null) {
       loading.value = false;
@@ -472,7 +450,6 @@ const submitForm = () => {
     }
   }
 
-  // Check if all required files are uploaded
   if (!nocFileForMadrahsa.value || !resolutionFileForMadrahsa.value) {
     loading.value = false;
     toast.add({
@@ -485,7 +462,6 @@ const submitForm = () => {
     return;
   }
 
-  // Check if all associated madrasas have required data
   const invalidRows = rows.value.filter(row => {
     if (!row.madrasa_id) return true;
     if (!row.files.noc || !row.files.resolution) return true;
@@ -514,7 +490,6 @@ const submitForm = () => {
     return;
   }
 
-  // Prepare form data for submission
   form.associated_madrasas = rows.value.map(row => ({
     madrasa_Name: row.madrasa_Name,
     madrasa_id: row.madrasa_id,
@@ -558,28 +533,22 @@ const submitForm = () => {
   })
 }
 
-// Helper function to get current date and time
 const getCurrentDateTime = () => {
-    return "2025-07-22 09:17:27"; // Updated with provided value
+    return "2025-07-22 09:17:27";
 }
 
-// Helper function to get current user
 const getCurrentUser = () => {
-    return "tahsin866"; // Using the provided value
+    return "tahsin866";
 }
 
-// Function to handle condition agreement
 const handleConditionsAccepted = () => {
     conditionsAgreed.value = true;
 }
 
-// Step completion tracking with improved validation logic
-// Add condition check for the first step
 const isConditionsAccepted = computed(() => {
     return conditionsAgreed.value;
 });
 
-// সংশোধিত isStep1Valid কম্পিউটেড প্রোপার্টি
 const isStep1Valid = computed(() => {
   try {
     if (!form || !form.markaz_type) return false;
@@ -630,7 +599,6 @@ const isStep2Valid = computed(() => {
 
 const isStep3Valid = computed(() => {
   try {
-    // Requirements field is mandatory
     return !!form?.requirements;
   } catch (error) {
     console.error('Error in isStep3Valid:', error);
@@ -638,14 +606,13 @@ const isStep3Valid = computed(() => {
   }
 });
 
-// সংশোধিত canAccessStep কম্পিউটেড প্রোপার্টি
 const canAccessStep = computed(() => {
   try {
     return {
-      0: true, // Step 1 (শর্তাবলী) is always accessible
-      1: !!isConditionsAccepted.value, // Step 2 needs conditions to be accepted
-      2: (!!isConditionsAccepted.value && !!isStep1Valid.value), // Step 3 needs Step 2 to be valid
-      3: (!!isConditionsAccepted.value && !!isStep1Valid.value && !!isStep2Valid.value) // Step 4 needs Step 3 to be valid
+      0: true,
+      1: !!isConditionsAccepted.value,
+      2: (!!isConditionsAccepted.value && !!isStep1Valid.value),
+      3: (!!isConditionsAccepted.value && !!isStep1Valid.value && !!isStep2Valid.value)
     };
   } catch (error) {
     console.error('Error in canAccessStep:', error);
@@ -667,7 +634,6 @@ const getStepCompletionPercentage = computed(() => {
     }
 });
 
-// Updated step labels for the wizard
 const stepLabels = [
     { label: "শর্তাবলী", icon: "pi pi-info-circle" },
     { label: "ধরন ও মূল তথ্য", icon: "pi pi-file-edit" },
@@ -675,24 +641,20 @@ const stepLabels = [
     { label: "প্রয়োজনীয়তা ও সংযুক্তি", icon: "pi pi-paperclip" }
 ];
 
-// Get status icon for each step
 const getStepIcon = (index) => {
-    if (index === 0 && isConditionsAccepted.value) return "pi pi-check-circle text-green-500";
-    if (index === 1 && isStep1Valid.value) return "pi pi-check-circle text-green-500";
-    if (index === 2 && isStep2Valid.value) return "pi pi-check-circle text-green-500";
-    if (index === 3 && isStep3Valid.value) return "pi pi-check-circle text-green-500";
-    return step.value === index ? "pi pi-spin pi-spinner text-blue-500" : "pi pi-circle-fill text-gray-400";
+    if (index === 0 && isConditionsAccepted.value) return "pi pi-check-circle text-gray-700";
+    if (index === 1 && isStep1Valid.value) return "pi pi-check-circle text-gray-700";
+    if (index === 2 && isStep2Valid.value) return "pi pi-check-circle text-gray-700";
+    if (index === 3 && isStep3Valid.value) return "pi pi-check-circle text-gray-700";
+    return step.value === index ? "pi pi-spin pi-spinner text-gray-700" : "pi pi-circle-fill text-gray-400";
 };
 
-// Function to handle direct tab changes - Prevent tab changes when conditions not agreed or previous steps are not completed
 const handleTabChange = (event) => {
     const targetIndex = event.index;
 
-    // If trying to access a step that's not yet accessible
     if (!canAccessStep.value[targetIndex]) {
         event.preventDefault();
 
-        // Different message based on which step they're trying to access
         let message = '';
         if (targetIndex === 1 && !isConditionsAccepted.value) {
             message = 'অনুগ্রহ করে শর্তাবলী পড়ুন এবং সম্মতি দিন';
@@ -711,11 +673,9 @@ const handleTabChange = (event) => {
         return;
     }
 
-    // Allow the tab change if accessible
     step.value = targetIndex;
 };
 
-// Function to go to next step (used by buttons)
 const goToNextStep = () => {
   const nextStep = step.value + 1;
   if (canAccessStep.value[nextStep]) {
@@ -726,22 +686,22 @@ const goToNextStep = () => {
 
 <template>
 <AuthenticatedLayout>
-    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-emerald-50 mt-8">
+    <div class="min-h-screen bg-gray-50 mt-8">
         <!-- Header Banner -->
-        <div class="bg-gradient-to-r from-emerald-800 to-emerald-700 shadow-md">
-            <div class=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-gray-800 shadow-md">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div class="flex flex-col md:flex-row justify-between items-center">
                     <div class="flex items-center mb-4 md:mb-0">
-                        <div class="bg-white/10 p-3 rounded-lg shadow-inner mr-4">
+                        <div class="bg-gray-700 p-3 rounded-lg mr-4">
                             <i class="pi pi-building text-white text-3xl"></i>
                         </div>
                         <div>
                             <h1 class="text-2xl font-bold text-white">মারকাযের আবেদন ফরম</h1>
-                            <p class="text-emerald-100">পরীক্ষা: {{ form.exam_name || 'লোড হচ্ছে...' }}</p>
+                            <p class="text-gray-300">পরীক্ষা: {{ form.exam_name || 'লোড হচ্ছে...' }}</p>
                         </div>
                     </div>
-                    <div class="flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 text-emerald-50">
-                        <div class="mr-4 border-r border-emerald-100/30 pr-4">
+                    <div class="flex items-center bg-gray-700 rounded-lg px-4 py-2 text-white">
+                        <div class="mr-4 border-r border-gray-500 pr-4">
                             <div class="text-sm">তারিখ ও সময়</div>
                             <div class="font-medium">{{ getCurrentDateTime() }}</div>
                         </div>
@@ -755,13 +715,13 @@ const goToNextStep = () => {
         </div>
 
         <!-- Progress Tracker -->
-        <div class="mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-            <Card class="mb-6 shadow-md border-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+            <Card class="mb-6 shadow-sm border border-gray-200">
                 <template #content>
                     <div class="flex flex-col">
                         <div class="flex justify-between items-center mb-2">
                             <h3 class="text-lg font-medium text-gray-700">আবেদন অগ্রগতি</h3>
-                            <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">{{ getStepCompletionPercentage }}% সম্পন্ন</span>
+                            <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">{{ getStepCompletionPercentage }}% সম্পন্ন</span>
                         </div>
                         <ProgressBar :value="getStepCompletionPercentage" class="h-2 mb-4"></ProgressBar>
 
@@ -776,11 +736,11 @@ const goToNextStep = () => {
                             >
                                 <div class="flex items-center justify-center h-10 w-10 rounded-full mb-2"
                                     :class="[
-                                        step === index ? 'bg-blue-100 text-blue-600' :
+                                        step === index ? 'bg-gray-200 text-gray-800' :
                                         ((index === 0 && isConditionsAccepted) ||
                                          (index === 1 && isStep1Valid) ||
                                          (index === 2 && isStep2Valid) ||
-                                         (index === 3 && isStep3Valid)) ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
+                                         (index === 3 && isStep3Valid)) ? 'bg-gray-200 text-gray-800' : 'bg-gray-100 text-gray-500'
                                     ]">
                                     <i :class="[stepLabel.icon, 'text-lg']"></i>
                                 </div>
@@ -793,10 +753,10 @@ const goToNextStep = () => {
         </div>
 
         <!-- Main Content -->
-        <div class="mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-            <Card class="shadow-lg border-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+            <Card class="shadow-md border border-gray-200">
                 <template #content>
-                    <TabView v-model:activeIndex="step" class="custom-tabs" :scrollable="true" @tab-change="handleTabChange">
+                    <TabView v-model:activeIndex="step" :scrollable="true" @tab-change="handleTabChange">
                         <!-- Conditions Tab -->
                         <TabPanel>
                             <template #header>
@@ -805,32 +765,34 @@ const goToNextStep = () => {
                                     <span class="font-medium">১. শর্তাবলী</span>
                                 </div>
                             </template>
-                            <MarkazConditions @continue="handleConditionsAccepted" />
+                            <div class="p-6">
+                                <MarkazConditions @continue="handleConditionsAccepted" />
 
-                            <!-- Special message when conditions are not agreed -->
-                            <div v-if="!conditionsAgreed" class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-r">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0">
-                                        <i class="pi pi-exclamation-triangle text-yellow-500 text-xl"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <p class="text-sm font-medium text-yellow-800">
-                                            শর্তাবলী সম্মত হলে চেকবক্সে টিক দিন এবং পরবর্তী ধাপে যেতে "পরবর্তী ধাপে যান" বাটনে ক্লিক করুন।
-                                        </p>
+                                <!-- Special message when conditions are not agreed -->
+                                <div v-if="!conditionsAgreed" class="mt-6 p-4 bg-gray-100 border-l-4 border-gray-500 rounded-r">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <i class="pi pi-exclamation-triangle text-gray-600 text-xl"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-gray-600">
+                                                শর্তাবলী সম্মত হলে চেকবক্সে টিক দিন এবং পরবর্তী ধাপে যেতে "পরবর্তী ধাপে যান" বাটনে ক্লিক করুন।
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Next button -->
-                            <div class="flex justify-end p-4 bg-gray-50 rounded-b-lg border-t border-gray-200 mt-4">
-                                <Button
-                                    label="পরবর্তী ধাপে যান"
-                                    icon="pi pi-arrow-right"
-                                    iconPos="right"
-                                    class="p-button-raised shadow-md"
-                                    :disabled="!conditionsAgreed"
-                                    @click="goToNextStep"
-                                />
+                                <!-- Next button -->
+                                <div class="flex justify-end p-4 bg-gray-50 rounded-b-lg border-t border-gray-200 mt-4">
+                                    <Button
+                                        label="পরবর্তী ধাপে যান"
+                                        icon="pi pi-arrow-right"
+                                        iconPos="right"
+                                        class="p-button-secondary"
+                                        :disabled="!conditionsAgreed"
+                                        @click="goToNextStep"
+                                    />
+                                </div>
                             </div>
                         </TabPanel>
 
@@ -839,21 +801,21 @@ const goToNextStep = () => {
                                 <div class="flex items-center" :class="{ 'opacity-50': !canAccessStep[1] }">
                                     <i :class="getStepIcon(1)" class="mr-2"></i>
                                     <span class="font-medium">২. ধরন ও মূল তথ্য</span>
-                                    <i v-if="!canAccessStep[1]" class="pi pi-lock ml-2 text-yellow-500" v-tooltip.top="'প্রথমে শর্তাবলী সম্মত হন'"></i>
+                                    <i v-if="!canAccessStep[1]" class="pi pi-lock ml-2 text-gray-500" v-tooltip.top="'প্রথমে শর্তাবলী সম্মত হন'"></i>
                                 </div>
                             </template>
-                            <div class="p-4">
+                            <div class="p-6">
                                 <h3 class="text-xl font-bold text-gray-700 mb-6 pb-2 border-b border-gray-200">
                                     মারকাযের ধরণ ও মূল তথ্য
                                 </h3>
 
-                                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r-md">
+                                <div class="bg-gray-100 border-l-4 border-gray-500 p-4 mb-6 rounded-r-md">
                                     <div class="flex">
                                         <div class="flex-shrink-0">
-                                            <i class="pi pi-info-circle text-blue-500"></i>
+                                            <i class="pi pi-info-circle text-gray-600"></i>
                                         </div>
                                         <div class="ml-3">
-                                            <p class="text-sm text-blue-700">
+                                            <p class="text-sm text-gray-600">
                                                 নিম্নে আপনার মারকাযের ধরণ নির্বাচন করুন এবং প্রয়োজনীয় তথ্য পূরণ করুন। সমস্ত তারকাচিহ্নিত (*) ক্ষেত্র পূরণ করা আবশ্যক।
                                             </p>
                                         </div>
@@ -865,7 +827,6 @@ const goToNextStep = () => {
                                     <CategorySelect
                                         :modelValue="form.markaz_type"
                                         @update:modelValue="form.markaz_type = $event"
-                                        class="custom-category-select"
                                     />
                                 </div>
 
@@ -879,26 +840,25 @@ const goToNextStep = () => {
                                         :resolutionPreview="resolutionPreviewForMadrahsa"
                                         @file-upload="(file, type) => handleFileUploadForMadrahsa(file, type)"
                                         @remove-file="removeFileForMadrahsa"
-                                        class="custom-madrasa-info"
                                     />
                                 </div>
-                            </div>
 
-                            <div class="flex justify-between p-4 bg-gray-50 rounded-b-lg border-t border-gray-200">
-                                <Button
-                                    label="পূর্ববর্তী ধাপ"
-                                    icon="pi pi-arrow-left"
-                                    class="p-button-outlined"
-                                    @click="step = 0"
-                                />
-                                <Button
-                                    label="পরবর্তী ধাপ"
-                                    icon="pi pi-arrow-right"
-                                    iconPos="right"
-                                    class="p-button-raised shadow-md"
-                                    :disabled="!isStep1Valid"
-                                    @click="goToNextStep"
-                                />
+                                <div class="flex justify-between p-4 bg-gray-50 rounded-b-lg border-t border-gray-200 mt-6">
+                                    <Button
+                                        label="পূর্ববর্তী ধাপ"
+                                        icon="pi pi-arrow-left"
+                                        class="p-button-outlined"
+                                        @click="step = 0"
+                                    />
+                                    <Button
+                                        label="পরবর্তী ধাপ"
+                                        icon="pi pi-arrow-right"
+                                        iconPos="right"
+                                        class="p-button-secondary"
+                                        :disabled="!isStep1Valid"
+                                        @click="goToNextStep"
+                                    />
+                                </div>
                             </div>
                         </TabPanel>
 
@@ -907,22 +867,22 @@ const goToNextStep = () => {
                                 <div class="flex items-center" :class="{ 'opacity-50': !canAccessStep[2] }">
                                     <i :class="getStepIcon(2)" class="mr-2"></i>
                                     <span class="font-medium">৩. সংযুক্ত মাদ্রাসা</span>
-                                    <i v-if="!canAccessStep[2]" class="pi pi-lock ml-2 text-yellow-500"
+                                    <i v-if="!canAccessStep[2]" class="pi pi-lock ml-2 text-gray-500"
                                        v-tooltip.top="!isConditionsAccepted ? 'প্রথমে শর্তাবলী সম্মত হন' : 'ধরন ও মূল তথ্য সম্পূর্ণ করুন'"></i>
                                 </div>
                             </template>
-                            <div class="p-4">
+                            <div class="p-6">
                                 <h3 class="text-xl font-bold text-gray-700 mb-6 pb-2 border-b border-gray-200">
                                     সংযুক্ত মাদ্রাসার তথ্য
                                 </h3>
 
-                                <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6 rounded-r-md">
+                                <div class="bg-gray-100 border-l-4 border-gray-500 p-4 mb-6 rounded-r-md">
                                     <div class="flex">
                                         <div class="flex-shrink-0">
-                                            <i class="pi pi-exclamation-triangle text-yellow-500"></i>
+                                            <i class="pi pi-exclamation-triangle text-gray-600"></i>
                                         </div>
                                         <div class="ml-3">
-                                            <p class="text-sm text-yellow-700">
+                                            <p class="text-sm text-gray-600">
                                                 সংযুক্ত মাদ্রাসা যোগ করতে মাদ্রাসার নাম বা ইলহাক নম্বর দিয়ে অনুসন্ধান করুন। প্রতিটি মাদ্রাসার জন্য প্রয়োজনীয় তথ্য পূরণ করুন।
                                             </p>
                                         </div>
@@ -932,7 +892,7 @@ const goToNextStep = () => {
                                 <div class="bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
                                     <div class="flex justify-between items-center mb-4">
                                         <h4 class="text-lg font-medium text-gray-700">সংযুক্ত মাদ্রাসা সমূহ</h4>
-                                        <Badge :value="rows.length" class="bg-blue-600"></Badge>
+                                        <Badge :value="rows.length" class="bg-gray-600"></Badge>
                                     </div>
 
                                     <DynamicMadrasas
@@ -945,26 +905,25 @@ const goToNextStep = () => {
                                         @file-upload="handleFileUpload"
                                         @remove-file="removeFile"
                                         @select-option="selectOption"
-                                        class="custom-dynamic-madrasas"
                                     />
                                 </div>
-                            </div>
 
-                            <div class="flex justify-between p-4 bg-gray-50 rounded-b-lg border-t border-gray-200">
-                                <Button
-                                    label="পূর্ববর্তী ধাপ"
-                                    icon="pi pi-arrow-left"
-                                    class="p-button-outlined"
-                                    @click="step = 1"
-                                />
-                                <Button
-                                    label="পরবর্তী ধাপ"
-                                    icon="pi pi-arrow-right"
-                                    iconPos="right"
-                                    class="p-button-raised shadow-md"
-                                    :disabled="!isStep2Valid"
-                                    @click="goToNextStep"
-                                />
+                                <div class="flex justify-between p-4 bg-gray-50 rounded-b-lg border-t border-gray-200 mt-6">
+                                    <Button
+                                        label="পূর্ববর্তী ধাপ"
+                                        icon="pi pi-arrow-left"
+                                        class="p-button-outlined"
+                                        @click="step = 1"
+                                    />
+                                    <Button
+                                        label="পরবর্তী ধাপ"
+                                        icon="pi pi-arrow-right"
+                                        iconPos="right"
+                                        class="p-button-secondary"
+                                        :disabled="!isStep2Valid"
+                                        @click="goToNextStep"
+                                    />
+                                </div>
                             </div>
                         </TabPanel>
 
@@ -973,22 +932,22 @@ const goToNextStep = () => {
                                 <div class="flex items-center" :class="{ 'opacity-50': !canAccessStep[3] }">
                                     <i :class="getStepIcon(3)" class="mr-2"></i>
                                     <span class="font-medium">৪. প্রয়োজনীয়তা ও সংযুক্তি</span>
-                                    <i v-if="!canAccessStep[3]" class="pi pi-lock ml-2 text-yellow-500"
+                                    <i v-if="!canAccessStep[3]" class="pi pi-lock ml-2 text-gray-500"
                                        v-tooltip.top="!isConditionsAccepted ? 'প্রথমে শর্তাবলী সম্মত হন' : !isStep1Valid ? 'ধরন ও মূল তথ্য সম্পূর্ণ করুন' : 'সংযুক্ত মাদ্রাসার তথ্য সম্পূর্ণ করুন'"></i>
                                 </div>
                             </template>
-                            <div class="p-4">
+                            <div class="p-6">
                                 <h3 class="text-xl font-bold text-gray-700 mb-6 pb-2 border-b border-gray-200">
                                     প্রয়োজনীয়তা ও প্রমাণক সংযুক্তি
                                 </h3>
 
-                                <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded-r-md">
+                                <div class="bg-gray-100 border-l-4 border-gray-500 p-4 mb-6 rounded-r-md">
                                     <div class="flex">
                                         <div class="flex-shrink-0">
-                                            <i class="pi pi-check-circle text-green-500"></i>
+                                            <i class="pi pi-check-circle text-gray-600"></i>
                                         </div>
                                         <div class="ml-3">
-                                            <p class="text-sm text-green-700">
+                                            <p class="text-sm text-gray-600">
                                                 মারকাজ চাওয়ার প্রয়োজনীয়তা বর্ণনা করুন। প্রয়োজনীয়তা ব্যাখ্যা অবশ্যই পূরণ করুন। ফাইল সংযুক্তি ঐচ্ছিক, তবে যদি থাকে PDF, JPG, বা PNG ফরম্যাটে আপলোড করুন।
                                             </p>
                                         </div>
@@ -1000,7 +959,6 @@ const goToNextStep = () => {
                                     <RequirementsSection
                                         :modelValue="form.requirements"
                                         @update:modelValue="form.requirements = $event"
-                                        class="custom-requirements"
                                     />
                                     <p class="text-sm text-gray-500 mt-2">মারকাজ চাওয়ার প্রয়োজনীয়তা বিস্তারিত ব্যাখ্যা করুন। এই ক্ষেত্রটি পূরণ করা বাধ্যতামূলক।</p>
                                 </div>
@@ -1016,49 +974,48 @@ const goToNextStep = () => {
                                         :committeePreview="committeePreview"
                                         @file-upload="handleFileUploadMumtahin"
                                         @remove-file="removeFileMumtahin"
-                                        class="custom-attachments"
                                     />
-                                    <div class="mt-4 p-3 bg-blue-50 rounded-md">
-                                        <p class="text-sm text-blue-700">
+                                    <div class="mt-4 p-3 bg-gray-100 rounded-md">
+                                        <p class="text-sm text-gray-600">
                                             <i class="pi pi-info-circle mr-1"></i>
                                             ফাইল সংযুক্তি ঐচ্ছিক। প্রয়োজনীয়তা ব্যাখ্যা পূরণ করলেই আবেদন জমা দেওয়া যাবে।
                                         </p>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Display form errors if any -->
-                            <div v-if="formErrors.length > 0" class="p-4 bg-red-50 border border-red-200 rounded-md mx-4 mb-4">
-                                <h4 class="font-medium text-red-700 mb-2">
-                                    <i class="pi pi-exclamation-circle mr-2"></i>নিম্নলিখিত সমস্যা সমাধান করুন:
-                                </h4>
-                                <ul class="list-disc pl-5">
-                                    <li v-for="(error, key) in formErrors" :key="key" class="text-red-600 text-sm">
-                                        {{ error }}
-                                    </li>
-                                </ul>
-                            </div>
+                                <!-- Display form errors if any -->
+                                <div v-if="formErrors.length > 0" class="p-4 bg-gray-100 border border-red-200 rounded-md mb-4">
+                                    <h4 class="font-medium text-red-700 mb-2">
+                                        <i class="pi pi-exclamation-circle mr-2"></i>নিম্নলিখিত সমস্যা সমাধান করুন:
+                                    </h4>
+                                    <ul class="list-disc pl-5">
+                                        <li v-for="(error, key) in formErrors" :key="key" class="text-red-600 text-sm">
+                                            {{ error }}
+                                        </li>
+                                    </ul>
+                                </div>
 
-                            <div class="flex justify-between p-4 bg-gray-50 rounded-b-lg border-t border-gray-200">
-                                <Button
-                                    label="পূর্ববর্তী ধাপ"
-                                    icon="pi pi-arrow-left"
-                                    class="p-button-outlined"
-                                    @click="step = 2"
-                                />
-                                <Button
-                                    label="আবেদন জমা দিন"
-                                    icon="pi pi-check"
-                                    iconPos="right"
-                                    class="p-button-success p-button-raised shadow-md"
-                                    :loading="loading"
-                                    :disabled="!isStep3Valid || loading"
-                                    @click="submitForm"
-                                >
-                                    <span v-if="!isStep3Valid" class="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-                                        প্রয়োজনীয়তা ব্যাখ্যা পূরণ করুন
-                                    </span>
-                                </Button>
+                                <div class="flex justify-between p-4 bg-gray-50 rounded-b-lg border-t border-gray-200 mt-6">
+                                    <Button
+                                        label="পূর্ববর্তী ধাপ"
+                                        icon="pi pi-arrow-left"
+                                        class="p-button-outlined"
+                                        @click="step = 2"
+                                    />
+                                    <Button
+                                        label="আবেদন জমা দিন"
+                                        icon="pi pi-check"
+                                        iconPos="right"
+                                        class="p-button-success"
+                                        :loading="loading"
+                                        :disabled="!isStep3Valid || loading"
+                                        @click="submitForm"
+                                    >
+                                        <span v-if="!isStep3Valid" class="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                                            প্রয়োজনীয়তা ব্যাখ্যা পূরণ করুন
+                                        </span>
+                                    </Button>
+                                </div>
                             </div>
                         </TabPanel>
                     </TabView>
@@ -1068,102 +1025,3 @@ const goToNextStep = () => {
     </div>
 </AuthenticatedLayout>
 </template>
-
-<style scoped>
-/* Custom styling for a professional look */
-.custom-tabs >>> .p-tabview-nav {
-    background: #f8fafc;
-    border-radius: 8px 8px 0 0;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 0 1rem;
-}
-
-.custom-tabs >>> .p-tabview-nav li .p-tabview-nav-link {
-    border: none;
-    background: transparent;
-    color: #64748b;
-    font-weight: 500;
-    padding: 1rem 1.25rem;
-    transition: all 0.2s;
-    border-bottom: 2px solid transparent;
-}
-
-.custom-tabs >>> .p-tabview-nav li.p-highlight .p-tabview-nav-link {
-    color: #10b981;
-    border-bottom: 2px solid #10b981;
-}
-
-/* Disabled tab styling */
-.custom-tabs >>> .p-tabview-nav li.p-disabled .p-tabview-nav-link {
-    color: #9ca3af;
-    cursor: not-allowed;
-    opacity: 0.6;
-    pointer-events: none;
-}
-
-.custom-tabs >>> .p-tabview-panels {
-    padding: 0;
-    border: none;
-}
-
-.p-button {
-    transition: all 0.2s;
-    position: relative;
-}
-
-.p-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.p-button.p-button-raised {
-    background: linear-gradient(135deg, #10b981, #059669);
-    border: none;
-}
-
-.p-button.p-button-outlined {
-    border: 1px solid #64748b;
-    color: #64748b;
-}
-
-.p-button.p-button-success {
-    background: linear-gradient(135deg, #10b981, #059669);
-    border: none;
-}
-
-.p-card {
-    transition: all 0.3s ease;
-    border-radius: 0.75rem;
-    overflow: hidden;
-}
-
-.p-card:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-/* Responsive design adjustments */
-@media (max-width: 640px) {
-    .p-card {
-        border-radius: 0.5rem;
-    }
-
-    .custom-tabs >>> .p-tabview-nav li .p-tabview-nav-link {
-        padding: 0.75rem 0.5rem;
-        font-size: 0.875rem;
-    }
-}
-
-/* Animation for tab transitions */
-.p-tabview-panels {
-    position: relative;
-}
-
-.p-tabview-panel {
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0.7; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-</style>

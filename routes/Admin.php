@@ -115,6 +115,10 @@ Route::get('/nibondon-markaz-list', function () {
     return Inertia::render('nibondon_for_admin/nibondon_Markaz_list');
 })->name('nibondon_for_admin.nibondon_Markaz_list');
 
+Route::get('/studentList', function () {
+    return Inertia::render('students_registration/studentList');
+})->name('students_registration.studentList');
+
 // Route::get('/abandon-stu-list', function () {
 //     return Inertia::render('nibondon_for_admin/abandon_stu_list');
 // })->name('nibondon_for_admin.abandon_stu_list');
