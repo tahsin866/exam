@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from "vue";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import axios from 'axios';
-import { createToaster } from "@meforma/vue-toaster";
+
 import { useForm } from '@inertiajs/vue3';
 
 // Sidebar state
@@ -976,9 +976,6 @@ const resetForm = () => {
     </div>
   </div>
 </div>
-
-
-
 
 
 

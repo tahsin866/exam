@@ -3,6 +3,7 @@ import { ref, computed, onMounted,watch  } from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
 import Sidebar from '@/Layouts/admin/components/Sidebar.vue';
 import Navbar from '@/Layouts/admin/components/Navbar.vue';
+import LoadingIndicator from '@/Components/LoadingIndicator.vue';
 
 const showSidebar = ref(false);
 const page = usePage();
@@ -43,6 +44,9 @@ watch(auth, (newAuth) => {
 
 <template>
     <div style="font-family: 'Merriweather','SolaimanLipi',sans-serif;" class="flex bg-gray-100 dark:bg-gray-900 min-h-screen">
+        <!-- Loading Indicator -->
+        <LoadingIndicator />
+
         <!-- Sidebar -->
         <Sidebar />
 

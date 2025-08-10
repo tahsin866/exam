@@ -1,5 +1,8 @@
 <template>
     <div style="font-family: 'Merriweather','SolaimanLipi',sans-serif;" class="flex min-h-screen bg-gray-100 dark:bg-gray-900">
+      <!-- Loading Indicator -->
+      <LoadingIndicator />
+
       <!-- Sidebar -->
   <aside
   :class="[
@@ -784,6 +787,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
+import LoadingIndicator from '@/Components/LoadingIndicator.vue';
 import axios from 'axios';
 import 'primeicons/primeicons.css'
 
@@ -803,7 +807,7 @@ watch(auth, (newAuth) => {
     // Only run security check once and if auth data is available
     if (newAuth && typeof newAuth === 'object' && !hasCheckedSecurity.value) {
         hasCheckedSecurity.value = true;
-        
+
         // Check if user is logged in and is madrasa user
         if (!newAuth.user) {
             // Not logged in - redirect to login (but not if already on login page)
@@ -812,7 +816,7 @@ watch(auth, (newAuth) => {
             }
             return;
         }
-        
+
         if (newAuth.user && newAuth.userType && !newAuth.isMadrasa) {
             // Not madrasa user - log security violation and redirect to appropriate dashboard
             console.error('Security Violation: Non-madrasa user attempted to access madrasa layout', {
@@ -820,7 +824,7 @@ watch(auth, (newAuth) => {
                 userType: newAuth.userType,
                 timestamp: new Date().toISOString()
             });
-            
+
             // Redirect based on user type (but not if already on correct page)
             if (newAuth.isAdmin && !window.location.pathname.includes('/admin')) {
                 router.visit('/admin/dashboard');

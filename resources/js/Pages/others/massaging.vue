@@ -75,7 +75,7 @@
       </div>
 
       <!-- Messages Area -->
-      <div class="flex-1 overflow-y-auto p-6 bg-[url('/islamic-pattern.png')] bg-repeat opacity-95" ref="messagesContainer">
+      <div class="flex-1 overflow-y-auto p-6 bg-gray-50 bg-repeat opacity-95" ref="messagesContainer">
         <div
           v-for="message in currentMessages"
           :key="message.id"

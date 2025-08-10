@@ -49,7 +49,7 @@ const confirmAction = () => {
     <div class="bg-white rounded-sm shadow-lg overflow-hidden mx-5 mt-5">
     <!-- Table Header with Islamic Pattern -->
     <div class="bg-gradient-to-r from-emerald-800 to-emerald-600 px-6 py-4  relative overflow-hidden">
-      <div class="absolute inset-0 opacity-10 bg-[url('/images/islamic-pattern.png')]"></div>
+      <div class="absolute inset-0 opacity-10 bg-gray-100"></div>
       <div class="flex justify-between items-center relative z-10">
         <h2 class="text-2xl font-bold text-white font-arabic">মারহালা আবেদন তালিকা</h2>
         <Link
@@ -65,7 +65,7 @@ const confirmAction = () => {
     </div>
 
     <!-- Table Container -->
-    <div class="p-6 bg-[url('/images/subtle-pattern.png')] bg-opacity-5">
+    <div class="p-6 bg-gray-50 bg-opacity-5">
       <div class="overflow-x-auto">
         <table class="w-full border border-emerald-200 rounded-lg">
           <thead>
